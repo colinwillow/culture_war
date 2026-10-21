@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=58';
-import { walkH } from '../map/layout.js?v=58';
-import { shake } from '../camera/camera.js?v=58';
-import { FC } from '../render/models.js?v=58';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=58';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=59';
+import { walkH } from '../map/layout.js?v=59';
+import { shake } from '../camera/camera.js?v=59';
+import { FC } from '../render/models.js?v=59';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=59';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -166,6 +166,21 @@ function soundWaves(x, z, tx, tz) {
     });
   }
 }
+/** Wrecking Ball: a huge iron ball on a chain swings in from the sky in a pendulum arc and lands on the target
+ *  (timed to the sim's 1.4 s), then swings back up and away. */
+function wreckingBall(x, z) {
+  const g0 = gy(x, z), top = g0 + 34, len = 32, start = -1.1;
+  const pivot = new THREE.Group(); pivot.position.set(x, top, z);
+  const arm = new THREE.Group(); pivot.add(arm);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(1.6, 14, 10), mat(0x2b2b2b)); ball.position.y = -len; arm.add(ball);
+  const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, len, 5), mat(0x777777)); chain.position.y = -len / 2; arm.add(chain);
+  arm.rotation.x = start;
+  addFx(pivot, 2.4, (o, k) => {
+    const t = k * 2.4;
+    if (t < 1.4) { const u = t / 1.4; arm.rotation.x = start * (1 - u * u); } // accelerates down into the bottom of the swing
+    else { const u = (t - 1.4) / 1.0; arm.rotation.x = Math.sin(u * Math.PI * 0.5) * 0.9; o.position.y = top + u * 20; }
+  });
+}
 /** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
 function fxRubble(x, z, r) {
   const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
@@ -236,8 +251,13 @@ export function handleEvents(S, bump) {
       case 'eject': fxRing(ev.x, ev.z, 0.4, 2.5, 0x7fd1ff, 0.4); break;
       case 'repair': for (let k = 0; k < 5; k++) emit({ x: ev.x, y: gy(ev.x, ev.z, 1.2 + Math.random()), z: ev.z, vx: (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 4, c: k % 2 ? 0xffe14d : 0xffffff, s: 0.12, life: 0.35, g: 14 }); break;
       case 'cones': fxRing(ev.x, ev.z, 0.5, ev.r, 0xf28c28, 0.5, 0.15); fxBits(ev.x, ev.z, 0xf28c28, 10, 0.5, 6); break;
-      case 'wrecklaunch': break;
-      case 'wreckboom': fxRing(ev.x, ev.z, 1, ev.r * 1.6, 0x8a8378, 0.6); fxBits(ev.x, ev.z, 0x6b655c, 14, 1, 8); shake(1.4, ev.x, ev.z); break;
+      case 'wrecklaunch': wreckingBall(ev.x, ev.z); break;
+      case 'wreckboom': {
+        fxRing(ev.x, ev.z, 1, ev.r * 1.6, 0x8a8378, 0.6); fxBits(ev.x, ev.z, 0x6b655c, 14, 1, 8); shake(1.4, ev.x, ev.z);
+        const g0 = gy(ev.x, ev.z);
+        for (let i = 0; i < 24; i++) { const a = Math.random() * 6.28; emit({ x: ev.x + Math.cos(a), y: g0 + 0.4, z: ev.z + Math.sin(a), vx: Math.cos(a) * (4 + Math.random() * 3), vy: 1 + Math.random() * 2, vz: Math.sin(a) * (4 + Math.random() * 3), c: 0xb3a58a, s: 0.7, life: 1.4, g: -0.2, drag: 2, grow: 2.6 }); }
+        break;
+      }
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;

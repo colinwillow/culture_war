@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=58';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=58';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=58';
-import { emit } from '../fx/particles.js?v=58';
-import { TICK } from '../config/factions.js?v=58';
-import { walkH } from '../map/layout.js?v=58';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=58';
-import { Q, pl } from '../sim/sim.js?v=58';
-import { UI } from '../ui/state.js?v=58';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=58';
-import { lerpAngle } from '../util/math.js?v=58';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=59';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=59';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=59';
+import { emit } from '../fx/particles.js?v=59';
+import { TICK } from '../config/factions.js?v=59';
+import { walkH } from '../map/layout.js?v=59';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=59';
+import { Q, pl } from '../sim/sim.js?v=59';
+import { UI } from '../ui/state.js?v=59';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=59';
+import { lerpAngle } from '../util/math.js?v=59';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -464,11 +464,16 @@ export function syncRender(S, alpha, dt, time) {
       m = new THREE.Group();
       const cones = zn.kind === 'cones';
       const d = new THREE.Mesh(new THREE.CircleGeometry(zn.r, 40), basic(cones ? 0xf28c28 : 0x5b4026, cones ? 0.18 : 0.85)); d.rotation.x = -Math.PI / 2; d.position.y = 0.11; m.add(d);
-      if (cones) for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.75, 8), mat(i % 2 ? 0xf28c28 : 0xffffff)); c.position.set(Math.cos(a) * zn.r, 0.38, Math.sin(a) * zn.r); m.add(c); }
+      if (cones) for (let i = 0; i < 22; i++) {
+        // Road Closed: cones round the rim with striped barriers between every other pair; they drop in from the sky
+        const a = (i / 22) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.75, 8), mat(i % 3 ? 0xf28c28 : 0xffffff)); c.position.set(Math.cos(a) * zn.r, 0.38, Math.sin(a) * zn.r); c.userData.drop = 0.3 + i * 0.03; m.add(c);
+        if (i % 2 === 0) { const a2 = a + Math.PI / 22, bar = new THREE.Group(); bar.position.set(Math.cos(a2) * zn.r, 0, Math.sin(a2) * zn.r); bar.rotation.y = -a2; bar.add(box(0.08, 0.5, 0.08, 0xffffff, 0, 0.25, -0.5), box(0.08, 0.5, 0.08, 0xffffff, 0, 0.25, 0.5), box(0.06, 0.18, 1.3, i % 4 ? 0xf28c28 : 0xffffff, 0, 0.55, 0)); bar.userData.drop = 0.35 + i * 0.03; m.add(bar); }
+      }
       else for (let i = 0; i < 10; i++) { const a = Math.random() * 6.28, rr = Math.random() * zn.r * 0.8; const bl = new THREE.Mesh(new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 7, 5), mat(0x4a331d)); bl.scale.y = 0.4; bl.position.set(Math.cos(a) * rr, 0.12, Math.sin(a) * rr); m.add(bl); }
       m.position.set(zn.x, walkH(zn.x, zn.z), zn.z); scene.add(m); R.zones.set(zn.id, m);
     }
-    m.children[0].material.opacity = Math.min(0.85, zn.t);
+    m.children[0].material.opacity = Math.min(0.85, zn.t) * (zn.kind === 'cones' ? 0.25 : 1);
+    if (zn.kind === 'cones') { m.userData.age = (m.userData.age || 0) + dt; for (const c of m.children) if (c.userData.drop) { const k = Math.min(1, Math.max(0, (m.userData.age - c.userData.drop + 0.3) / 0.3)); c.position.y = (c.geometry ? 0.38 : 0) + (1 - k) * 8; } }
     // Mud bubbles: blobs well up all over the bog and pop.
     if (zn.kind === 'mud' && Math.random() < dt * zn.r * 2.2) {
       const a = Math.random() * 6.28, rr = Math.sqrt(Math.random()) * zn.r * 0.9, bx = zn.x + Math.cos(a) * rr, bz = zn.z + Math.sin(a) * rr;

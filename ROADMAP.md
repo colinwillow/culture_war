@@ -68,6 +68,6 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B56) Logic: Hard Hats faction data — units (Odd-job → Apprentice worker, Nail-gunners pike, Wrecking crew melee, Surveyors ranged, Forklift cav, Excavator siege, Foreman hero), building names, 2 powers (Road Closed cones wall, Wrecking Ball); builds 2x faster + Overtime. Opponent picked at random from the other two
 - [x] (B57) UI: menu shows three faction picks (Hard Hats in safety orange with a hard-hat icon); end screen + HUD work for all three
 - [x] (B58) Units: Hard Hats cast with Colin's construction worker GLB (it already has its own swing / carry / hit clips) + placeholder vehicles (forklift, excavator with swinging arm)
-- [ ] FX: Hard Hats powers visuals — Road Closed drops a line of traffic cones + barriers that block movement; Wrecking Ball swings in from the sky and smashes
+- [x] (B59) FX: Hard Hats powers visuals — Road Closed drops a line of traffic cones + barriers that block movement; Wrecking Ball swings in from the sky and smashes
 - [ ] Logic: Hard Hats building trait visible — their buildings go up with extra cranes/scaffold and repair themselves slowly
 - [ ] Map: Hard Hats base dressing — cones, barriers and a porta-potty around their HQ

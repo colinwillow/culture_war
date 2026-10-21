@@ -76,8 +76,8 @@ export const FACTIONS = {
       hero: { name: 'The Foreman', n: 1, hp: 650, dmg: 20, range: 1.4, speed: 5, cost: 750, build: 40, cp: 15 },
     },
     powers: [
-      { id: 'cones', name: 'Road Closed', cost: 40, target: true, icon: 'shield' },
-      { id: 'wreck', name: 'Wrecking Ball', cost: 100, target: true, icon: 'skull' },
+      { id: 'cones', name: 'Road Closed', cost: 40, target: true, icon: 'cone' },
+      { id: 'wreck', name: 'Wrecking Ball', cost: 100, target: true, icon: 'ball' },
     ],
   },
 };
