@@ -156,7 +156,9 @@ third-person game too. Mix species across every faction; costume/gear defines th
 - Built (B145): the city as a computer-run third side (owner 2, `S.cityP`, `CITYFOLK` in factions.js), heat per player,
   police tiers, road crews. B146: fires that spread, fire crews (`updateFireCrew`), civilians as sim units (`updateCiv`).
   B147: army (truck drops soldiers, heat 45) and Riot Mech (heat 65, smashes buildings but never the HQ).
-  Next: alien verbs on the existing factions.
+  B148: alien verbs on two existing factions as prototypes - Nerds abduct (`traits.abduct`), Activists possess
+  (`traits.possess`, `s.disg`); see `alienVerb` in sim.js. Next: the other verbs (eat, infect, mind-control) once
+  the factions become alien species.
 
 ## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
 The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping

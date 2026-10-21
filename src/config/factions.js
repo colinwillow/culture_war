@@ -46,6 +46,7 @@ export const FACTIONS = {
   },
   ac: {
     name: 'Activists',
+    traits: { possess: true }, // alien verb prototype: walks into a civilian and wears them until it strikes
     bldNames: { hq: 'Community Center', depot: 'Crowdfund Booth', barracks: 'Organizing Hall', tower: 'Banner Tower' },
     units: {
       worker: { name: 'Gig Worker', n: 1, hp: 45, dmg: 2, range: 1, speed: 5, cost: 50, build: 7, cp: 1 },
@@ -121,7 +122,7 @@ export const FACTIONS = {
   // Nerds (Tech): fragile up close, deadly at range; their towers are souped-up (+30% tower damage and range).
   nd: {
     name: 'Nerds',
-    traits: { towerMul: 1.3 },
+    traits: { towerMul: 1.3, abduct: true }, // alien verb prototype: beams up civilians for cash + power
     bldNames: { hq: 'Game Shop', depot: 'Server Rack', barracks: 'LAN Cafe', tower: 'Antenna Tower' },
     units: {
       worker: { name: 'Tech Support', n: 1, hp: 50, dmg: 2, range: 1, speed: 4.8, cost: 60, build: 7, cp: 1 },

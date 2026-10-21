@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=147';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=147';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=147';
-import { mulberry32 } from '../util/math.js?v=147';
-import { aiStep } from './ai.js?v=147';
+} from '../config/factions.js?v=148';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=148';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=148';
+import { mulberry32 } from '../util/math.js?v=148';
+import { aiStep } from './ai.js?v=148';
 
 let S = null;
 export const getSim = () => S;
@@ -336,7 +336,9 @@ function hitBld(b, d, by) {
   }
 }
 function attack(s, t) {
-  const ph = perHit(s, t), n = aliveN(s);
+  const amb = s.disg > 0; // striking from inside a host: double damage, then the disguise drops
+  if (amb) { s.disg = 0; S.events.push({ k: 'reveal', id: s.id, x: s.x, z: s.z, f: s.f }); }
+  const ph = perHit(s, t) * (amb ? 2 : 1), n = aliveN(s);
   let total;
   if (t.isBld) { total = ph * n; hitBld(t, total, s.owner); }
   else if (s.def.area) { total = ph * Math.min(5, aliveN(t)); hitSquad(t, ph, true, s); }
@@ -348,7 +350,7 @@ function attack(s, t) {
 }
 function nearestEnemy(s, maxD) {
   let best = null, bd = maxD;
-  for (const o of S.squads) { if (o.owner === s.owner || o.gar || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== s.owner))) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
+  for (const o of S.squads) { if (o.owner === s.owner || o.gar || o.disg > 0 || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== s.owner))) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
   for (const b of S.blds) { if (b.owner === s.owner) continue; const d = dist(s, b) + 2; if (d < bd) { bd = d; best = b; } }
   return best;
 }
@@ -383,6 +385,29 @@ function chase(s, t, dt) {
   if (!s.path || s.path.tid !== t.id || s.pathT <= 0) { s.path = { tid: t.id, dest: [t.x, t.z], pts: findPath(s.x, s.z, t.x, t.z), i: 0 }; s.pathT = 1; }
   const pts = s.path.pts;
   if (s.path.i < pts.length) { const [wx, wz] = pts[s.path.i]; if (stepToward(s, wx, wz, dt) || Math.hypot(wx - s.x, wz - s.z) < 0.5) s.path.i++; }
+}
+// Alien verbs (prototype on the existing factions, see docs/design.md "Main direction"):
+// abduct (Nerds) - any squad beams up a civilian within 10 m every 8 s: +30 cash, +8 power, a little heat.
+// possess (Activists) - a squad that walks into a civilian wears them: enemies, towers, police and civilians stop seeing
+// it for 60 s or until it attacks, and that first strike hits double.
+function alienVerb(s, dt) {
+  if (s.disg > 0) { s.disg -= dt; if (s.disg <= 0) S.events.push({ k: 'reveal', id: s.id, x: s.x, z: s.z, f: s.f }); }
+  if (s.slot === 'worker' || s.slot === 'hero' || s.def.vehicle || s.def.flies || !S.heat) return;
+  const tr = fac(pl(s.owner)).traits || {};
+  if (tr.abduct) {
+    if (s.beamT > 0) { s.beamT -= dt; return; }
+    const c = S.squads.find((o) => o.owner === 2 && o.slot === 'civ' && Math.hypot(o.x - s.x, o.z - s.z) < 10);
+    if (!c) return;
+    s.beamT = 8; const p = pl(s.owner);
+    p.cash += 30; p.st.earned += 30; p.meter = Math.min(100, p.meter + 8); addHeat(s.owner, 1.5, c.x, c.z);
+    S.events.push({ k: 'abduct', x: c.x, z: c.z, sx: s.x, sz: s.z, owner: s.owner, id: c.id });
+    killSquad(c);
+  } else if (tr.possess && !(s.disg > 0)) {
+    const c = S.squads.find((o) => o.owner === 2 && o.slot === 'civ' && Math.hypot(o.x - s.x, o.z - s.z) < s.r + 1.6);
+    if (!c) return;
+    s.disg = 60; S.events.push({ k: 'possess', x: c.x, z: c.z, id: s.id, owner: s.owner });
+    killSquad(c);
+  }
 }
 function heroAbility(s) {
   if (s.abil > 0) return;
@@ -510,6 +535,7 @@ function updateSquad(s, dt) {
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
   if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else if (s.slot === 'civ') updateCiv(s, dt); else if (s.slot === 'melee') updateFireCrew(s, dt); else if (s.slot === 'truck') updateTruck(s, dt); else updateCop(s, dt); return; }
+  alienVerb(s, dt);
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
   if (s.slot === 'hero') heroAbility(s);
   if (s.sit) return;
@@ -643,7 +669,7 @@ function updateCop(s, dt) {
     let b = null, bd = 1e9;
     for (const o of S.blds) { if (o.owner !== s.hunt || o.kind === 'hq') continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; b = o; } }
     let u = null, ud = 6;
-    for (const o of S.squads) { if (o.owner !== s.hunt || o.gar) continue; const d = dist(s, o); if (d < ud) { ud = d; u = o; } }
+    for (const o of S.squads) { if (o.owner !== s.hunt || o.gar || o.disg > 0) continue; const d = dist(s, o); if (d < ud) { ud = d; u = o; } }
     const t = u || b;
     if (t) {
       const reach = t.isBld ? t.r + s.def.range : s.def.range;
@@ -654,7 +680,7 @@ function updateCop(s, dt) {
   }
   // the nearest unit (or building) of the side being hunted; otherwise head for where the trouble was
   let t = null, bd = 18;
-  for (const o of S.squads) { if (o.owner !== s.hunt || o.gar) continue; const d = dist(s, o); if (d < bd) { bd = d; t = o; } }
+  for (const o of S.squads) { if (o.owner !== s.hunt || o.gar || o.disg > 0) continue; const d = dist(s, o); if (d < bd) { bd = d; t = o; } }
   if (!t) { const at = S.heat.at[s.hunt]; if (at) moveTo(s, at.x, at.z, dt); return; }
   if (dist(s, t) > s.def.range) chase(s, t, dt);
   else { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1; attack(s, t); } }
@@ -692,7 +718,7 @@ function addCivilian(fromEdge) {
 }
 function updateCiv(s, dt) {
   let th = null, bd = 9;
-  for (const o of S.squads) { if (o.owner === 2 || o.slot === 'worker' || o.gar) continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; th = o; } }
+  for (const o of S.squads) { if (o.owner === 2 || o.slot === 'worker' || o.gar || o.disg > 0 || o.f === 'ac') continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; th = o; } } // nobody runs from a friendly-looking crowd
   if (th) { // run!
     const dx = s.x - th.x, dz = s.z - th.z, l = Math.hypot(dx, dz) || 1;
     s.fleeT = 2; s.goal = nearestFree(s.x + (dx / l) * 14, s.z + (dz / l) * 14);
@@ -822,7 +848,7 @@ export function step() {
         const tm = b.kind === 'tower' ? (fac(p).traits?.towerMul || 1) : 1; // Nerds: souped-up towers
         const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : (BLD.tower.range + (gar ? 4 : 0)) * tm, dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1) * tm;
         let t = null, bd = rng;
-        for (const o of S.squads) { if (o.owner === b.owner || o.gar || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== b.owner))) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
+        for (const o of S.squads) { if (o.owner === b.owner || o.gar || o.disg > 0 || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== b.owner))) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
         if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq', bk: b.kind, to: t.owner }); hitSquad(t, dmg, false, null); }
       }
     }

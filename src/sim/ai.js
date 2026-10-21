@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=147';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command, HQ_UP } from './sim.js?v=147';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=148';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command, HQ_UP } from './sim.js?v=148';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -23,7 +23,7 @@ function aiPick(S, p, e, bar) {
   return Q.canTrain(p, bar, choice) ? null : choice;
 }
 function aiPower(S, p, i, pw) {
-  const mine = S.squads.filter((s) => s.owner === p.i && s.slot !== 'worker'), foes = S.squads.filter((s) => s.owner !== p.i && s.slot !== 'worker');
+  const mine = S.squads.filter((s) => s.owner === p.i && s.slot !== 'worker'), foes = S.squads.filter((s) => s.owner !== p.i && s.slot !== 'worker' && !(s.disg > 0));
   if (pw.id === 'pie') { const h = foes.find((s) => s.slot === 'hero'); if (h && mine.some((m) => Math.hypot(m.x - h.x, m.z - h.z) < 15)) A.power(p, i); return; }
   if (pw.id === 'parade' || pw.id === 'blockparty' || pw.id === 'patch') { if (mine.length >= 3 && mine.some((m) => m.order.type !== 'idle')) A.power(p, i); return; }
   let best = null, bc = 1;
@@ -95,7 +95,7 @@ export function aiStep(S, dt, pi = 1) {
     if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; }
   }
   const mine = S.squads.filter((s) => s.owner === pi && s.slot !== 'worker' && !s.retreat && s !== ai.escort && !s.gar && s.order.type !== 'enter');
-  const threat = S.squads.find((s) => s.owner === 1 - pi && s.slot !== 'worker' && Math.hypot(s.x - p.hqx, s.z - p.hqz) < 36);
+  const threat = S.squads.find((s) => s.owner === 1 - pi && s.slot !== 'worker' && !(s.disg > 0) && Math.hypot(s.x - p.hqx, s.z - p.hqz) < 36);
   if (threat) { mine.forEach((s) => { if (s.order.type !== 'attack') setOrder(s, { type: 'attack', target: threat }); }); return; }
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
   // King of the Hill: the army's job is the hill - go take it (or retake it) as soon as there is a squad or two to send,

@@ -1,8 +1,8 @@
 // Minimap, top-left under the resource chips. Fixed orientation: your base at the bottom (+z), enemy at the top.
 // Tap or drag on it to move the camera there. Static city is drawn once; units/buildings redraw ~10x a second.
-import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=147';
-import { CAM, focus } from '../camera/camera.js?v=147';
-import { getSim } from '../sim/sim.js?v=147';
+import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=148';
+import { CAM, focus } from '../camera/camera.js?v=148';
+import { getSim } from '../sim/sim.js?v=148';
 
 const cv = document.getElementById('mini'), ctx = cv.getContext('2d');
 const bg = document.createElement('canvas'), bctx = bg.getContext('2d');
@@ -44,7 +44,7 @@ export function updateMinimap(dt) {
     ctx.strokeStyle = '#000'; ctx.lineWidth = u; ctx.strokeRect(px(b.x) - s / 2, pz(b.z) - s / 2, s, s);
   }
   for (const s of S.squads) {
-    ctx.fillStyle = s.owner === 0 ? '#bdf0ff' : s.owner === 2 ? (s.slot === 'worker' ? '#f2a64c' : '#ffffff') : '#ff8a80';
+    ctx.fillStyle = s.owner === 0 ? '#bdf0ff' : s.owner === 2 || s.disg > 0 ? (s.slot === 'worker' ? '#f2a64c' : '#ffffff') : '#ff8a80';
     const r = (s.slot === 'worker' ? 1.3 : s.slot === 'hero' ? 3 : 2.1) * u;
     ctx.beginPath(); ctx.arc(px(s.x), pz(s.z), r, 0, 6.29); ctx.fill();
   }
