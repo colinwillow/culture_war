@@ -27,3 +27,15 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B19) UI: end-of-match screen with animated stats bars (kills, cash, buildings) — icons only
 - [x] (B20) Map: day lighting pass — warmer sun, soft shadows on units only (one shadow-casting light, small map)
 - [x] (B21) Logic: veterancy visuals + hero leveling (hero gains levels from kills, scales slightly, new ring)
+
+## Batch 2 (added 10:12 UTC by the loop, same rules)
+- [ ] UI: selected squad's command card — unit portrait icon, member pips (alive/dead), rank stars; tap portrait to centre camera
+- [ ] Units: idle fidgets for box placeholders (look around, stretch, scratch) so a parked army never looks frozen
+- [ ] FX: footstep dust under running squads + skid puff when a squad stops; water splash in the trench? (skip if none)
+- [ ] Map: animated freeway traffic gets headlights/taillights + a honk bounce when units cross overpasses above
+- [ ] Logic: stance toggle per squad (aggressive / hold ground) as a big icon button on the card
+- [ ] FX: worker carry visuals — Odd-Jobber pushes a cash-filled wheelbarrow, Gig Worker a delivery bag that bulges with cash
+- [ ] UI: under-attack alert — a red pulsing edge arrow pointing to off-screen fights involving your stuff; tap it to jump there
+- [ ] Map: building construction animation — scaffolding rises, crates fly in, hammer sparks, then scaffold drops away
+- [ ] Logic: garrison towers — tap a squad onto your tower to boost its range/damage (visible: tiny figures on top)
+- [ ] Units: celebration when a squad wins a fight (nearby enemies gone): quick cheer/hop + confetti for Activists, hat toss for Backwoods
