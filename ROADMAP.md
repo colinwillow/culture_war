@@ -39,3 +39,15 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B29) Map: building construction animation — scaffolding rises, crates fly in, hammer sparks, then scaffold drops away
 - [x] (B30) Logic: garrison towers — tap a squad onto your tower to boost its range/damage (visible: tiny figures on top)
 - [x] (B31) Units: celebration when a squad wins a fight (nearby enemies gone): quick cheer/hop + confetti for Activists, hat toss for Backwoods
+
+## Batch 3 (added 10:39 UTC by the loop, same rules)
+- [ ] FX: camera shake on big hits (building destroyed, fireworks, monster truck slam) — small, decays fast
+- [ ] Placeholder: parade puppet sways its arms + bobs its head as it walks; fireworks cart tubes smoke after each shot
+- [ ] UI: pause button (big icon, top-right) — freezes the sim, dims the screen; tap anywhere on the dim to resume
+- [ ] UI: difficulty picker on the menu — three big icons (easy / normal / hard) that change AI wave size + income
+- [ ] Map: food trucks come alive — grill steam, a vendor box-person behind the hatch, the awning flaps
+- [ ] FX: Backwoods Junkyard — destroyed Backwoods vehicles leave a smoking wreck husk for a while (the scrap refund made visible)
+- [ ] FX: Activists Rally — thin pulsing lines link nearby Activist squads while the rally bonus is active
+- [ ] UI: build-radius preview — while placing, a soft ring around each of your buildings shows where you are allowed to build
+- [ ] Map: pigeons in the parks scatter (fly up and away) when a squad walks through them, then settle back
+- [ ] FX: tower shots get faction flavour — Deer Stand fires a slug with a puff of smoke, Banner Tower throws a paint balloon splat
