@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B82 (overnight loop): AI garrisons towers: when enemies come within 24 m of one of its empty towers, the computer sends its nearest ranged squad (else pike/melee) within 45 m to climb in; garrisoned or entering squads are left out of waves and threat responses. Garrisoned in 3 of 6 AI-vs-AI test matches; round robin still ~12/24 each
 - B81 (overnight loop): Balance: Hard Hats infantry cheaper (Nail-Gunners 100->95, Wrecking Crew 120->112, Surveyors 130->122); Street Crew tougher and harder-hitting (Sneakerheads hp 40->48 dmg 5->6, Breakdancers 45->52 / 6->7, Boombox 35->40 / 8->9, Lowrider hp 380->420). AI round robin now 12/24 for every faction (was bw 15 ac 15 om 14 hh 8 sc 7); a bigger hh cut (90/105/115) overshot to 17/24
 - B80 (overnight loop): Hero entrance: when a hero walks out, a soft spotlight beam drops on the door for 2.5 s with a ring, a small shake and a fanfare, plus a faction flourish - Backwoods feathers, Activists bullhorn rings, Hard Hats whistle sparks, Old Money money shower, Street Crew record scratch + neon notes (new sim event 'heroin' in place of 'spawn' for heroes)
 - B79 (overnight loop): Street Crew base dressing round the Record Shop: a half basketball court (lines, key, hoop), a boombox on a milk crate whose speakers thump with the rest, two graffiti-tagged dumpsters and a bench

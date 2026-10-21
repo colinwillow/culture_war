@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=81';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=81';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=82';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=82';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -86,7 +86,15 @@ export function aiStep(S, dt, pi = 1) {
     if (!s.retreat && k < 0.33 && Math.hypot(s.x - p.hqx, s.z - p.hqz) > 20) { s.retreat = true; setOrder(s, { type: 'move', x: p.hqx + (S.rng() - 0.5) * 10, z: p.hqz - p.side * 10 }); }
     else if (s.retreat && k > 0.9) s.retreat = false;
   }
-  const mine = S.squads.filter((s) => s.owner === pi && s.slot !== 'worker' && !s.retreat && s !== ai.escort);
+  // Garrison: when enemies come within 24 m of one of our empty towers, the nearest ranged squad (else any infantry) within 45 m climbs in.
+  for (const b of S.blds) {
+    if (b.owner !== pi || b.kind !== 'tower' || b.built < 1 || b.garrison) continue;
+    if (!S.squads.some((o) => o.owner !== pi && o.slot !== 'worker' && Math.hypot(o.x - b.x, o.z - b.z) < 24)) continue;
+    let q = null, bd = 45;
+    for (const o of S.squads) { if (o.owner !== pi || !(o.slot === 'ranged' || o.slot === 'pike' || o.slot === 'melee') || o.gar || o.retreat || o === ai.escort || o.order.type === 'enter') continue; const d = Math.hypot(o.x - b.x, o.z - b.z) - (o.slot === 'ranged' ? 15 : 0); if (d < bd) { bd = d; q = o; } }
+    if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; }
+  }
+  const mine = S.squads.filter((s) => s.owner === pi && s.slot !== 'worker' && !s.retreat && s !== ai.escort && !s.gar && s.order.type !== 'enter');
   const threat = S.squads.find((s) => s.owner === 1 - pi && s.slot !== 'worker' && Math.hypot(s.x - p.hqx, s.z - p.hqz) < 36);
   if (threat) { mine.forEach((s) => { if (s.order.type !== 'attack') setOrder(s, { type: 'attack', target: threat }); }); return; }
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
