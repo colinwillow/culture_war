@@ -1,19 +1,19 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera } from './render/scene.js?v=19';
-import { buildWorld, updateWorld } from './render/world.js?v=19';
-import { syncRender, clearRender, bump } from './render/sync.js?v=19';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=19';
-import { newSim, getSim, step } from './sim/sim.js?v=19';
-import { TICK } from './config/factions.js?v=19';
-import { applyCam, resetCam, onResize } from './camera/camera.js?v=19';
-import { initInput, lockPageZoom } from './input/input.js?v=19';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=19';
-import { resetUI } from './ui/state.js?v=19';
-import { fillIcons, svg } from './ui/icons.js?v=19';
-import { updateMinimap } from './ui/minimap.js?v=19';
-import { loadChars } from './render/chars.js?v=19';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=20';
+import { buildWorld, updateWorld } from './render/world.js?v=20';
+import { syncRender, clearRender, bump } from './render/sync.js?v=20';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=20';
+import { newSim, getSim, step } from './sim/sim.js?v=20';
+import { TICK } from './config/factions.js?v=20';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=20';
+import { initInput, lockPageZoom } from './input/input.js?v=20';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=20';
+import { resetUI } from './ui/state.js?v=20';
+import { fillIcons, svg } from './ui/icons.js?v=20';
+import { updateMinimap } from './ui/minimap.js?v=20';
+import { loadChars } from './render/chars.js?v=20';
 
-export const BUILD = 19; // written by `npm run bump`
+export const BUILD = 20; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -72,6 +72,7 @@ function frame(now) {
   hudT -= dt;
   if (hudT <= 0) { hudT = 0.15; refreshHUD(); }
   applyCam(dt);
+  followSun(CAM.tx, CAM.tz);
   if (S && running) updateMinimap(dt);
   updatePlaceBar();
   renderer.render(scene, camera);

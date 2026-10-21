@@ -9,10 +9,26 @@ export const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa9c8de);
 scene.fog = new THREE.Fog(0xa9c8de, 140, 300);
 export const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 700);
-scene.add(new THREE.HemisphereLight(0xe4f0ff, 0x4a4a52, 0.95));
-const sun = new THREE.DirectionalLight(0xfff0d8, 1.0);
-sun.position.set(40, 80, 25);
-scene.add(sun);
+// Day light: cool sky fill, warm low-ish sun. ONE shadow-casting light whose small shadow box follows the camera
+// target, and only units + player buildings cast (the city does not), so it stays cheap on a phone.
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+scene.add(new THREE.HemisphereLight(0xdcecff, 0x5a5048, 0.85));
+export const sun = new THREE.DirectionalLight(0xffe0b0, 1.25);
+export const SUN_OFF = new THREE.Vector3(30, 60, 22);
+sun.position.copy(SUN_OFF);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 10, far: 160 });
+sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.03; sun.shadow.radius = 3;
+scene.add(sun, sun.target);
+/** Keep the shadow box centred on what the camera looks at; snapped to texels so shadows don't shimmer while panning. */
+export function followSun(x, z) {
+  const step = 80 / 1024; x = Math.round(x / step) * step; z = Math.round(z / step) * step;
+  sun.target.position.set(x, 0, z); sun.position.set(x + SUN_OFF.x, SUN_OFF.y, z + SUN_OFF.z);
+}
+/** Mark a subtree as shadow casters. */
+export function casts(o) { o.traverse((n) => { if (n.isMesh) n.castShadow = true; }); return o; }
 
 const matCache = new Map();
 const cached = new Set();

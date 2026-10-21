@@ -25,5 +25,5 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B16) FX: power visuals pass — mud bog bubbles, fireworks streaks + bursts, parade confetti cannons, pie splat
 - [x] (B17) Units: death ragdoll-lite (fling + fade) for placeholder units; hit flash on damaged members
 - [x] (B19) UI: end-of-match screen with animated stats bars (kills, cash, buildings) — icons only
-- [ ] Map: day lighting pass — warmer sun, soft shadows on units only (one shadow-casting light, small map)
+- [x] (B20) Map: day lighting pass — warmer sun, soft shadows on units only (one shadow-casting light, small map)
 - [ ] Logic: veterancy visuals + hero leveling (hero gains levels from kills, scales slightly, new ring)

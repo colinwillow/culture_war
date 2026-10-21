@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=19';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=19';
-import { hash } from '../util/math.js?v=19';
-import { emit } from '../fx/particles.js?v=19';
+import { THREE, scene, mat, box } from './scene.js?v=20';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=20';
+import { hash } from '../util/math.js?v=20';
+import { emit } from '../fx/particles.js?v=20';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -33,9 +33,9 @@ export function buildWorld() {
   const span = MAP.h / 2 - TRENCH.half;
   for (const s of [1, -1]) {
     const g = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, span), mat(COL.asphalt));
-    g.rotation.x = -Math.PI / 2; g.position.set(0, 0, s * (TRENCH.half + span / 2)); scene.add(g);
+    g.rotation.x = -Math.PI / 2; g.position.set(0, 0, s * (TRENCH.half + span / 2)); g.receiveShadow = true; scene.add(g);
     const lawn = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h / 2 - HOME_Z), mat(COL.lawn));
-    lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0.03, s * (HOME_Z + (MAP.h / 2 - HOME_Z) / 2)); scene.add(lawn);
+    lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0.03, s * (HOME_Z + (MAP.h / 2 - HOME_Z) / 2)); lawn.receiveShadow = true; scene.add(lawn);
   }
   const outer = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), mat(0x5d6a54));
   outer.rotation.x = -Math.PI / 2; outer.position.y = -0.2; scene.add(outer);
@@ -99,9 +99,7 @@ export function buildWorld() {
       pos += w; k++;
     }
   }
-  instanced(unitBox, COL.sidewalk, walks);
-  instanced(unitBox, COL.grass, greens);
-  instanced(unitBox, COL.lot, lots);
+  for (const im of [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)]) im.receiveShadow = true;
   instanced(unitBox, COL.stripe, stalls);
   instanced(unitBox, 0, bodies, true);
   instanced(unitBox, COL.glass, bands);

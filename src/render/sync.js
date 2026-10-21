@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=19';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=19';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=19';
-import { emit } from '../fx/particles.js?v=19';
-import { TICK } from '../config/factions.js?v=19';
-import { walkH } from '../map/layout.js?v=19';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=19';
-import { Q, pl } from '../sim/sim.js?v=19';
-import { UI } from '../ui/state.js?v=19';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=19';
-import { lerpAngle } from '../util/math.js?v=19';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=20';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=20';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=20';
+import { emit } from '../fx/particles.js?v=20';
+import { TICK } from '../config/factions.js?v=20';
+import { walkH } from '../map/layout.js?v=20';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=20';
+import { Q, pl } from '../sim/sim.js?v=20';
+import { UI } from '../ui/state.js?v=20';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=20';
+import { lerpAngle } from '../util/math.js?v=20';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -32,7 +32,7 @@ function makeSquadObj(s) {
   const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]];
   const members = offs.map(([ox, oz], i) => {
     const m = makeChar(s.f, s.slot, i) || makeMember(s.f, s.slot); const y = s.def.flies ? 3.8 : 0;
-    m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
+    casts(m); m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
   });
   const real = !!members[0].userData.anim;
   // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
@@ -53,7 +53,7 @@ function makeSquadObj(s) {
   return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
 }
 function makeBldObj(b) {
-  const root = new THREE.Group(), mesh = bldMesh(b.kind, b.f); root.add(mesh);
+  const root = new THREE.Group(), mesh = casts(bldMesh(b.kind, b.f)); root.add(mesh);
   const pips = new THREE.Group(); pips.position.set(0, b.kind === 'barracks' ? 3 : 0, 0);
   if (b.kind === 'barracks') for (let i = 0; i < 3; i++) pips.add(box(0.4, 0.4, 0.4, 0xf5b83a, (i - 1) * 0.6, 0, 0));
   root.add(pips);
