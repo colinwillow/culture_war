@@ -1,8 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=3';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=3';
-import { hash } from '../util/math.js?v=3';
+import { THREE, scene, mat, box } from './scene.js?v=4';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=4';
+import { hash } from '../util/math.js?v=4';
+import { emit } from '../fx/particles.js?v=4';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -25,7 +26,7 @@ function instanced(geo, color, list, perInstanceColor) {
 }
 const unitBox = new THREE.BoxGeometry(1, 1, 1);
 
-let traffic = null;
+let traffic = null, life = null, wt = 0;
 
 export function buildWorld() {
   // Ground: asphalt everywhere except the trench.
@@ -115,7 +116,8 @@ export function buildWorld() {
     crowns.push({ x: t.x, y: 2.6 * s + 0.6, z: t.z, sx: s, sy: s, sz: s, rot: hash(i, 6) * 6 });
     trunks.push({ x: t.x, y: 0.8, z: t.z });
   });
-  instanced(new THREE.IcosahedronGeometry(1.5, 0), 0x4f7f3a, crowns);
+  const crownIM = instanced(new THREE.IcosahedronGeometry(1.5, 0), 0x4f7f3a, crowns);
+  crownIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   instanced(new THREE.CylinderGeometry(0.22, 0.3, 1.6, 6), 0x5a3d26, trunks);
 
   // Street lamps along avenues.
@@ -135,6 +137,36 @@ export function buildWorld() {
   instanced(unitBox, 0, carBodies, true);
   instanced(unitBox, 0x2b3a4c, carTops);
 
+  // Traffic lights on the corner of every open intersection: pole + a 3-lamp head. Lamps cycle green/amber/red.
+  const tlPoles = [], tlHeads = [], tlLamps = [];
+  const open = (x, z) => !BLOCKS.some((b) => inRect(x, z, b, 0.3));
+  for (const ax of AVENUES) for (const cz0 of CROSS_STREETS) for (const sz of [1, -1]) {
+    const cz = sz * cz0, x = ax + 5.4, z = cz + 4.6 * sz;
+    if (!open(x, z) && !open(ax, cz)) continue;
+    tlPoles.push({ x, y: 2, z, sx: 0.14, sy: 4, sz: 0.14 });
+    tlHeads.push({ x, y: 4.3, z, sx: 0.45, sy: 1.3, sz: 0.4 });
+    for (let k = 0; k < 3; k++) tlLamps.push({ x, y: 4.75 - k * 0.42, z: z - 0.22 * sz, sx: 0.3, sy: 0.3, sz: 0.1, c: 0x333333, ph: (ax + cz) * 0.37 });
+  }
+  instanced(unitBox, 0x2e2e2e, tlPoles);
+  instanced(unitBox, 0x1e1e1e, tlHeads);
+  const lampIM = tlLamps.length ? instanced(unitBox, 0, tlLamps, true) : null;
+  if (lampIM) lampIM.material = new THREE.MeshBasicMaterial({ color: 0xffffff }); // lamps glow, unlit
+
+  // Steam vents: manholes in the open street that breathe a puff now and then.
+  const vents = [];
+  for (const ax of AVENUES) for (const z of [-30, -9, 9, 30]) if (open(ax + 2, z)) vents.push({ x: ax + 2, z, t: hash(ax + 50, z + 50) * 3 });
+  instanced(new THREE.CylinderGeometry(0.45, 0.45, 0.05, 10), 0x2a2a2a, vents.map((v) => ({ x: v.x, y: 0.03, z: v.z })));
+
+  // Birds: a few small flocks circling over the parks, wings flapping.
+  const birds = [], parks = BLOCKS.filter((b) => b.kind === 'park');
+  parks.forEach((p, pi) => { for (let i = 0; i < 6; i++) birds.push({ cx: (p.x0 + p.x1) / 2, cz: (p.z0 + p.z1) / 2, r: 6 + hash(pi * 9 + i, 1) * 6, h: 13 + hash(pi * 9 + i, 2) * 5, a: hash(pi * 9 + i, 3) * 6.28, w: (0.25 + hash(pi * 9 + i, 4) * 0.2) * (pi % 2 ? 1 : -1) }); });
+  const wing = new THREE.BufferGeometry();
+  wing.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0.25, -0.7, 0, -0.1, 0, 0, -0.2, 0, 0, 0.25, 0, 0, -0.2, 0.7, 0, -0.1], 3));
+  wing.computeVertexNormals();
+  const birdIM = new THREE.InstancedMesh(wing, new THREE.MeshBasicMaterial({ color: 0x2a2a30, side: THREE.DoubleSide }), birds.length);
+  birdIM.frustumCulled = false; scene.add(birdIM);
+  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM };
+
   // Freeway traffic (render only, loops forever).
   const lanes = [-3.2, -1, 1, 3.2];
   const cars = [];
@@ -145,7 +177,47 @@ export function buildWorld() {
   traffic = { im, cars };
 }
 
+const _e = new THREE.Euler(), LAMP = [0x5dff7a, 0xffc23a, 0xff4a3c], OFF = 0x333333;
+function updateLife(dt) {
+  if (!life) return;
+  wt += dt;
+  const { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM } = life;
+  // Trees sway: a slow lean plus a faster rustle, each tree on its own phase.
+  crowns.forEach((t, i) => {
+    const ph = i * 1.7, sway = Math.sin(wt * 0.9 + ph) * 0.06 + Math.sin(wt * 2.3 + ph * 0.5) * 0.02;
+    Q.setFromEuler(_e.set(sway, t.rot, sway * 0.6));
+    M.compose(V.set(t.x, t.y, t.z), Q, Sv.set(t.sx, t.sy, t.sz));
+    crownIM.setMatrixAt(i, M);
+  });
+  crownIM.instanceMatrix.needsUpdate = true;
+  // Lights: 9 s cycle (5 green, 1 amber, 3 red), offset per intersection.
+  if (lampIM) {
+    for (let i = 0; i < tlLamps.length; i += 3) {
+      const c = (wt + tlLamps[i].ph * 9) % 9, on = c < 3 ? 0 : c < 4 ? 1 : 2; // top red, middle amber, bottom green
+      for (let k = 0; k < 3; k++) lampIM.setColorAt(i + k, C.setHex((k === 0 && on === 0) || (k === 1 && on === 1) || (k === 2 && on === 2) ? LAMP[2 - k] : OFF));
+    }
+    lampIM.instanceColor.needsUpdate = true;
+  }
+  // Steam: every couple of seconds a vent breathes three soft grey puffs.
+  for (const v of vents) {
+    v.t -= dt;
+    if (v.t > 0) continue;
+    v.t = 1.6 + Math.random() * 2.5;
+    for (let k = 0; k < 3; k++) emit({ x: v.x + (Math.random() - 0.5) * 0.4, y: 0.2, z: v.z + (Math.random() - 0.5) * 0.4, vx: (Math.random() - 0.5) * 0.6, vy: 1.4 + Math.random(), vz: (Math.random() - 0.5) * 0.6, c: k ? 0xd9dde2 : 0xffffff, s: 0.5, life: 1.6, g: -0.3, drag: 1.2, grow: 3 });
+  }
+  // Birds circle and flap (flap = squash the wing span).
+  birds.forEach((b, i) => {
+    b.a += b.w * dt;
+    const x = b.cx + Math.cos(b.a) * b.r, z = b.cz + Math.sin(b.a) * b.r, flap = 0.35 + Math.abs(Math.sin(wt * 9 + i)) * 0.9;
+    Q.setFromEuler(_e.set(0, -b.a + (b.w > 0 ? 0 : Math.PI), 0));
+    M.compose(V.set(x, b.h + Math.sin(wt * 1.3 + i) * 0.6, z), Q, Sv.set(flap, 1, 1));
+    birdIM.setMatrixAt(i, M);
+  });
+  birdIM.instanceMatrix.needsUpdate = true;
+}
+
 export function updateWorld(dt) {
+  updateLife(dt);
   if (!traffic) return;
   const { im, cars } = traffic;
   cars.forEach((c, i) => {
