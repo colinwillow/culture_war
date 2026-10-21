@@ -26,6 +26,7 @@ export const ICON = {
   charge: '<path d="M4 20l9-9"/><path d="M13 11l5-7 2 2-7 5"/><path d="M6 14l4 4"/><path d="M14 14l6 6M20 14l-6 6"/>',
   pause: '<path d="M8 5v14M16 5v14"/>',
   play: '<path d="M7 4l13 8-13 8z"/>',
+  hardhat: '<path d="M3 17h18"/><path d="M5 17a7 7 0 0 1 14 0"/><path d="M10 10V7h4v3"/><path d="M8 11v6M16 11v6"/>',
   shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
   hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
   eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
