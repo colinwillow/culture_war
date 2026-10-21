@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=22';
+import { THREE, box, cyl, mat } from './scene.js?v=23';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -15,6 +15,7 @@ function humanoid(C, shirt, hat) {
   g.add(l, r, box(0.46, 0.6, 0.3, shirt, 0, 0.8, 0), box(0.32, 0.32, 0.32, C.skin, 0, 1.28, 0), box(0.34, 0.1, 0.34, hat || C.hair, 0, 1.48, 0),
     box(0.12, 0.5, 0.14, C.skin, 0.3, 0.78, 0), box(0.12, 0.5, 0.14, C.skin, -0.3, 0.78, 0));
   g.userData.legs = [l, r];
+  g.userData.head = g.children[3]; g.userData.hat = g.children[4]; g.userData.arms = [g.children[5], g.children[6]];
   return g;
 }
 // A wheel spins about its axle via rotation.x (sync.js); the hub bar is what makes the spin readable.

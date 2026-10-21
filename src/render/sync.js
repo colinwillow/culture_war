@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=22';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=22';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=22';
-import { emit } from '../fx/particles.js?v=22';
-import { TICK } from '../config/factions.js?v=22';
-import { walkH } from '../map/layout.js?v=22';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=22';
-import { Q, pl } from '../sim/sim.js?v=22';
-import { UI } from '../ui/state.js?v=22';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=22';
-import { lerpAngle } from '../util/math.js?v=22';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=23';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=23';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=23';
+import { emit } from '../fx/particles.js?v=23';
+import { TICK } from '../config/factions.js?v=23';
+import { walkH } from '../map/layout.js?v=23';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=23';
+import { Q, pl } from '../sim/sim.js?v=23';
+import { UI } from '../ui/state.js?v=23';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=23';
+import { lerpAngle } from '../util/math.js?v=23';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -84,6 +84,22 @@ function makeNodeObj(n) {
 
 export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
 export function squadObj(id) { return R.sq.get(id); }
+const ud0 = (m) => m.userData;
+/** Idle fidgets for box people standing still: look around, stretch both arms up, or scratch the head. */
+function fidget(m, dt, idle, hornArm) {
+  const u = m.userData, [ra, la] = u.arms;
+  if (u.fy0 === undefined) { u.fy0 = [ra.position.y, la.position.y]; u.ft = 1 + Math.random() * 5; u.fk = null; u.fp = 0; }
+  if (!idle) { u.fk = null; u.ft = 1 + Math.random() * 4; }
+  else if (u.fk) { u.fp += dt / 1.6; if (u.fp >= 1) { u.fk = null; u.ft = 2 + Math.random() * 6; } }
+  else if ((u.ft -= dt) <= 0) { u.fk = ['look', 'stretch', 'scratch'][(Math.random() * 3) | 0]; u.fp = 0; }
+  const e = u.fk ? Math.sin(u.fp * Math.PI) : 0; // ease in and back out
+  u.head.rotation.y = u.fk === 'look' ? Math.sin(u.fp * Math.PI * 2) * 0.9 : 0;
+  u.hat.rotation.y = u.head.rotation.y;
+  const up = u.fk === 'stretch' ? e * 0.55 : 0;
+  if (!hornArm || ra.parent === m) ra.position.y = u.fy0[0] + up + (u.fk === 'scratch' ? e * 0.6 : 0);
+  la.position.y = u.fy0[1] + up;
+  if (u.fk === 'stretch') m.scale.y *= 1 + e * 0.06;
+}
 /** Hit flash: a quick squash-and-stretch plus a red pop, readable without per-member materials. */
 function squash(m, dt) {
   const f = m.userData.flashT;
@@ -169,6 +185,7 @@ export function syncRender(S, alpha, dt, time) {
       m.position.y = y + hop(o, i); m.scale.set(1, s.sit ? 0.55 : 1, 1); squash(m, dt); m.position.z = m.userData.bz + o.lunge * 2.5;
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
+      if (ud0(m).head) fidget(m, dt, !moving && !(o.lunge > 0), m.userData.horn);
       const eg = m.userData.eagle;
       if (eg) {
         // Flap: fast beats while climbing out of a dive, a lazy glide otherwise. Dive: swoop down onto the target on a hit.

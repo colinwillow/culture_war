@@ -30,7 +30,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 2 (added 10:12 UTC by the loop, same rules)
 - [x] (B22) UI: selected squad's command card — unit portrait icon, member pips (alive/dead), rank stars; tap portrait to centre camera
-- [ ] Units: idle fidgets for box placeholders (look around, stretch, scratch) so a parked army never looks frozen
+- [x] (B23) Units: idle fidgets for box placeholders (look around, stretch, scratch) so a parked army never looks frozen
 - [ ] FX: footstep dust under running squads + skid puff when a squad stops; water splash in the trench? (skip if none)
 - [ ] Map: animated freeway traffic gets headlights/taillights + a honk bounce when units cross overpasses above
 - [ ] Logic: stance toggle per squad (aggressive / hold ground) as a big icon button on the card
