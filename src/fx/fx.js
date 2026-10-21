@@ -1,13 +1,15 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=1';
-import { walkH } from '../map/layout.js?v=1';
-import { FC } from '../render/models.js?v=1';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=2';
+import { walkH } from '../map/layout.js?v=2';
+import { FC } from '../render/models.js?v=2';
+import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=2';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
 export function updateFx(dt) {
+  updateParticles(dt);
   for (let i = fx.length - 1; i >= 0; i--) {
     const f = fx[i];
     f.t += dt;
@@ -16,7 +18,7 @@ export function updateFx(dt) {
     if (f.t >= f.life) { disposeObj(f.obj); fx.splice(i, 1); }
   }
 }
-export function clearFx() { for (const f of fx) disposeObj(f.obj); fx.length = 0; }
+export function clearFx() { for (const f of fx) disposeObj(f.obj); fx.length = 0; clearParticles(); }
 
 const gy = (x, z, o = 0) => walkH(x, z) + o;
 export function fxLine(x, z, tx, tz, y0, c) {
@@ -87,17 +89,17 @@ export function handleEvents(S, bump) {
       case 'shot':
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
         else if (ev.f === 'ac' && ev.slot === 'ranged') { fxLine(ev.x, ev.z, ev.tx, ev.tz, 1, 0xe85d9a); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
-        else fxLine(ev.x, ev.z, ev.tx, ev.tz, ev.y0 || 1, ev.slot === 'hq' ? 0xffffff : 0xffe14d);
+        else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }
         bump(ev.id); break;
       case 'hit':
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
-        else fxPuff(ev.tx + (Math.random() - 0.5), 0.9, ev.tz + (Math.random() - 0.5), 0xffffff, 0.35);
+        else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
         bump(ev.id); break;
       case 'boom': fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
       case 'scrap': fxBits(ev.x, ev.z, 0x9a9a9a, 6, 1, 5); fxCoin(ev.x, 2, ev.z); break;
       case 'income': if (ev.owner === 0) for (const b of S.blds) if (b.owner === 0 && b.kind === 'depot' && b.built >= 1) fxCoin(b.x, 3.2, b.z); break;
-      case 'deposit': if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
+      case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;
       case 'rank': fxRing(ev.x, ev.z, 0.5, 2.5, 0xf5b83a, 0.5, 0.3); break;
