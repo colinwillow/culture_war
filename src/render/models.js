@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=32';
+import { THREE, box, cyl, mat } from './scene.js?v=33';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -73,10 +73,14 @@ export function makeMember(f, slot) {
     else if (slot === 'ranged') { g = humanoid(C, C.dark, C.hair); const m = cyl(0.08, 0.26, 0.5, C.alt, 0.3, 1.05, 0.4, 10); m.rotation.x = Math.PI / 2; g.add(m); }
     else if (slot === 'cav') { g = humanoid(C, C.main, C.hair); g.position.y = 0.35; g.add(box(0.1, 0.45, 1.2, 0x333333, 0, 0.1, 0)); for (const z of [0.5, -0.5]) g.add(wheel(0.33, 0.08, 0, -0.02, z, 0x111111)); tagWheels(g); g.userData.pedal = true; }
     else if (slot === 'siege') {
+      // Parade puppet: a tall body, a big paper-mache head (eyes ride on it) and two floppy arms hung from shoulder pivots.
       g = new THREE.Group();
       g.add(box(1, 2.3, 0.8, C.alt, 0, 1.35));
-      const h = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 10), mat(0xf4f1de)); h.position.y = 3.2; g.add(h);
-      g.add(box(0.25, 1.8, 0.25, C.alt, 0.8, 1.7), box(0.25, 1.8, 0.25, C.alt, -0.8, 1.7), box(0.2, 0.2, 0.2, 0x222222, -0.25, 3.3, 0.7), box(0.2, 0.2, 0.2, 0x222222, 0.25, 3.3, 0.7));
+      const head = new THREE.Group(); head.position.y = 3.2; g.add(head);
+      head.add(new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 10), mat(0xf4f1de)), box(0.2, 0.2, 0.2, 0x222222, -0.25, 0.1, 0.7), box(0.2, 0.2, 0.2, 0x222222, 0.25, 0.1, 0.7), box(0.5, 0.08, 0.1, 0xd64545, 0, -0.3, 0.72));
+      const arms = [];
+      for (const sd of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sd * 0.62, 2.45, 0); pv.add(box(0.25, 1.8, 0.25, C.alt, sd * 0.18, -0.85, 0), box(0.4, 0.4, 0.4, 0xf4f1de, sd * 0.18, -1.8, 0)); g.add(pv); arms.push(pv); }
+      g.userData.puppet = { head, arms };
     } else {
       // March leader: bullhorn on a raisable right arm (sync.js lifts it to the mouth when he shouts).
       g = humanoid(C, C.dark, C.alt); g.children[2].scale.set(1.15, 1.2, 1.15);

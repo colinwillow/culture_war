@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=32';
-import { walkH } from '../map/layout.js?v=32';
-import { shake } from '../camera/camera.js?v=32';
-import { FC } from '../render/models.js?v=32';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=32';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=33';
+import { walkH } from '../map/layout.js?v=33';
+import { shake } from '../camera/camera.js?v=33';
+import { FC } from '../render/models.js?v=33';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=33';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -151,6 +151,7 @@ export function handleEvents(S, bump) {
   for (const ev of S.events) {
     switch (ev.k) {
       case 'shot':
+        if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
         else if (ev.f === 'ac' && ev.slot === 'ranged') { fxLine(ev.x, ev.z, ev.tx, ev.tz, 1, 0xe85d9a); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
         else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }

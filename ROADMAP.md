@@ -42,7 +42,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 3 (added 10:39 UTC by the loop, same rules)
 - [x] (B32) FX: camera shake on big hits (building destroyed, fireworks, monster truck slam) — small, decays fast
-- [ ] Placeholder: parade puppet sways its arms + bobs its head as it walks; fireworks cart tubes smoke after each shot
+- [x] (B33) Placeholder: parade puppet sways its arms + bobs its head as it walks; fireworks cart tubes smoke after each shot
 - [ ] UI: pause button (big icon, top-right) — freezes the sim, dims the screen; tap anywhere on the dim to resume
 - [ ] UI: difficulty picker on the menu — three big icons (easy / normal / hard) that change AI wave size + income
 - [ ] Map: food trucks come alive — grill steam, a vendor box-person behind the hatch, the awning flaps

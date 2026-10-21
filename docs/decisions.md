@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B33 (overnight loop): parade puppet rebuilt with a separate head (eyes + red mouth) and floppy arms on shoulder pivots - arms swing out of phase, head bobs/tilts/looks around (bigger while walking), both arms flop down onto the target on a hit; fireworks cart leaves a lingering grey smoke cloud after each launch
 - B32 (overnight loop): camera shake: a building collapsing, a Fourth of July barrage landing and each monster truck slam kick the view; strength fades with distance from where you're looking and dies out in a fraction of a second
 - B31 (overnight loop): victory cheer: ~1.6 s after a squad's last swing, if no enemy is left within 12 m it hops three times; Activists throw confetti, Backwoods fling their caps into the air (they bounce on the ground)
 - B30 (overnight loop): garrison towers: with infantry selected, tap your finished tower - one squad walks in and vanishes, three tiny team-coloured lookouts appear on the roof, the tower gets +4 range and +50% damage; select the tower and tap the squad portrait to send them out (they also pop out if the tower falls)

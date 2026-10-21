@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=32';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=32';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=32';
-import { emit } from '../fx/particles.js?v=32';
-import { TICK } from '../config/factions.js?v=32';
-import { walkH } from '../map/layout.js?v=32';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=32';
-import { Q, pl } from '../sim/sim.js?v=32';
-import { UI } from '../ui/state.js?v=32';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=32';
-import { lerpAngle } from '../util/math.js?v=32';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=33';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=33';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=33';
+import { emit } from '../fx/particles.js?v=33';
+import { TICK } from '../config/factions.js?v=33';
+import { walkH } from '../map/layout.js?v=33';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=33';
+import { Q, pl } from '../sim/sim.js?v=33';
+import { UI } from '../ui/state.js?v=33';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=33';
+import { lerpAngle } from '../util/math.js?v=33';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -203,6 +203,14 @@ export function syncRender(S, alpha, dt, time) {
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
       if (ud0(m).head) fidget(m, dt, !moving && !(o.lunge > 0), m.userData.horn);
+      const pp = m.userData.puppet;
+      if (pp) { // floppy parade sway: arms swing out of phase, head bobs and tilts; bigger while walking
+        const k = moving ? 1 : 0.35;
+        pp.arms[0].rotation.z = -0.25 - Math.sin(time * 3) * 0.5 * k; pp.arms[1].rotation.z = 0.25 - Math.sin(time * 3 + 1.4) * 0.5 * k;
+        pp.arms[0].rotation.x = Math.sin(time * 2.2) * 0.3 * k; pp.arms[1].rotation.x = -Math.sin(time * 2.2) * 0.3 * k;
+        pp.head.position.y = 3.2 + Math.abs(Math.sin(time * 3)) * 0.15 * k; pp.head.rotation.z = Math.sin(time * 1.5) * 0.18; pp.head.rotation.y = Math.sin(time * 0.9) * 0.3;
+        if (o.lunge > 0) { pp.arms[0].rotation.x = pp.arms[1].rotation.x = -1.6; } // both arms come down on the target
+      }
       const eg = m.userData.eagle;
       if (eg) {
         // Flap: fast beats while climbing out of a dive, a lazy glide otherwise. Dive: swoop down onto the target on a hit.

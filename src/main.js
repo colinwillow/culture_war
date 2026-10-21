@@ -1,20 +1,20 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=32';
-import { buildWorld, updateWorld } from './render/world.js?v=32';
-import { syncRender, clearRender, bump } from './render/sync.js?v=32';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=32';
-import { newSim, getSim, step } from './sim/sim.js?v=32';
-import { TICK } from './config/factions.js?v=32';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=32';
-import { initInput, lockPageZoom } from './input/input.js?v=32';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=32';
-import { resetUI } from './ui/state.js?v=32';
-import { fillIcons, svg } from './ui/icons.js?v=32';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=32';
-import { updateMinimap } from './ui/minimap.js?v=32';
-import { loadChars } from './render/chars.js?v=32';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=33';
+import { buildWorld, updateWorld } from './render/world.js?v=33';
+import { syncRender, clearRender, bump } from './render/sync.js?v=33';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=33';
+import { newSim, getSim, step } from './sim/sim.js?v=33';
+import { TICK } from './config/factions.js?v=33';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=33';
+import { initInput, lockPageZoom } from './input/input.js?v=33';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=33';
+import { resetUI } from './ui/state.js?v=33';
+import { fillIcons, svg } from './ui/icons.js?v=33';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=33';
+import { updateMinimap } from './ui/minimap.js?v=33';
+import { loadChars } from './render/chars.js?v=33';
 
-export const BUILD = 32; // written by `npm run bump`
+export const BUILD = 33; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
