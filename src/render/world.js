@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=128';
-import { CAM } from '../camera/camera.js?v=128';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=128';
-import { hash } from '../util/math.js?v=128';
-import { emit } from '../fx/particles.js?v=128';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=129';
+import { CAM } from '../camera/camera.js?v=129';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=129';
+import { hash } from '../util/math.js?v=129';
+import { emit } from '../fx/particles.js?v=129';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -71,7 +71,6 @@ export function buildWorld() {
 
   // Blocks: sidewalks, then park grass / lot asphalt / buildings.
   const walks = [], greens = [], lots = [], stalls = [];
-  const bodies = [], bands = [], roofs = [], signs = [], acs = [];
   for (const b of BLOCKS) {
     walks.push({ x: (b.x0 + b.x1) / 2, y: 0.08, z: (b.z0 + b.z1) / 2, sx: b.x1 - b.x0 + 1.6, sy: 0.16, sz: b.z1 - b.z0 + 1.6 });
     if (b.kind === 'park') greens.push({ x: (b.x0 + b.x1) / 2, y: 0.17, z: (b.z0 + b.z1) / 2, sx: b.x1 - b.x0 - 1, sy: 0.02, sz: b.z1 - b.z0 - 1 });
@@ -79,34 +78,10 @@ export function buildWorld() {
       lots.push({ x: (b.x0 + b.x1) / 2, y: 0.17, z: (b.z0 + b.z1) / 2, sx: b.x1 - b.x0 - 1, sy: 0.02, sz: b.z1 - b.z0 - 1 });
       for (let x = b.x0 + 2; x < b.x1 - 1; x += 3) stalls.push({ x, y: 0.19, z: (b.z0 + b.z1) / 2, sx: 0.15, sy: 0.02, sz: b.z1 - b.z0 - 2 });
     }
-    if (b.kind !== 'bld') continue;
-    // Split the block into storefront chunks along its long side.
-    const alongX = b.x1 - b.x0 >= b.z1 - b.z0;
-    const len = alongX ? b.x1 - b.x0 : b.z1 - b.z0;
-    let pos = 0, k = 0;
-    while (pos < len - 0.5) {
-      const seed = Math.round(b.x0 * 13 + b.z0 * 7 + k * 31);
-      let w = 6 + hash(seed, 3) * 6;
-      if (len - pos - w < 4) w = len - pos;
-      const h = 5 + Math.floor(hash(seed, 4) * 4) * 3 + (Math.abs(b.z0) >= 44 ? 3 : 0);
-      const cx = alongX ? b.x0 + pos + w / 2 : (b.x0 + b.x1) / 2;
-      const cz = alongX ? (b.z0 + b.z1) / 2 : b.z0 + pos + w / 2;
-      const sx = alongX ? w - 0.25 : b.x1 - b.x0, sz = alongX ? b.z1 - b.z0 : w - 0.25;
-      bodies.push({ x: cx, y: h / 2, z: cz, sx, sy: h, sz, c: FACADES[Math.floor(hash(seed, 5) * FACADES.length)] });
-      roofs.push({ x: cx, y: h + 0.2, z: cz, sx: sx + 0.3, sy: 0.4, sz: sz + 0.3 });
-      for (let fy = 4; fy < h - 1; fy += 3) bands.push({ x: cx, y: fy, z: cz, sx: sx + 0.12, sy: 0.8, sz: sz + 0.12 });
-      signs.push({ x: cx, y: 2.4, z: cz, sx: sx + 0.2, sy: 0.6, sz: sz + 0.2, c: SIGNS[Math.floor(hash(seed, 6) * SIGNS.length)] });
-      if (hash(seed, 7) > 0.4) acs.push({ x: cx + (hash(seed, 8) - 0.5) * sx * 0.5, y: h + 0.9, z: cz + (hash(seed, 9) - 0.5) * sz * 0.5, sx: 1.4, sy: 1, sz: 1.2 });
-      pos += w; k++;
-    }
   }
   for (const im of [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)]) im.receiveShadow = true;
   instanced(unitBox, COL.stripe, stalls);
-  instanced(unitBox, 0, bodies, true);
-  windows = instanced(unitBox, COL.glass, bands); windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
-  instanced(unitBox, COL.roof, roofs);
-  instanced(unitBox, 0, signs, true);
-  instanced(unitBox, 0x8f939a, acs);
+  buildCity();
 
   // Trees.
   const crowns = [], trunks = [];
@@ -297,6 +272,46 @@ function updateLife(dt, S) {
 }
 
 let lampHeads = null, windows = null;
+// City storefronts, floor by floor (CITY in layout.js): one instance per floor slab and per window band, plus a roof,
+// sign and AC unit per storefront. syncCity() hides the floors the sim says are gone and drops the roof onto the new top.
+let city = null;
+function buildCity() {
+  const floors = [], bands = [], roofs = [], signs = [], acs = [], idx = [];
+  CITY.forEach((b, i) => {
+    const fh = b.h / b.floors, first = floors.length;
+    for (let f = 0; f < b.floors; f++) {
+      floors.push({ x: b.x, y: fh * f + fh / 2, z: b.z, sx: b.sx, sy: fh, sz: b.sz, c: FACADES[Math.floor(b.c * FACADES.length)] });
+      bands.push({ x: b.x, y: fh * f + fh * 0.7, z: b.z, sx: b.sx + 0.12, sy: f === 0 ? 0.01 : 0.8, sz: b.sz + 0.12 });
+    }
+    roofs.push({ x: b.x, y: b.h + 0.2, z: b.z, sx: b.sx + 0.3, sy: 0.4, sz: b.sz + 0.3 });
+    signs.push({ x: b.x, y: 2.4, z: b.z, sx: b.sx + 0.2, sy: 0.6, sz: b.sz + 0.2, c: SIGNS[Math.floor(b.sign * SIGNS.length)] });
+    acs.push(b.ac ? { x: b.x + b.ac[0], y: b.h + 0.9, z: b.z + b.ac[1], sx: 1.4, sy: 1, sz: 1.2 } : { x: 0, y: -50, z: 0, sx: 0.001, sy: 0.001, sz: 0.001 });
+    idx.push({ first, n: b.floors, fh, shown: b.floors });
+  });
+  const fl = instanced(unitBox, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
+  windows = wb; windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
+  city = { fl, wb, roofs: instanced(unitBox, COL.roof, roofs), signs: instanced(unitBox, 0, signs, true), acs: instanced(unitBox, 0x8f939a, acs), floors, bands, roofList: roofs, acList: acs, signList: signs, idx };
+}
+const _hide = new THREE.Matrix4().makeScale(0, 0, 0);
+function setBox(im, i, it, yOff = 0) { M.compose(V.set(it.x, it.y + yOff, it.z), Q.identity(), Sv.set(it.sx, it.sy, it.sz)); im.setMatrixAt(i, M); }
+/** Mirror S.city (floors standing per storefront) into the instanced city. Cheap: only storefronts that changed. */
+export function syncCity(S) {
+  if (!city) return;
+  let dirty = false;
+  CITY.forEach((b, i) => {
+    const want = S && S.city ? S.city[i].fl : b.floors, d = city.idx[i];
+    if (want === d.shown) return;
+    for (let f = 0; f < d.n; f++) {
+      if (f < want) { setBox(city.fl, d.first + f, city.floors[d.first + f]); setBox(city.wb, d.first + f, city.bands[d.first + f]); }
+      else { city.fl.setMatrixAt(d.first + f, _hide); city.wb.setMatrixAt(d.first + f, _hide); }
+    }
+    const drop = (d.n - want) * d.fh;
+    if (want > 0) { setBox(city.roofs, i, city.roofList[i], -drop); setBox(city.acs, i, city.acList[i], -drop); setBox(city.signs, i, city.signList[i]); }
+    else { city.roofs.setMatrixAt(i, _hide); city.acs.setMatrixAt(i, _hide); city.signs.setMatrixAt(i, _hide); }
+    d.shown = want; dirty = true;
+  });
+  if (dirty) for (const im of [city.fl, city.wb, city.roofs, city.acs, city.signs]) im.instanceMatrix.needsUpdate = true;
+}
 /** Late in the day the street lamps light up and the office windows glow warm (k 0..1). */
 export function setDusk(k) {
   if (lampHeads) lampHeads.material.emissive.setRGB(1 * k, 0.85 * k, 0.45 * k);
@@ -384,6 +399,7 @@ function updatePeds(dt, S) {
   peds.body.instanceMatrix.needsUpdate = true; peds.head.instanceMatrix.needsUpdate = true;
 }
 export function updateWorld(dt, S) {
+  syncCity(S);
   updateRain(dt);
   updatePeds(dt, S);
   updateLife(dt, S);

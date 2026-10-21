@@ -146,6 +146,25 @@ in a headless page; needs `python3 -m http.server 4174` from the repo's parent).
 Other systems: time of day (morning -> golden hour over ~11 min, lamps + windows glow), AI garrisons its towers,
 end-of-match camera swoop, hero entrance spotlight, faction-coloured HUD accents, voice barks on orders, graffiti tags.
 
+## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
+The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping
+it standing; a city meter swings between ruins and metropolis. Fictional groups only, roast both sides, cartoon violence,
+no real people / agencies / movements, and no ethnicity- or origin-based mechanics (see decisions log for the reasoning).
+- **Breakable city (built B129):** every storefront is a stack of floors; damage knocks floors off from the top,
+  workers rebuild a floor at a time (costs cash). Next: Colin's modular building kit pieces (weirdport
+  `models/building_kit/`) instead of floor slabs.
+- **Drifters:** an unaligned street population. Given cash/jobs they become workers who rebuild; neglected or caught in
+  wrecked blocks, they drift into the wrecking crowd. Opportunity vs neglect is the whole point.
+- **Wrecker verbs:** loot a storefront (cash), tag it, smash it, stir up a crowd, fight the guards.
+- **Builder verbs:** rebuild, give jobs, upgrade City Hall, reinforce the fire house / guard station, open shops.
+- **Strategy problem to solve (Colin's playtest):** the prototype is linear - build, bank cash, send the army, tap
+  fastest. Needs real choices on the map: things worth taking, holding or ignoring, so a match has decisions.
+- **Hex city (Colin's idea):** blocks as hexagons that fit together (Catan-like), so streets bend and passages between
+  areas are not straight lines - more interesting routes and chokepoints. Big layout + pathing change; do it once the
+  Downtown rules are proven on the current map.
+- Caricatures that rhyme with archetypes without being anyone: a tanned tantrum-prone Mayor who wants a wall, a hoarse
+  finger-wagging Senator promising free everything, black-bloc kids with matching skateboards, hall-monitor city guards.
+
 ## Open questions
 - [ ] Second faction-flavored resource (scrap, hype, followers) later, or cash only?
 - [ ] Faction home maps vs shared neutral maps (current: shared city map).

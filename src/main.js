@@ -1,23 +1,23 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=128';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=128';
-import { syncRender, clearRender, bump } from './render/sync.js?v=128';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=128';
-import { newSim, getSim, step } from './sim/sim.js?v=128';
-import { TICK } from './config/factions.js?v=128';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=128';
-import { initInput, lockPageZoom } from './input/input.js?v=128';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=128';
-import { resetUI } from './ui/state.js?v=128';
-import { fillIcons, svg } from './ui/icons.js?v=128';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=128';
-import { updateMinimap } from './ui/minimap.js?v=128';
-import { isMuted, setMuted } from './fx/sfx.js?v=128';
-import { loadChars } from './render/chars.js?v=128';
-import { emit } from './fx/particles.js?v=128';
-import { FC } from './render/models.js?v=128';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=129';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=129';
+import { syncRender, clearRender, bump } from './render/sync.js?v=129';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=129';
+import { newSim, getSim, step } from './sim/sim.js?v=129';
+import { TICK } from './config/factions.js?v=129';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=129';
+import { initInput, lockPageZoom } from './input/input.js?v=129';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=129';
+import { resetUI } from './ui/state.js?v=129';
+import { fillIcons, svg } from './ui/icons.js?v=129';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=129';
+import { updateMinimap } from './ui/minimap.js?v=129';
+import { isMuted, setMuted } from './fx/sfx.js?v=129';
+import { loadChars } from './render/chars.js?v=129';
+import { emit } from './fx/particles.js?v=129';
+import { FC } from './render/models.js?v=129';
 
-export const BUILD = 128; // written by `npm run bump`
+export const BUILD = 129; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();

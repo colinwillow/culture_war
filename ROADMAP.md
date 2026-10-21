@@ -160,3 +160,11 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 ## Batch 20 (added 14:32 UTC by the loop, same rules)
 - [x] (B124) FX: win confetti — when you win, confetti in your faction's colours rains over the camera swoop (losing: a slow grey drizzle of ash instead)
 - [x] (B125) UI: power-ready ping — when a power's meter fills, its button pops once with a gold burst and a soft chime
+
+## Downtown (Colin, Oct 21 2026 - see docs/design.md "Downtown")
+- [x] (B129) Step 1: breakable city - every storefront is a stack of floors that gets smashed off from the top (chunks tumble, dust, shake); workers rebuild floor by floor for cash. Tap a storefront with fighters = smash, with workers = rebuild
+- [ ] Step 2: city meter + Downtown mode - one side Wreckers, one side Builders (picked from the existing factions); the meter swings with floors standing; timer win
+- [ ] Step 3: drifters - neutral street people; cash/jobs turn them into rebuild workers, neglect or wreckage turns them into wreckers
+- [ ] Step 4: wrecker/builder verbs - loot a storefront for cash, tag it; upgrade City Hall, open shops, give jobs
+- [ ] Step 5: Colin's building kit pieces (weirdport models/building_kit) replace the floor slabs
+- [ ] Later: hex city layout (Catan-like blocks, bending streets, real chokepoints)

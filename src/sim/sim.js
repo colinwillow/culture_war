@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=128';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=128';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=128';
-import { mulberry32 } from '../util/math.js?v=128';
-import { aiStep } from './ai.js?v=128';
+} from '../config/factions.js?v=129';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=129';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=129';
+import { mulberry32 } from '../util/math.js?v=129';
+import { aiStep } from './ai.js?v=129';
 
 let S = null;
 export const getSim = () => S;
@@ -45,6 +45,10 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
   S.players[1].inc = [0.7, 1, 1.35][diff];
   for (const p of S.players) { const tr = fac(p).traits || {}; p.cash = Math.round(p.cash * (tr.cash || 1)); p.inc *= tr.inc || 1; } // Old Money: a trust fund
   for (const [x, z] of NODES) S.nodes.push({ id: S.nid++, x, z, amount: NODE_AMOUNT });
+  // The city itself: every storefront is a neutral target with FLOOR_HP per floor. Smashing knocks floors off from the
+  // top; workers rebuild them one at a time. owner -1 = nobody's, so it never counts as anyone's base.
+  S.city = CITY.map((c, i) => ({ id: S.nid++, ci: i, isBld: true, city: true, kind: 'city', owner: -1, x: c.x, z: c.z, sx: c.sx, sz: c.sz,
+    r: (Math.min(c.sx, c.sz) + Math.max(c.sx, c.sz)) / 4, floors: c.floors, fl: c.floors, maxHp: c.floors * FLOOR_HP, hp: c.floors * FLOOR_HP, built: 1, dead: false }));
   for (const p of S.players) {
     addBld(p, 'hq', p.hqx, p.hqz, true);
     for (let i = 0; i < 2; i++) { const w = spawnSquad(p, 'worker', p.hqx + (i ? 5 : -5), p.hqz - p.side * 6); w.task = { state: 'find' }; }
@@ -71,7 +75,10 @@ const heroBusy = (p) => { const hq = hqOf(p); return S.squads.some((s) => s.owne
 export const aliveN = (s) => { let n = 0; for (const h of s.members) if (h > 0) n++; return n; };
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
 const sqR = (def, slot) => (def.n > 1 ? 1.3 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1);
-const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || null;
+const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || S.city.find((b) => b.id === id) || null;
+const FLOOR_HP = 150;
+// Floors standing for a city storefront's hp: a floor is gone once its slice of hp is fully gone.
+const floorsFor = (b) => Math.max(0, Math.min(b.floors, Math.ceil(b.hp / FLOOR_HP - 1e-6)));
 
 function addBld(p, kind, x, z, done) {
   const d = BLD[kind];
@@ -192,7 +199,7 @@ function applyCmd(c) {
     case 'stance': ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') { s.hold = !!c.hold; if (s.hold && s.order.type === 'idle') s.post = { x: s.x, z: s.z }; } }); break;
     case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
     case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
-    case 'repair': { const b = byId(c.id); if (b && b.owner === p.i && b.built >= 1 && b.hp < b.maxHp) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
+    case 'repair': { const b = byId(c.id); if (b && (b.owner === p.i || b.city) && b.built >= 1 && b.hp < b.maxHp) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -263,6 +270,14 @@ function killSquad(t) {
   if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); pl(t.owner).st.earned += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner, slot: t.slot, h: t.heading }); }
 }
 function hitBld(b, d) {
+  if (b.city) { // a storefront: floors come off from the top, the ground floor last; rubble stays and can be rebuilt
+    if (b.hp <= 0) return;
+    b.hp = Math.max(0, b.hp - d);
+    const fl = floorsFor(b);
+    while (b.fl > fl) { b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors }); }
+    if (b.hp <= 0) { b.dead = true; S.events.push({ k: 'boom', x: b.x, z: b.z, r: b.r * 0.6 }); }
+    return;
+  }
   if (b.dead) return;
   b.hp -= d;
   if (b.hp <= 0) {
@@ -365,11 +380,16 @@ function updateWorker(s, dt) {
   // Repair: walk to the building, then patch it up at 25 hp/s per worker for 1 cash per 10 hp; back to work when done.
   if (o.type === 'repair') {
     const b = o.b, p = pl(s.owner);
-    if (b.dead || b.hp >= b.maxHp || p.cash < 1) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; return; }
+    if ((b.dead && !b.city) || b.hp >= b.maxHp || p.cash < 1) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; return; }
     if (Math.hypot(b.x - s.x, b.z - s.z) > b.r + 2.2) { moveTo(s, b.x, b.z, dt); return; }
     s.heading = Math.atan2(b.x - s.x, b.z - s.z);
     const hp = Math.min(b.maxHp - b.hp, 25 * dt);
     b.hp += hp; p.cash -= hp / 10;
+    if (b.city) { // a storefront goes back up a whole floor at a time, once that floor's hp is fully paid for
+      b.dead = false;
+      const fl = Math.floor(b.hp / FLOOR_HP + 1e-6);
+      while (b.fl < Math.min(b.floors, fl)) { S.events.push({ k: 'chunkfix', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors }); b.fl++; }
+    }
     s.gatherT = 1; // reads as "working" to the renderer (swing animation)
     s.repT = (s.repT || 0) - dt;
     if (s.repT <= 0) { s.repT = 0.5; S.events.push({ k: 'repair', x: s.x + (b.x - s.x) * 0.6, z: s.z + (b.z - s.z) * 0.6 }); }

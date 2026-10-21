@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=128';
-import { walkH } from '../map/layout.js?v=128';
-import { sfx } from './sfx.js?v=128';
-import { shake, CAM } from '../camera/camera.js?v=128';
-import { FC } from '../render/models.js?v=128';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=128';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=129';
+import { walkH, CITY } from '../map/layout.js?v=129';
+import { sfx } from './sfx.js?v=129';
+import { shake, CAM } from '../camera/camera.js?v=129';
+import { FC } from '../render/models.js?v=129';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=129';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -212,6 +212,36 @@ function heroEntrance(ev) {
   else if (ev.f === 'om') { up([0xf5b83a, 0x7cc46a], 24, 7, 0.24); sfx('ding', 0.8); } // money shower
   else if (ev.f === 'sc') { up([0x7a3fd1, 0x7ee05b, 0xff5ad1], 18, 5); sfx('scratch', 0.9); } // record scratch
 }
+/** A storefront loses a floor: 5-8 slabs of facade break off that floor, tumble, bounce once, lie in the street a few
+ * seconds and sink away; dust rolls out and the camera bumps. Colours come from the building's facade (CITY data). */
+const FAC_COLS = [0xb5523b, 0xc9b79a, 0x6f8f9c, 0xd8cfb8, 0x8a6f5a, 0x9fae8a, 0xc7865a, 0x7a7f8c];
+function cityChunk(ev) {
+  const c = CITY[ev.ci]; if (!c) return;
+  const fh = c.h / c.floors, y0 = gy(c.x, c.z) + fh * ev.fl + fh / 2, col = FAC_COLS[Math.floor(c.c * FAC_COLS.length)];
+  shake(0.5, c.x, c.z);
+  for (let i = 0; i < 6 + ((Math.random() * 3) | 0); i++) {
+    const w = 0.6 + Math.random() * Math.min(2.4, c.sx * 0.3), h = 0.5 + Math.random() * fh * 0.6, d = 0.4 + Math.random() * 0.8;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(i % 3 ? col : 0x8a8378));
+    const side = Math.random() < 0.5 ? 1 : -1, alongX = Math.random() < 0.5;
+    let px = c.x + (alongX ? (Math.random() - 0.5) * c.sx : side * c.sx / 2), pz = c.z + (alongX ? side * c.sz / 2 : (Math.random() - 0.5) * c.sz), py = y0;
+    let vx = (px - c.x) * 0.6 + (Math.random() - 0.5) * 2, vz = (pz - c.z) * 0.6 + (Math.random() - 0.5) * 2, vy = 2 + Math.random() * 3, bounced = false;
+    const sx = (Math.random() - 0.5) * 8, sz2 = (Math.random() - 0.5) * 8, floor = gy(px, pz) + h / 2;
+    addFx(m, 6, (o, k, dt) => {
+      if (py > floor + 0.01 || vy > 0) { vy -= 16 * dt; px += vx * dt; pz += vz * dt; py += vy * dt; o.rotation.x += sx * dt; o.rotation.z += sz2 * dt; }
+      if (py <= floor && vy < 0) { py = floor; if (!bounced) { bounced = true; vy = -vy * 0.3; vx *= 0.4; vz *= 0.4; fxBits(px, pz, 0xb9a57e, 3, 0.2, 3); } else { vy = 0; vx = vz = 0; } }
+      o.position.set(px, py - (k > 0.8 ? (k - 0.8) * 5 * h : 0), pz);
+    });
+  }
+  for (let i = 0; i < 14; i++) emit({ x: c.x + (Math.random() - 0.5) * c.sx, y: y0, z: c.z + (Math.random() - 0.5) * c.sz, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 2, vz: (Math.random() - 0.5) * 4, c: i % 2 ? 0xb9a57e : 0x9a9a9a, s: 0.7, life: 1.6, g: -0.4, drag: 1.5, grow: 2.5 });
+}
+/** A floor goes back on: hammer sparks round the edge and a fresh slab drops into place from just above. */
+function cityFix(ev) {
+  const c = CITY[ev.ci]; if (!c) return;
+  const fh = c.h / c.floors, y = gy(c.x, c.z) + fh * ev.fl + fh / 2;
+  const m = new THREE.Mesh(new THREE.BoxGeometry(c.sx + 0.05, fh, c.sz + 0.05), basic(0xfff3c4, 0.5));
+  addFx(m, 0.5, (o, k) => { o.position.set(c.x, y + (1 - k) * 2, c.z); o.material.opacity = 0.5 * (1 - k); });
+  for (let i = 0; i < 12; i++) emit({ x: c.x + (Math.random() - 0.5) * c.sx, y, z: c.z + (Math.random() - 0.5) * c.sz, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: i % 2 ? 0xffe14d : 0xffffff, s: 0.12, life: 0.5, g: 12 });
+}
 /** Mixtape Drop: a giant spinning vinyl record falls out of the sky and lands flat at 1.2 s (the bass drop). */
 function vinylDrop(x, z) {
   const g0 = gy(x, z), rec = new THREE.Group();
@@ -285,7 +315,7 @@ export function fxDeath(x, z, f) {
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -403,6 +433,8 @@ export function handleEvents(S, bump) {
         fxArc(ev.x, ev.z, ev.tx, ev.tz, 0x3a2416, () => { const g0 = gy(ev.tx, ev.tz); for (let i = 0; i < 18; i++) emit({ x: ev.tx, y: g0 + 1.5, z: ev.tz, vx: (Math.random() - 0.5) * 5, vy: 3 + Math.random() * 4, vz: (Math.random() - 0.5) * 5, c: i % 3 ? 0xf5b83a : 0x7cc46a, s: 0.2, life: 1.2, g: 12, floor: g0 + 0.1 }); fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xd9b44a, 0.5); });
         break;
       }
+      case 'chunk': cityChunk(ev); break;
+      case 'chunkfix': cityFix(ev); break;
       case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }

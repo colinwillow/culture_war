@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=128';
-import { walkH } from '../map/layout.js?v=128';
-import { getSim, command } from '../sim/sim.js?v=128';
-import { UI, select, selSquads } from '../ui/state.js?v=128';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=128';
-import { fxMarker } from '../fx/fx.js?v=128';
-import { ack } from '../render/sync.js?v=128';
+import { THREE, camera, canvas } from '../render/scene.js?v=129';
+import { walkH } from '../map/layout.js?v=129';
+import { getSim, command } from '../sim/sim.js?v=129';
+import { UI, select, selSquads } from '../ui/state.js?v=129';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=129';
+import { fxMarker } from '../fx/fx.js?v=129';
+import { ack } from '../render/sync.js?v=129';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -56,6 +56,14 @@ function onTap(cx, cy) {
   const sel = selSquads(), ids = sel.map((s) => s.id);
   const enemy = pickSquad(S, cx, cy, 1) || pickBld(S, g, 1);
   if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); ack(ids, true); return; }
+  // A city storefront: workers selected = rebuild it (if it is damaged); fighters selected = smash it, floor by floor.
+  const cb = S.city && S.city.find((b) => Math.abs(g.x - b.x) < b.sx / 2 + 0.6 && Math.abs(g.z - b.z) < b.sz / 2 + 0.6);
+  if (cb && sel.length) {
+    const workers = sel.filter((s) => s.slot === 'worker'), fighters = sel.filter((s) => s.slot !== 'worker');
+    if (workers.length && cb.hp < cb.maxHp) { command(0, { type: 'repair', ids: workers.map((s) => s.id), id: cb.id }); fxMarker(cb.x, cb.z, 0xf2c232); ack(ids); }
+    if (fighters.length && cb.hp > 0) { command(0, { type: 'attack', ids: fighters.map((s) => s.id), target: cb.id }); fxMarker(cb.x, cb.z, 0xff5a4f); ack(ids, true); }
+    if (workers.length || fighters.length) return;
+  }
   const node = pickNode(S, g);
   if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); ack(ids); return; }
   const ob = pickBld(S, g, 0);
