@@ -1,16 +1,16 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=88';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=88';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=88';
-import { emit } from '../fx/particles.js?v=88';
-import { bark } from '../fx/sfx.js?v=88';
-import { TICK } from '../config/factions.js?v=88';
-import { walkH } from '../map/layout.js?v=88';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=88';
-import { Q, pl, getSim } from '../sim/sim.js?v=88';
-import { UI } from '../ui/state.js?v=88';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=88';
-import { lerpAngle } from '../util/math.js?v=88';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=89';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=89';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=89';
+import { emit } from '../fx/particles.js?v=89';
+import { bark } from '../fx/sfx.js?v=89';
+import { TICK } from '../config/factions.js?v=89';
+import { walkH } from '../map/layout.js?v=89';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=89';
+import { Q, pl, getSim } from '../sim/sim.js?v=89';
+import { UI } from '../ui/state.js?v=89';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=89';
+import { lerpAngle } from '../util/math.js?v=89';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -76,7 +76,7 @@ function makeBldObj(b) {
   root.position.set(b.x, walkH(b.x, b.z), b.z);
   if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
   scene.add(root);
-  return { root, mesh, coin: mesh.userData.coin, speakers: mesh.userData.speakers, disc: mesh.userData.disc, pips, scaff, sel, bar, h, r: b.r, smokeT: 0, buildFx: 0, wasBuilt: b.built >= 1, scaffDrop: b.built >= 1 ? 1 : 0 };
+  return { root, mesh, coin: mesh.userData.coin, speakers: mesh.userData.speakers, disc: mesh.userData.disc, leds: mesh.userData.leds, pips, scaff, sel, bar, h, r: b.r, smokeT: 0, buildFx: 0, wasBuilt: b.built >= 1, scaffDrop: b.built >= 1 ? 1 : 0 };
 }
 function makeNodeObj(n) {
   const g = nodeMesh();
@@ -393,6 +393,7 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (b.built >= 1 && o.scaffDrop >= 1) o.scaff.visible = false;
     if (o.coin) o.coin.rotation.z += dt * 2.5;
+    if (o.leds) o.leds.forEach((m, k) => (m.visible = Math.sin(time * (3 + (k % 5)) + k * 1.7) > -0.3)); // server LEDs blink
     if (o.disc) o.disc.rotation.y += dt * 3; // the record on the shop roof spins
     if (o.speakers && o.speakers.length) { const th = 1 + Math.max(0, Math.sin(time * 9.4)) ** 4 * 0.35; for (const c of o.speakers) c.scale.set(th, 1, th); } // cones thump
     if (o.mesh.userData.jib) o.mesh.userData.jib.rotation.y = Math.sin(time * 0.15 + b.id) * 2.2; // crane slowly slews back and forth

@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=88';
+import { THREE, box, cyl, mat } from './scene.js?v=89';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -88,6 +88,23 @@ export function makeMember(f, slot) {
       // The Foreman: hi-vis vest, white hard hat, clipboard in hand.
       g = humanoid(C, C.alt, 0xffffff); g.children[2].scale.set(1.15, 1.15, 1.15);
       g.add(box(0.3, 0.38, 0.04, 0x8a6a3e, 0.3, 0.95, 0.25), box(0.24, 0.28, 0.02, 0xffffff, 0.3, 0.97, 0.28));
+    }
+  } else if (f === 'nd' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
+    if (slot === 'cav') { // Segway Patrol: a nerd in a bike helmet on a two-wheel scooter, leaning forward (chassis wobbles)
+      g = new THREE.Group();
+      const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.3;
+      const rider = humanoid(C, C.main, 0xffffff); rider.position.y = 0.35; rider.rotation.x = 0.12; body.add(rider);
+      body.add(box(0.7, 0.1, 0.45, 0x333333, 0, 0.3, 0), box(0.06, 1, 0.06, 0x888888, 0, 0.8, 0.3), box(0.6, 0.06, 0.06, 0x333333, 0, 1.3, 0.3));
+      g.add(wheel(0.28, 0.12, 0.42, 0.28, 0), wheel(0.28, 0.12, -0.42, 0.28, 0)); tagWheels(g);
+    } else if (slot === 'siege') { // Mech Suit: a cardboard-and-LED walking mech, nerd in the cockpit
+      g = humanoid({ ...C, dark: 0x5a6070, skin: 0x8a90a0 }, 0x9aa2b5, C.alt); g.scale.setScalar(1.9);
+      g.add(box(0.36, 0.2, 0.05, 0x9fd6ff, 0, 0.92, 0.16), box(0.18, 0.18, 0.18, 0xe8c4a0, 0, 0.92, 0.1), box(0.08, 0.08, 0.02, 0xff3030, 0.14, 1.32, 0.17), box(0.08, 0.08, 0.02, 0xff3030, -0.14, 1.32, 0.17));
+      g.add(box(0.1, 0.1, 0.5, 0x444444, 0.3, 0.6, 0.3), box(0.1, 0.1, 0.5, 0x444444, -0.3, 0.6, 0.3)); // arm cannons
+    } else { // The Streamer: headset, a phone on a selfie stick and a ring light floating behind
+      g = humanoid(C, C.alt, 0x222222); g.children[2].scale.set(1.1, 1.1, 1.1);
+      g.add(box(0.4, 0.06, 0.06, 0x111111, 0, 1.47, 0), box(0.06, 0.14, 0.14, 0x111111, 0.2, 1.3, 0), box(0.06, 0.14, 0.14, 0x111111, -0.2, 1.3, 0));
+      g.add(box(0.03, 0.8, 0.03, 0x888888, 0.35, 1.2, 0.3), box(0.14, 0.24, 0.03, 0x111111, 0.35, 1.6, 0.42));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.05, 6, 20), mat(0xffffff)); ring.position.set(0, 1.4, -0.6); g.add(ring, box(0.03, 1.2, 0.03, 0x555555, 0, 0.6, -0.6));
     }
   } else if (f === 'sc' && slot === 'cav') {
     // Lowrider: long, low, purple with chrome trim and whitewall wheels. sync.js pumps the hydraulics (userData.hydro).
@@ -205,6 +222,31 @@ export function bldMesh(kind, f) {
       mesh.add(box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, 0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, 0.6));
       mesh.add(box(1.8, 1.4, 1.8, 0xf4f1de, 0, 3.3, 0), box(1.9, 0.5, 1.9, 0x2b3a4c, 0, 3.4, 0), box(2.1, 0.3, 2.1, 0xd9b44a, 0, 4.15, 0));
     }
+    return mesh;
+  }
+  if (f === 'nd') {
+    // Nerds: neon-trimmed boxes, satellite dishes and blinking server LEDs (userData.leds blink in sync.js).
+    const leds = [];
+    const led = (x, y, z, c) => { const m = box(0.12, 0.12, 0.04, c, x, y, z); m.material = new THREE.MeshBasicMaterial({ color: c }); mesh.add(m); leds.push(m); };
+    if (kind === 'hq') { // Game Shop: storefront with a giant pixel controller on the roof and a dish
+      mesh.add(box(6, 3.2, 4.6, 0x3a3f52, 0, 1.6), box(6.3, 0.3, 4.9, C.main, 0, 3.35), box(4.4, 1.6, 0.1, 0x9fd6ff, 0, 1.3, 2.32), box(6.1, 0.1, 0.1, 0xff5ad1, 0, 2.5, 2.36));
+      mesh.add(box(3, 1, 0.6, 0x2a2a2a, 0, 4.1, 0), box(0.8, 0.8, 0.62, 0x2a2a2a, -1.5, 3.9, 0), box(0.8, 0.8, 0.62, 0x2a2a2a, 1.5, 3.9, 0));
+      led(0.9, 4.2, 0.32, 0xff3030); led(1.2, 4.0, 0.32, 0x3aff5a); led(-1.0, 4.1, 0.32, C.alt);
+      const dish = cyl(0.9, 0.2, 0.3, 0xdddddd, 2.4, 4.0, -1.5, 14); dish.rotation.x = -0.8; mesh.add(dish);
+    } else if (kind === 'depot') { // Server Rack: a black rack with rows of blinking LEDs
+      mesh.add(box(2.4, 2.4, 2, 0x1b1d24, 0, 1.2), box(2.5, 0.2, 2.1, C.main, 0, 2.5));
+      for (let r = 0; r < 4; r++) for (let c2 = 0; c2 < 4; c2++) led(-0.75 + c2 * 0.5, 0.5 + r * 0.5, 1.02, [0x3aff5a, 0x3aff5a, C.alt, 0x5aa9e6][(r + c2) % 4]);
+      const coin = cyl(0.75, 0.75, 0.16, 0xf5b83a, 0, 3.4, 0, 16); coin.rotation.x = Math.PI / 2; mesh.add(coin); mesh.userData.coin = coin;
+    } else if (kind === 'barracks') { // LAN Cafe: glass front, glowing screens inside, gamer-chair sign
+      mesh.add(box(4.4, 2.3, 3.6, 0x2f3446, 0, 1.15), box(4.6, 0.3, 3.8, C.main, 0, 2.45), box(3.6, 1.2, 0.1, 0x16304a, 0, 1.1, 1.82));
+      for (let i = 0; i < 4; i++) led(-1.35 + i * 0.9, 1.15, 1.88, [0x5aa9e6, 0xff5ad1, 0x3aff5a, C.alt][i]);
+      mesh.add(box(1.6, 0.6, 0.1, 0x111111, 0, 3.0, 1.2), box(1.4, 0.4, 0.02, C.alt, 0, 3.0, 1.26));
+    } else { // Antenna Tower: a lattice mast with a dish and a red beacon
+      for (const [x, z] of [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]) mesh.add(box(0.1, 4.6, 0.1, 0x888888, x * 0.8, 2.3, z * 0.8));
+      for (let y = 0.8; y < 4.6; y += 0.9) mesh.add(box(0.9, 0.06, 0.9, 0x777777, 0, y, 0));
+      const dish = cyl(0.7, 0.15, 0.25, 0xdddddd, 0, 4.2, 0.5, 14); dish.rotation.x = -1.1; mesh.add(dish, box(0.08, 1.4, 0.08, 0xaaaaaa, 0, 5.2, 0)); led(0, 5.95, 0, 0xff3030);
+    }
+    mesh.userData.leds = leds;
     return mesh;
   }
   if (f === 'sc') {
