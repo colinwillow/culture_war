@@ -1,18 +1,18 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=104';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=104';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=104';
-import { emit } from '../fx/particles.js?v=104';
-import { bark } from '../fx/sfx.js?v=104';
-import { TICK } from '../config/factions.js?v=104';
-import { walkH } from '../map/layout.js?v=104';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=104';
-import { CAM } from '../camera/camera.js?v=104';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=105';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=105';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=105';
+import { emit } from '../fx/particles.js?v=105';
+import { bark } from '../fx/sfx.js?v=105';
+import { TICK } from '../config/factions.js?v=105';
+import { walkH } from '../map/layout.js?v=105';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=105';
+import { CAM } from '../camera/camera.js?v=105';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=104';
-import { UI } from '../ui/state.js?v=104';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=104';
-import { lerpAngle } from '../util/math.js?v=104';
+import { Q, pl, getSim } from '../sim/sim.js?v=105';
+import { UI } from '../ui/state.js?v=105';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=105';
+import { lerpAngle } from '../util/math.js?v=105';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -204,6 +204,11 @@ export function syncRender(S, alpha, dt, time) {
           continue;
         }
         alive++;
+        if (S.over) { // the match is decided: the winners dance (moussa's clips, on loop), the losers slump to the ground
+          if (s.owner === S.over.winner) { if (A.lock <= 0 || !String(A.cur).startsWith('dance')) play(m, 'dance' + ((i + s.id) % 3 + 1), true); }
+          else if (!m.userData.slump) { m.userData.slump = true; play(m, 'die', true); }
+          A.mixer.update(dt); continue;
+        }
         if (s.members[i] < m.userData.hp - 0.5) { m.userData.flashT = 0.16; if (!o.atk) play(m, 'hit'); }
         m.scale.set(1, 1, 1); squash(m, dt);
         m.userData.hp = s.members[i];
