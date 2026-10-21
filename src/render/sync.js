@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=57';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=57';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=57';
-import { emit } from '../fx/particles.js?v=57';
-import { TICK } from '../config/factions.js?v=57';
-import { walkH } from '../map/layout.js?v=57';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=57';
-import { Q, pl } from '../sim/sim.js?v=57';
-import { UI } from '../ui/state.js?v=57';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=57';
-import { lerpAngle } from '../util/math.js?v=57';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=58';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=58';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=58';
+import { emit } from '../fx/particles.js?v=58';
+import { TICK } from '../config/factions.js?v=58';
+import { walkH } from '../map/layout.js?v=58';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=58';
+import { Q, pl } from '../sim/sim.js?v=58';
+import { UI } from '../ui/state.js?v=58';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=58';
+import { lerpAngle } from '../util/math.js?v=58';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -224,6 +224,13 @@ export function syncRender(S, alpha, dt, time) {
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
       if (ud0(m).head) fidget(m, dt, !moving && !(o.lunge > 0), m.userData.horn);
+      const dg = m.userData.dig;
+      if (dg) { // excavator: idle sway of the cab, slam the bucket down on a hit
+        const hit = o.lunge > 0 ? Math.sin((o.lunge / 0.15) * Math.PI) : 0;
+        dg.cab.rotation.y = Math.sin(time * 0.7 + i) * 0.25;
+        dg.boom.rotation.x = -0.5 - Math.sin(time * 1.3) * 0.08 + hit * 0.55; dg.stick.rotation.x = 1.4 - hit * 0.5; dg.bucket.rotation.x = 0.4 + hit * 0.8;
+        if (hit > 0.9) { m.getWorldPosition(_wp); emit({ x: _wp.x, y: _wp.y + 0.3, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 3, vz: (Math.random() - 0.5) * 3, c: 0x7a5a3a, s: 0.3, life: 0.6, g: 12 }); }
+      }
       const pp = m.userData.puppet;
       if (pp) { // floppy parade sway: arms swing out of phase, head bobs and tilts; bigger while walking
         const k = moving ? 1 : 0.35;
@@ -254,6 +261,7 @@ export function syncRender(S, alpha, dt, time) {
           ch.rotation.x = Math.sin(time * 7.1) * 0.06 * k - (o.lunge > 0 ? 0.15 : 0);
           ch.rotation.z = Math.sin(time * 5.3 + 1) * 0.05 * k;
         }
+        if (ud.forks) ud.forks.position.z = 1.0 + (o.lunge > 0 ? Math.sin((o.lunge / 0.15) * Math.PI) * 0.6 : 0);
         if (ud.pedal) { // lean into turns like a cyclist; ring the bell (flash) on each hit
           const dy = Math.atan2(Math.sin(s.heading - o.yaw), Math.cos(s.heading - o.yaw));
           m.rotation.z += (Math.max(-0.35, Math.min(0.35, -dy * 1.2)) - m.rotation.z) * Math.min(1, dt * 6);

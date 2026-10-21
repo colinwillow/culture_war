@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=57';
+import { THREE, box, cyl, mat } from './scene.js?v=58';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -31,7 +31,37 @@ const tagWheels = (g) => { g.userData.wheels = g.children.filter((c) => c.geomet
 export function makeMember(f, slot) {
   const C = FC[f];
   let g;
-  if (f === 'bw') {
+  if (f === 'hh' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
+    if (slot === 'cav') {
+      // Forklift: squat yellow body, cage, mast with two forks out front (forks jab forward on a hit via lunge).
+      g = new THREE.Group();
+      const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.7;
+      body.add(box(1.4, 0.8, 1.9, C.alt, 0, 0.75, -0.1), box(1.2, 0.08, 1.1, 0x222222, 0, 2.05, -0.3), box(1.3, 0.5, 0.5, 0x333333, 0, 0.9, -1.1));
+      for (const x of [-0.55, 0.55]) for (const z of [0.25, -0.85]) body.add(box(0.07, 0.95, 0.07, 0x222222, x, 1.55, z));
+      body.add(box(0.12, 2.2, 0.12, 0x444444, -0.4, 1.3, 0.95), box(0.12, 2.2, 0.12, 0x444444, 0.4, 1.3, 0.95));
+      const forks = new THREE.Group(); forks.position.set(0, 0.3, 1.0); forks.add(box(0.12, 0.06, 1.1, 0x888888, -0.3, 0, 0.55), box(0.12, 0.06, 1.1, 0x888888, 0.3, 0, 0.55), box(0.9, 0.5, 0.08, 0x666666, 0, 0.25, 0));
+      body.add(forks); g.userData.forks = forks;
+      for (const [x, z] of [[0.75, 0.6], [-0.75, 0.6], [0.75, -0.8], [-0.75, -0.8]]) g.add(wheel(0.32, 0.3, x, 0.32, z));
+      tagWheels(g);
+    } else if (slot === 'siege') {
+      // Excavator: tracked base, turning cab, boom + stick + bucket on pivots (sync.js swings it).
+      g = new THREE.Group();
+      for (const x of [-0.85, 0.85]) g.add(box(0.5, 0.55, 2.6, 0x2a2a2a, x, 0.28, 0));
+      const cab = new THREE.Group(); cab.position.y = 0.6; g.add(cab);
+      cab.add(box(1.7, 0.8, 1.9, C.alt, 0, 0.45, -0.2), box(0.8, 0.9, 0.8, 0x2b3a4c, 0.4, 1.25, 0.2), box(1.6, 0.4, 0.6, 0x333333, 0, 0.6, -1.2));
+      const boom = new THREE.Group(); boom.position.set(-0.4, 0.8, 0.6); cab.add(boom);
+      boom.add(box(0.3, 0.3, 2.2, C.alt, 0, 0, 1.1)); boom.rotation.x = -0.5;
+      const stick = new THREE.Group(); stick.position.set(0, 0, 2.2); boom.add(stick);
+      stick.add(box(0.25, 0.25, 1.6, C.alt, 0, 0, 0.8)); stick.rotation.x = 1.4;
+      const bucket = new THREE.Group(); bucket.position.set(0, 0, 1.6); stick.add(bucket);
+      bucket.add(box(0.7, 0.45, 0.5, 0x444444, 0, -0.1, 0.15)); bucket.rotation.x = 0.4;
+      g.userData.dig = { cab, boom, stick, bucket }; g.userData.dust = 0.8;
+    } else {
+      // The Foreman: hi-vis vest, white hard hat, clipboard in hand.
+      g = humanoid(C, C.alt, 0xffffff); g.children[2].scale.set(1.15, 1.15, 1.15);
+      g.add(box(0.3, 0.38, 0.04, 0x8a6a3e, 0.3, 0.95, 0.25), box(0.24, 0.28, 0.02, 0xffffff, 0.3, 0.97, 0.28));
+    }
+  } else if (f === 'bw') {
     if (slot === 'worker') { g = humanoid(C, 0x7a6a4a, 0x8a1f1f); g.add(box(0.7, 0.35, 0.6, 0x7a7a7a, 0, 0.45, 0.6), wheel(0.22, 0.1, 0, 0.22, 0.95), box(0.05, 0.05, 0.7, 0x5a3d26, 0.25, 0.55, 0.25), box(0.05, 0.05, 0.7, 0x5a3d26, -0.25, 0.55, 0.25)); }
     else if (slot === 'pike') { g = humanoid(C, 0x3d5a80, 0x6b4a2a); g.add(box(0.06, 1.9, 0.06, C.dark, 0.34, 1, 0.1), box(0.34, 0.07, 0.07, 0xcccccc, 0.34, 1.95, 0.1)); }
     else if (slot === 'melee') { g = humanoid(C, C.main, 0xc62f2f); g.children[2].scale.set(1.3, 1.1, 1.2); }
