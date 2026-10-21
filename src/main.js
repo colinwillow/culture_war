@@ -1,18 +1,18 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera } from './render/scene.js?v=8';
-import { buildWorld, updateWorld } from './render/world.js?v=8';
-import { syncRender, clearRender, bump } from './render/sync.js?v=8';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=8';
-import { newSim, getSim, step } from './sim/sim.js?v=8';
-import { TICK } from './config/factions.js?v=8';
-import { applyCam, resetCam, onResize } from './camera/camera.js?v=8';
-import { initInput, lockPageZoom } from './input/input.js?v=8';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=8';
-import { resetUI } from './ui/state.js?v=8';
-import { fillIcons, svg } from './ui/icons.js?v=8';
-import { loadChars } from './render/chars.js?v=8';
+import { renderer, scene, camera } from './render/scene.js?v=9';
+import { buildWorld, updateWorld } from './render/world.js?v=9';
+import { syncRender, clearRender, bump } from './render/sync.js?v=9';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=9';
+import { newSim, getSim, step } from './sim/sim.js?v=9';
+import { TICK } from './config/factions.js?v=9';
+import { applyCam, resetCam, onResize } from './camera/camera.js?v=9';
+import { initInput, lockPageZoom } from './input/input.js?v=9';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=9';
+import { resetUI } from './ui/state.js?v=9';
+import { fillIcons, svg } from './ui/icons.js?v=9';
+import { loadChars } from './render/chars.js?v=9';
 
-export const BUILD = 8; // written by `npm run bump`
+export const BUILD = 9; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();

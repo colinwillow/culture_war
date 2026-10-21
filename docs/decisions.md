@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B9 (overnight loop): heroes: eagle rebuilt with white head/tail, talons and pivoting wings - glides, beats hard when moving, swoops down talons-first on every strike; march leader raises his bullhorn arm to shout and his blasts roll pink rings onto the target
 - B8 (overnight loop): vehicles move: monster truck chassis rides visible shocks (bob/pitch/roll, rears up on a hit), wheels roll with ground speed (hub bars show the spin), dust trails behind truck + fireworks cart; bike collective pedals faster with speed
 - B7 (overnight loop): production queue strip: one round icon per order, front one fills a green ring; tap an icon to cancel it (full refund + coin pop); portrait above the dock, landscape beside it
 - B5 (overnight loop): idle squads guard a post: engage within 10 m, break off past a 14 m leash and walk back (only fighting back point-blank on the way)

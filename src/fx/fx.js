@@ -1,10 +1,10 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=8';
-import { walkH } from '../map/layout.js?v=8';
-import { FC } from '../render/models.js?v=8';
-import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=8';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=9';
+import { walkH } from '../map/layout.js?v=9';
+import { FC } from '../render/models.js?v=9';
+import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=9';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -110,6 +110,10 @@ export function handleEvents(S, bump) {
         else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }
         bump(ev.id); break;
       case 'hit':
+        if (ev.slot === 'hero' && ev.f === 'ac') { // bullhorn blast: rings roll from him to the target
+          const dx = ev.tx - ev.x, dz = ev.tz - ev.z;
+          for (let k = 0; k < 3; k++) setTimeout(() => fxRing(ev.x + dx * (0.3 + k * 0.3), ev.z + dz * (0.3 + k * 0.3), 0.3, 1.4 + k * 0.4, 0xe85d9a, 0.3, 1.4), k * 90);
+        }
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
         else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
         bump(ev.id); break;

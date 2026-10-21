@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=8';
+import { THREE, box, cyl, mat } from './scene.js?v=9';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -49,8 +49,21 @@ export function makeMember(f, slot) {
       tagWheels(g); g.userData.dust = 0.6;
       for (let i = -1; i <= 1; i++) { const t = cyl(0.17, 0.17, 1.4, i === 0 ? 0xd63c3c : 0x3d6fd6, i * 0.38, 1.1, 0.1, 8); t.rotation.x = -0.6; g.add(t); }
     } else {
+      // Bald eagle: body, white head, beak, tail, talons, and two wings on shoulder pivots (sync.js flaps them).
       g = new THREE.Group();
-      g.add(box(0.6, 0.5, 1.2, 0x5a3a22), box(0.42, 0.42, 0.42, 0xffffff, 0, 0.22, 0.72), box(0.15, 0.12, 0.3, 0xf5b83a, 0, 0.16, 1.03), box(3, 0.08, 0.8, 0x4a2e1a, 0, 0.12, 0));
+      const bird = new THREE.Group(); g.add(bird);
+      bird.add(box(0.6, 0.5, 1.2, 0x5a3a22), box(0.42, 0.42, 0.42, 0xffffff, 0, 0.22, 0.72), box(0.15, 0.12, 0.3, 0xf5b83a, 0, 0.16, 1.03),
+        box(0.5, 0.08, 0.55, 0xffffff, 0, 0.05, -0.8), box(0.08, 0.08, 0.08, 0x111111, 0.12, 0.3, 0.92), box(0.08, 0.08, 0.08, 0x111111, -0.12, 0.3, 0.92));
+      const talons = new THREE.Group(); talons.position.set(0, -0.3, 0.1);
+      for (const x of [-0.15, 0.15]) talons.add(box(0.1, 0.3, 0.1, 0xf5b83a, x, 0, 0), box(0.2, 0.06, 0.25, 0xf5b83a, x, -0.15, 0.08));
+      bird.add(talons);
+      const wings = [];
+      for (const sd of [-1, 1]) {
+        const piv = new THREE.Group(); piv.position.set(sd * 0.3, 0.12, 0);
+        piv.add(box(1.4, 0.08, 0.8, 0x4a2e1a, sd * 0.7, 0, 0), box(0.6, 0.06, 0.6, 0x3a2416, sd * 1.6, 0, -0.1));
+        bird.add(piv); wings.push(piv);
+      }
+      g.userData.eagle = { bird, wings, talons };
     }
   } else {
     if (slot === 'worker') { g = humanoid(C, 0xf4f1de, C.hair); g.add(box(0.4, 0.5, 0.4, C.alt, 0, 0.5, 0.5), box(0.42, 0.06, 0.42, 0x222222, 0, 0.78, 0.5)); }
@@ -63,7 +76,13 @@ export function makeMember(f, slot) {
       g.add(box(1, 2.3, 0.8, C.alt, 0, 1.35));
       const h = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 10), mat(0xf4f1de)); h.position.y = 3.2; g.add(h);
       g.add(box(0.25, 1.8, 0.25, C.alt, 0.8, 1.7), box(0.25, 1.8, 0.25, C.alt, -0.8, 1.7), box(0.2, 0.2, 0.2, 0x222222, -0.25, 3.3, 0.7), box(0.2, 0.2, 0.2, 0x222222, 0.25, 3.3, 0.7));
-    } else { g = humanoid(C, C.dark, C.alt); g.children[2].scale.set(1.15, 1.2, 1.15); const m = cyl(0.1, 0.4, 0.65, 0xf5b83a, 0.35, 1.15, 0.35, 10); m.rotation.x = Math.PI / 2; g.add(m); }
+    } else {
+      // March leader: bullhorn on a raisable right arm (sync.js lifts it to the mouth when he shouts).
+      g = humanoid(C, C.dark, C.alt); g.children[2].scale.set(1.15, 1.2, 1.15);
+      const arm = new THREE.Group(); arm.position.set(0.3, 1.03, 0); g.children[5].position.set(0, -0.25, 0); arm.add(g.children[5]);
+      const horn = cyl(0.1, 0.4, 0.65, 0xf5b83a, 0, -0.45, 0.35, 10); horn.rotation.x = Math.PI / 2; arm.add(horn);
+      g.add(arm); g.userData.horn = arm;
+    }
   }
   return g;
 }

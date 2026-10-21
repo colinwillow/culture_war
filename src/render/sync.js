@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=8';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=8';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=8';
-import { emit } from '../fx/particles.js?v=8';
-import { TICK } from '../config/factions.js?v=8';
-import { walkH } from '../map/layout.js?v=8';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=8';
-import { Q, pl } from '../sim/sim.js?v=8';
-import { UI } from '../ui/state.js?v=8';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=8';
-import { lerpAngle } from '../util/math.js?v=8';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=9';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=9';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=9';
+import { emit } from '../fx/particles.js?v=9';
+import { TICK } from '../config/factions.js?v=9';
+import { walkH } from '../map/layout.js?v=9';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=9';
+import { Q, pl } from '../sim/sim.js?v=9';
+import { UI } from '../ui/state.js?v=9';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=9';
+import { lerpAngle } from '../util/math.js?v=9';
 
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
@@ -138,7 +138,17 @@ export function syncRender(S, alpha, dt, time) {
       m.position.y = y + hop(o, i); m.scale.y = s.sit ? 0.55 : 1; m.position.z = m.userData.bz + o.lunge * 2.5;
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
-      if (s.def.flies) m.children[0].rotation.z = Math.sin(time * 6) * 0.15;
+      const eg = m.userData.eagle;
+      if (eg) {
+        // Flap: fast beats while climbing out of a dive, a lazy glide otherwise. Dive: swoop down onto the target on a hit.
+        const dive = o.lunge > 0 ? Math.sin((o.lunge / 0.15) * Math.PI) : 0;
+        const beat = Math.sin(time * (moving || dive ? 14 : 5) + i);
+        eg.wings[0].rotation.z = -beat * 0.6 - dive * 0.9; eg.wings[1].rotation.z = beat * 0.6 + dive * 0.9;
+        eg.bird.rotation.z = Math.sin(time * 1.3) * 0.15; eg.bird.rotation.x = dive * 0.7;
+        eg.talons.rotation.x = -dive * 1.2;
+        m.position.y = y + hop(o, i) - dive * 3.2;
+      } else if (s.def.flies) m.children[0].rotation.z = Math.sin(time * 6) * 0.15;
+      if (m.userData.horn) { const sh = o.lunge > 0 || s.abil > 23 ? 1 : 0; m.userData.horn.rotation.x = -sh * 1.9 + (moving ? Math.sin(time * bs) * 0.3 : 0); }
       // Vehicles: wheels roll with ground speed, the chassis rides its springs, dust kicks out behind.
       const ud = m.userData;
       if (ud.wheels) {
