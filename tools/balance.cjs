@@ -7,7 +7,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   const p = await b.newPage();
   p.on('pageerror', e => console.log('[pageerror]', e.message));
   await p.goto('http://localhost:4174/culture_war/'); await p.waitForTimeout(1500);
-  console.log(await p.evaluate(async (seeds) => {
+  console.log(await p.evaluate(async ([seeds, mode]) => {
     const v = document.querySelector('script[type=module]').src.split('?v=')[1];
     const M = await import('./src/sim/sim.js?v=' + v), AI = await import('./src/sim/ai.js?v=' + v), F = await import('./src/config/factions.js?v=' + v);
     const fs = Object.keys(F.FACTIONS), wins = {}, out = [];
@@ -16,7 +16,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
       for (const seed of seeds) {
         // force player 1 faction: pick seed so others[seed%3] === c
         const others = fs.filter(k => k !== a); const sd = seed * others.length + others.indexOf(c);
-        M.newSim(a, sd, 1); const S = M.getSim();
+        M.newSim(a, sd, 1, mode); const S = M.getSim();
         let i = 0; for (; i < 20 * 900 && !S.over; i++) { M.step(); AI.aiStep(S, F.TICK, 0); if (i % 40 === 0) S.events.length = 0; }
         const w = S.over ? (S.over.winner === 0 ? a : c) : 'draw';
         wins[a].g++; wins[c].g++; if (w !== 'draw') { wins[w].w++; } wins[a].t += S.t; wins[c].t += S.t;
@@ -24,6 +24,6 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
       }
     }
     return out.join('\n') + '\n' + fs.map(f => f + ' ' + wins[f].w + '/' + wins[f].g).join('  ');
-  }, Array.from({ length: +(process.argv[2] || 3) }, (_, i) => i + 1))); // node tools/balance.cjs [seeds]
+  }, [Array.from({ length: +(process.argv[2] || 3) }, (_, i) => i + 1), process.argv[3] || 'vs'])); // node tools/balance.cjs [seeds] [mode]
   await b.close();
 })();

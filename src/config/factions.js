@@ -37,7 +37,7 @@ export const FACTIONS = {
       ranged: { name: 'Shotgun Hunters', n: 5, hp: 45, dmg: 12, range: 8, speed: 3.2, cost: 140, build: 14, cp: 5 },
       cav: { name: 'Monster Truck', n: 1, hp: 500, dmg: 30, range: 1.4, speed: 7, cost: 300, build: 25, cp: 10, area: true, vehicle: true },
       siege: { name: 'Fireworks Launcher', n: 1, hp: 200, dmg: 60, range: 14, speed: 2.2, cost: 350, build: 30, cp: 10, area: true, vehicle: true },
-      hero: { name: 'Bald Eagle', n: 1, hp: 600, dmg: 25, range: 1.4, speed: 8, cost: 800, build: 45, cp: 15, flies: true },
+      hero: { name: 'Bald Eagle', n: 1, hp: 470, dmg: 16, range: 1.4, speed: 6.5, cost: 800, build: 45, cp: 15, flies: true },
     },
     powers: [
       { id: 'mud', name: 'Mud Bog', cost: 40, target: true, icon: 'mud' },
@@ -54,7 +54,7 @@ export const FACTIONS = {
       ranged: { name: 'Megaphone Crew', n: 5, hp: 25, dmg: 6, range: 9, speed: 4, cost: 120, build: 12, cp: 5 },
       cav: { name: 'Bike Collective', n: 6, hp: 40, dmg: 7, range: 1.2, speed: 8, cost: 180, build: 15, cp: 5 },
       siege: { name: 'Parade Puppet', n: 1, hp: 250, dmg: 40, range: 2, speed: 2.2, cost: 300, build: 28, cp: 10 },
-      hero: { name: 'March Leader', n: 1, hp: 450, dmg: 12, range: 1.4, speed: 5, cost: 700, build: 40, cp: 15 },
+      hero: { name: 'March Leader', n: 1, hp: 560, dmg: 19, range: 1.4, speed: 5, cost: 700, build: 40, cp: 15 },
     },
     powers: [
       { id: 'parade', name: 'Parade', cost: 40, target: false, icon: 'flag' },
@@ -92,7 +92,7 @@ export const FACTIONS = {
       ranged: { name: 'Skeet Shooters', n: 3, hp: 100, dmg: 24, range: 9, speed: 3.2, cost: 210, build: 15, cp: 3 },
       cav: { name: 'Golf Cart', n: 1, hp: 420, dmg: 26, range: 1.4, speed: 7.5, cost: 320, build: 22, cp: 10, area: true, vehicle: true },
       siege: { name: 'Armoured Limo', n: 1, hp: 550, dmg: 50, range: 2.5, speed: 2.4, cost: 380, build: 28, cp: 10, area: true, vehicle: true },
-      hero: { name: 'The Tycoon', n: 1, hp: 520, dmg: 22, range: 1.4, speed: 5, cost: 850, build: 45, cp: 15 },
+      hero: { name: 'The Tycoon', n: 1, hp: 590, dmg: 26, range: 1.4, speed: 5, cost: 850, build: 45, cp: 15 },
     },
     powers: [
       { id: 'takeover', name: 'Hostile Takeover', cost: 70, target: true, icon: 'coin' },
@@ -111,7 +111,7 @@ export const FACTIONS = {
       ranged: { name: 'Boombox Crew', n: 4, hp: 40, dmg: 9, range: 8, speed: 4.4, cost: 120, build: 10, cp: 5 },
       cav: { name: 'Lowrider', n: 1, hp: 420, dmg: 24, range: 1.4, speed: 8.5, cost: 260, build: 18, cp: 10, area: true, vehicle: true },
       siege: { name: 'Graffiti Tagger', n: 1, hp: 180, dmg: 45, range: 6, speed: 4, cost: 280, build: 22, cp: 10 },
-      hero: { name: 'The DJ', n: 1, hp: 480, dmg: 16, range: 6, speed: 5.5, cost: 700, build: 38, cp: 15 },
+      hero: { name: 'The DJ', n: 1, hp: 520, dmg: 16, range: 6, speed: 5.5, cost: 700, build: 38, cp: 15 },
     },
     powers: [
       { id: 'blockparty', name: 'Block Party', cost: 50, target: false, icon: 'music' },
@@ -130,7 +130,7 @@ export const FACTIONS = {
       ranged: { name: 'Drone Pilots', n: 4, hp: 42, dmg: 13, range: 10, speed: 3.6, cost: 130, build: 12, cp: 5 },
       cav: { name: 'Segway Patrol', n: 1, hp: 420, dmg: 22, range: 1.4, speed: 8, cost: 260, build: 18, cp: 10, area: true, vehicle: true },
       siege: { name: 'Mech Suit', n: 1, hp: 500, dmg: 50, range: 2.5, speed: 2.6, cost: 340, build: 26, cp: 10, area: true, vehicle: true },
-      hero: { name: 'The Streamer', n: 1, hp: 500, dmg: 18, range: 7, speed: 5, cost: 720, build: 40, cp: 15 },
+      hero: { name: 'The Streamer', n: 1, hp: 540, dmg: 20, range: 7, speed: 5, cost: 720, build: 40, cp: 15 },
     },
     powers: [
       { id: 'wifi', name: 'Wi-Fi Outage', cost: 60, target: true, icon: 'wifi' },

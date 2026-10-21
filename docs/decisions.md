@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B114 (overnight loop): Hero duel balance (tools/balance.cjs now takes [seeds] [mode]): Hero vs Hero round robin started bw 30/30 ac 0/30 - Bald Eagle hp 600->470, dmg 25->16, speed 8->6.5; March Leader 450/12 -> 560/19; Tycoon 520/22 -> 590/26; DJ hp 480->520; Streamer 500/18 -> 540/20. Now duels bw 18 ac 15 hh 15 om 15 sc 15 nd 12 (of 30) and Versus still bw 17 ac 13 hh 15 om 12 sc 16 nd 17
 - B113 (overnight loop): Hero vs Hero: fifth mode button (hero icon); each side starts with its HQ, two workers and its hero (no starting squad), and only workers can be trained; the first hero to fall loses (heroes still heal at home, powers still charge). The computer's hero hunts yours and retreats to heal when low; the end swoop lands on the winning hero. AI-vs-AI duel ended at 54 s
 - B112 (overnight loop): Docs: CLAUDE.md + docs/design.md brought to B112 - four modes (Versus / Hill / Race / Capture and Hold), every hero's own ability in the faction table, the perf numbers + mergeStatic, and the graphics toggle
 - B111 (overnight loop): Minimap objectives: the King of the Hill hill and the three Capture and Hold flags are drawn as rings in their holder's colour (white = nobody), flickering blue/red when contested
