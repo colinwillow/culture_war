@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=145';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=145';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=145';
-import { mulberry32 } from '../util/math.js?v=145';
-import { aiStep } from './ai.js?v=145';
+} from '../config/factions.js?v=146';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=146';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=146';
+import { mulberry32 } from '../util/math.js?v=146';
+import { aiStep } from './ai.js?v=146';
 
 let S = null;
 export const getSim = () => S;
@@ -62,6 +62,7 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
   S.cityP = { i: 2, f: 'city', side: 0, inc: 1, cash: 1e9, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqx: 0, hqz: 0 };
   S.heat = mode === 'hero' ? null : { v: [0, 0], at: [null, null], t: 0, base: 0 };
   if (S.heat) for (const [x, z] of [[-58, 30], [58, -30]]) { const [fx, fz] = nearestFree(x, z); const w = spawnSquad(S.cityP, 'worker', fx, fz); w.task = null; }
+  if (S.heat) for (let i = 0; i < 10; i++) addCivilian();
   if (S.down) { // the city starts already battered: about a third of the floors are missing (rubble on some blocks)
     for (const b of S.city) { const k = S.rng(); const lost = k < 0.12 ? b.floors : k < 0.5 ? Math.floor(S.rng() * b.floors * 0.7) : 0; b.fl = b.floors - lost; b.hp = b.fl * FLOOR_HP; b.dead = b.fl === 0; }
     S.down.total = S.city.reduce((a, b) => a + b.floors, 0);
@@ -293,7 +294,7 @@ function hitSquad(t, dmg, area, attacker, cap = 5) {
     for (let i = 0; i < t.members.length && rem > 0; i++) if (t.members[i] > 0) { const take = Math.min(t.members[i], rem); t.members[i] -= take; rem -= take; if (t.members[i] <= 0) { t.members[i] = 0; killed++; } }
   }
   if (killed) { credit(attacker, killed); const kp = attacker ? pl(attacker.owner) : t.owner < 2 ? pl(1 - t.owner) : null; if (kp) kp.st.kills += killed; }
-  if (t.owner === 2 && attacker && attacker.owner < 2) addHeat(attacker.owner, 0.6 + killed * (t.slot === 'worker' ? 4 : 1.5), t.x, t.z); // hurting the city's people
+  if (t.owner === 2 && attacker && attacker.owner < 2) addHeat(attacker.owner, 0.6 + killed * (t.slot === 'worker' || t.slot === 'civ' ? 4 : t.slot === 'melee' ? 3 : 1.5), t.x, t.z); // hurting the city's people
   if (aliveN(t) === 0) killSquad(t);
   return killed;
 }
@@ -315,6 +316,7 @@ function hitBld(b, d, by) {
     while (b.fl > fl) {
       b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors });
       if (by !== undefined) addHeat(by, 2, b.x, b.z);
+      if (S.heat && S.rng() < 0.3) b.fire = Math.max(b.fire || 0, 25); // smashed floors catch fire
       if (S.down) for (const d of [...S.drift]) if (Math.hypot(d.x - b.x, d.z - b.z) < 9 && ++d.upset >= 2) recruit(d, S.down.role.indexOf('w'));
       if (S.down) { S.down.hot = { x: b.x, z: b.z, t: S.t }; if (by !== undefined && S.down.role[by] === 'w') { const p = pl(by); p.cash += 20; p.st.earned += 20; S.events.push({ k: 'deposit', x: b.x, z: b.z, owner: by }); } } // looting a floor pays the wreckers
     }
@@ -507,7 +509,7 @@ function updateSquad(s, dt) {
   if (s.patch > 0) s.patch -= dt;
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
-  if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else updateCop(s, dt); return; }
+  if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else if (s.slot === 'civ') updateCiv(s, dt); else if (s.slot === 'melee') updateFireCrew(s, dt); else updateCop(s, dt); return; }
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
   if (s.slot === 'hero') heroAbility(s);
   if (s.sit) return;
@@ -597,10 +599,11 @@ function addHeat(pi, v, x, z) { if (!S.heat || pi > 1) return; S.heat.v[pi] += v
 function stepCity(dt) {
   const H = S.heat;
   for (let i = 0; i < 2; i++) H.v[i] = Math.max(0, H.v[i] - dt * 0.06);
+  stepFires(dt);
   H.base += dt * 0.01; // a long war gets noticed: +0.6 a minute for everyone, so by ~10 min the police come regardless
   H.t += dt; if (H.t < 2) return; H.t = 0;
   const hot = H.v[0] >= H.v[1] ? 0 : 1, h = H.v[hot] + H.base;
-  const cops = S.squads.filter((q) => q.owner === 2 && q.slot !== 'worker');
+  const cops = S.squads.filter((q) => q.owner === 2 && (q.slot === 'pike' || q.slot === 'ranged' || q.slot === 'cav'));
   const want = h >= 30 ? 3 : h >= 15 ? 2 : h >= 6 ? 1 : 0; // tiers
   const tiers = ['pike', 'ranged', 'cav'];
   for (let k = 0; k < want; k++) {
@@ -610,6 +613,13 @@ function stepCity(dt) {
     const q = spawnSquad(S.cityP, tiers[k], x, z); q.hunt = hot; q.post = { x, z }; q.edge = { x, z };
     S.events.push({ k: 'siren', x, z, tier: k, hunt: hot });
   }
+  // fire crews: one per two burning storefronts (max 2), from the edge nearest the fire
+  const burning = S.city.filter((b) => b.fire > 0), crews = S.squads.filter((q) => q.owner === 2 && q.slot === 'melee' && q.order.type !== 'leave');
+  if (burning.length && crews.length < Math.min(2, Math.ceil(burning.length / 2))) {
+    const f = burning[0], [x, z] = nearestFree(f.x >= 0 ? 58 : -58, f.z), q = spawnSquad(S.cityP, 'melee', x, z); q.edge = { x, z };
+    S.events.push({ k: 'siren', x, z, tier: 9, hunt: -1 });
+  }
+  if (S.squads.filter((q) => q.owner === 2 && q.slot === 'civ').length < 10 && S.rng() < 0.15) addCivilian(true);
   for (const q of cops) { // the trouble is over: go back to the edge (and vanish when there)
     if (H.v[q.hunt] + H.base < 3 && q.order.type !== 'leave') { const o = H.v[1 - q.hunt] + H.base; if (o >= 6) q.hunt = 1 - q.hunt; else setOrder(q, { type: 'leave' }); }
   }
@@ -622,6 +632,49 @@ function updateCop(s, dt) {
   if (!t) { const at = S.heat.at[s.hunt]; if (at) moveTo(s, at.x, at.z, dt); return; }
   if (dist(s, t) > s.def.range) chase(s, t, dt);
   else { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1; attack(s, t); } }
+}
+// Fires: a burning storefront loses 12 hp every 2 s (floors fall as usual), may set a neighbour within 10 m alight,
+// and burns out after its timer. Fire crews shorten it fast.
+function stepFires(dt) {
+  for (const b of S.city) {
+    if (!(b.fire > 0)) continue;
+    if (b.hp <= 0) { b.fire = 0; continue; }
+    b.fire -= dt; b.burnT = (b.burnT || 0) + dt;
+    if (b.burnT >= 2) {
+      b.burnT = 0; hitBld(b, 12);
+      if (S.rng() < 0.12) { const n = S.city.find((o) => o !== b && !(o.fire > 0) && o.hp > 0 && Math.hypot(o.x - b.x, o.z - b.z) < 10); if (n) n.fire = 25; }
+    }
+    if (b.fire <= 0) S.events.push({ k: 'fireout', ci: b.ci, x: b.x, z: b.z });
+  }
+}
+function updateFireCrew(s, dt) {
+  let f = null, bd = 1e9;
+  for (const b of S.city) { if (!(b.fire > 0)) continue; const d = Math.hypot(b.x - s.x, b.z - s.z); if (d < bd) { bd = d; f = b; } }
+  if (!f) { if (s.order.type !== 'leave') setOrder(s, { type: 'leave' }); if (moveTo(s, s.edge.x, s.edge.z, dt)) { const i = S.squads.indexOf(s); if (i >= 0) S.squads.splice(i, 1); s.dead = true; } return; }
+  if (bd > f.r + 3) { moveTo(s, f.x, f.z, dt); return; }
+  s.heading = Math.atan2(f.x - s.x, f.z - s.z);
+  f.fire -= dt * 4; s.gatherT = 1;
+  s.hoseT = (s.hoseT || 0) - dt; if (s.hoseT <= 0) { s.hoseT = 0.25; S.events.push({ k: 'hose', x: s.x, z: s.z, tx: f.x, tz: f.z }); }
+  if (f.fire <= 0) { f.fire = 0; S.events.push({ k: 'fireout', ci: f.ci, x: f.x, z: f.z }); }
+}
+// Civilians: stroll between storefronts; when fighters from either alien side are within 9 m they run the other way.
+function addCivilian(fromEdge) {
+  let x, z;
+  if (fromEdge) [x, z] = nearestFree(S.rng() < 0.5 ? -58 : 58, (S.rng() - 0.5) * 100);
+  else { const b = S.city[Math.floor(S.rng() * S.city.length)]; [x, z] = nearestFree(b.x, b.z + (S.rng() < 0.5 ? 1 : -1) * (b.sz / 2 + 2.5)); }
+  const c = spawnSquad(S.cityP, 'civ', x, z); c.goal = null;
+}
+function updateCiv(s, dt) {
+  let th = null, bd = 9;
+  for (const o of S.squads) { if (o.owner === 2 || o.slot === 'worker' || o.gar) continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; th = o; } }
+  if (th) { // run!
+    const dx = s.x - th.x, dz = s.z - th.z, l = Math.hypot(dx, dz) || 1;
+    s.fleeT = 2; s.goal = nearestFree(s.x + (dx / l) * 14, s.z + (dz / l) * 14);
+  }
+  if (s.fleeT > 0) s.fleeT -= dt;
+  if (!s.goal) { const b = S.city[Math.floor(S.rng() * S.city.length)]; s.goal = nearestFree(b.x, b.z + (S.rng() < 0.5 ? 1 : -1) * (b.sz / 2 + 2.5)); }
+  const sp = s.fleeT > 0 ? 1.8 : 1; // running scared is almost twice as fast as strolling
+  for (let k = 0; k < (sp > 1 ? 2 : 1); k++) if (moveTo(s, s.goal[0], s.goal[1], dt * (k ? sp - 1 : 1))) { s.goal = null; break; }
 }
 function updateCrew(s, dt) { // road crews rebuild the most-damaged storefront with nobody fighting next to it
   if (s.order.type === 'repair') return updateWorker(s, dt);

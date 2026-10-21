@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=145';
-import { CAM } from '../camera/camera.js?v=145';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=145';
-import { hash } from '../util/math.js?v=145';
-import { emit } from '../fx/particles.js?v=145';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=146';
+import { CAM } from '../camera/camera.js?v=146';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=146';
+import { hash } from '../util/math.js?v=146';
+import { emit } from '../fx/particles.js?v=146';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -421,7 +421,9 @@ function buildPeds() {
 }
 function updatePeds(dt, S) {
   if (!peds) { buildPeds(); peds.body.visible = peds.head.visible = !low; }
-  if (low) return;
+  // Real civilians walk the city when the human side is on (S.heat), so the decorative crowd steps aside.
+  const off = low || !!(S && S.heat); peds.body.visible = peds.head.visible = !off;
+  if (off) return;
   const fights = S ? S.squads.filter((q) => q.slot !== 'worker' && S.squads.some((o) => o.owner !== q.owner && Math.abs(o.x - q.x) < 9 && Math.abs(o.z - q.z) < 9)) : [];
   peds.list.forEach((p, i) => {
     const f = fights.find((q) => Math.abs(q.x - p.x) < 14 && Math.abs(q.z - p.z) < 14);

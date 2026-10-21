@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=145';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=145';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=145';
-import { emit } from '../fx/particles.js?v=145';
-import { bark } from '../fx/sfx.js?v=145';
-import { TICK } from '../config/factions.js?v=145';
-import { walkH } from '../map/layout.js?v=145';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=145';
-import { CAM } from '../camera/camera.js?v=145';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=146';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=146';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=146';
+import { emit } from '../fx/particles.js?v=146';
+import { bark } from '../fx/sfx.js?v=146';
+import { TICK } from '../config/factions.js?v=146';
+import { walkH, CITY } from '../map/layout.js?v=146';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=146';
+import { CAM } from '../camera/camera.js?v=146';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=145';
-import { UI } from '../ui/state.js?v=145';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=145';
+import { Q, pl, getSim } from '../sim/sim.js?v=146';
+import { UI } from '../ui/state.js?v=146';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=146';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=145';
+import { lerpAngle } from '../util/math.js?v=146';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -190,6 +190,7 @@ export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
   hillRender(S, time);
   driftRender(S, time);
+  fireRender(S, dt);
   capRender(S, time);
   aimRender(S, time);
   const seen = new Set();
@@ -613,6 +614,16 @@ function driftMesh(i) {
   g.add(box(0.16, 0.5, 0.18, 0x3a3a3a, -0.12, 0.25, 0), box(0.16, 0.5, 0.18, 0x3a3a3a, 0.12, 0.25, 0), box(0.5, 0.62, 0.32, sh, 0, 0.82, 0), box(0.32, 0.32, 0.32, sk, 0, 1.3, 0), box(0.36, 0.12, 0.36, 0x5a4a3a, 0, 1.5, 0));
   g.add(box(0.6, 0.42, 0.03, 0xc9a26a, 0, 0.95, 0.3), box(0.04, 0.5, 0.04, 0x6b4a2a, 0, 0.6, 0.28)); // cardboard sign
   return casts(g);
+}
+// Burning storefronts: flames lick off the current top floor, dark smoke rises above (pooled particles, no meshes).
+function fireRender(S, dt) {
+  if (!S.city) return;
+  for (const b of S.city) {
+    if (!(b.fire > 0) || b.fl <= 0) continue;
+    const c = CITY[b.ci], top = walkH(b.x, b.z) + (c.h / c.floors) * b.fl;
+    if (Math.random() < dt * 30) emit({ x: b.x + (Math.random() - 0.5) * c.sx * 0.8, y: top - 0.3, z: b.z + (Math.random() - 0.5) * c.sz * 0.8, vx: (Math.random() - 0.5) * 0.6, vy: 1.6 + Math.random() * 1.5, vz: (Math.random() - 0.5) * 0.6, c: Math.random() < 0.5 ? 0xff7a1a : 0xffd23a, s: 0.5, life: 0.7, g: -0.6, grow: -0.4 });
+    if (Math.random() < dt * 10) emit({ x: b.x + (Math.random() - 0.5) * c.sx * 0.5, y: top + 0.8, z: b.z + (Math.random() - 0.5) * c.sz * 0.5, vx: 0.4, vy: 1.4 + Math.random(), vz: 0.2, c: Math.random() < 0.5 ? 0x3a3a3a : 0x5a5a5a, s: 1, life: 2.6, g: -0.2, drag: 0.6, grow: 2.2 });
+  }
 }
 function driftRender(S, time) {
   if (!R.drift) R.drift = new Map();

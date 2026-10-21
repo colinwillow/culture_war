@@ -154,7 +154,8 @@ side's HEAT and escalate (patrol cops -> SWAT -> armoured cars -> army, maybe ro
 the city lands on you while your rival quietly farms it. The same living-city rules are meant to power Colin's
 third-person game too. Mix species across every faction; costume/gear defines the side, never the body.
 - Built (B145): the city as a computer-run third side (owner 2, `S.cityP`, `CITYFOLK` in factions.js), heat per player,
-  police tiers, road crews. Next: firefighters + fires, civilians as sim units, alien verbs on the existing factions.
+  police tiers, road crews. B146: fires that spread, fire crews (`updateFireCrew`), civilians as sim units (`updateCiv`).
+  Next: army + robot tiers, alien verbs on the existing factions.
 
 ## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
 The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping

@@ -150,6 +150,8 @@ export const CITYFOLK = {
     pike: { name: 'Patrol Cops', n: 4, hp: 60, dmg: 6, range: 1.3, speed: 4.4, cost: 0, build: 0, cp: 0 },
     ranged: { name: 'SWAT', n: 4, hp: 80, dmg: 11, range: 9, speed: 4.2, cost: 0, build: 0, cp: 0 },
     cav: { name: 'Armoured Car', n: 1, hp: 520, dmg: 26, range: 1.6, speed: 7, cost: 0, build: 0, cp: 0, area: true, vehicle: true },
+    melee: { name: 'Fire Crew', n: 3, hp: 70, dmg: 0, range: 1, speed: 4.6, cost: 0, build: 0, cp: 0 },
+    civ: { name: 'Civilian', n: 1, hp: 30, dmg: 0, range: 1, speed: 3.4, cost: 0, build: 0, cp: 0 },
   },
   powers: [],
 };
