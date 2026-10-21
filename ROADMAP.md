@@ -92,7 +92,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B75) Logic: Street Crew traits made visible — the DJ's own ability "Drop the Beat" (nearby squads dance-cheer, +speed), Graffiti Tagger tags hit buildings (paint splats stay on walls)
 - [x] (B76) Logic: Old Money balance — it won 1/24 in the B71 round robin; tune until it sits mid-pack again (rerun tools/balance.cjs)
 - [x] (B77) UI: faction-coloured HUD accents — the power meter, selection rings and command card take your faction colour (5 factions now)
-- [ ] FX: unit voice barks — tiny synth "hup!" / cheer blips per faction pitch when a squad is ordered (throttled, respects mute)
+- [x] (B78) FX: unit voice barks — tiny synth "hup!" / cheer blips per faction pitch when a squad is ordered (throttled, respects mute)
 - [ ] Map: Street Crew base dressing — basketball court lines, a parked boombox and graffiti-tagged dumpsters round their HQ
 - [ ] Units: hero entrance — when a hero is trained, a short spotlight + faction flourish (eagle cry / bullhorn / whistle / jet / record scratch)
 - [ ] Logic: Hard Hats + Street Crew balance — after B76 they win 8/24 and 7/24 in tools/balance.cjs; nudge toward mid-pack without touching starting cash much

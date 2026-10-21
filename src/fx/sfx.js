@@ -56,3 +56,22 @@ export function sfx(name, k = 1) {
     case 'tap': if (ok(name, 40)) tone('sine', 700, 500, 0.04, 0.08 * k); break;
   }
 }
+
+// Voice barks when you give an order: a two-syllable "hup!" made of a buzzy voice through a vowel filter.
+// Each faction has its own pitch and contour (Backwoods low "yee-HAW" rise, Old Money a snooty fall, Street Crew
+// a quick "yo-yo"...). Attack orders are louder and higher; vehicles honk instead; heroes are lower.
+const VOICE = { bw: [130, 1.5, 700], ac: [250, 1.15, 1100], hh: [115, 0.9, 600], om: [190, 0.7, 900], sc: [210, 1.25, 1000] };
+function syll(f0, f1, vowel, t0, dur, vol) {
+  const t = ctx.currentTime + t0, o = ctx.createOscillator(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  bp.type = 'bandpass'; bp.frequency.value = vowel; bp.Q.value = 4;
+  env(g, t, 0.012, vol, dur); o.connect(bp); bp.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+}
+export function bark(f, slot, attack) {
+  if (!ctx || muted || ctx.state !== 'running' || !ok('bark', 260)) return;
+  if (slot === 'cav' || slot === 'siege') { tone('square', attack ? 520 : 440, attack ? 520 : 440, 0.09, 0.07); tone('square', attack ? 660 : 440, attack ? 660 : 440, 0.12, 0.07, 0.12); return; }
+  const [p, c, v] = VOICE[f] || VOICE.ac, base = p * (slot === 'hero' ? 0.75 : 1) * (attack ? 1.2 : 1) * (0.94 + Math.random() * 0.12), vol = attack ? 0.22 : 0.15;
+  syll(base, base * (c > 1 ? 1 : c), v, 0, 0.08, vol);
+  syll(base * (c > 1 ? 1 : 1.1), base * c, v * 1.3, 0.1, attack ? 0.16 : 0.12, vol);
+  if (f === 'sc') syll(base * 1.1, base * 1.3, v * 1.3, 0.24, 0.08, vol * 0.8);
+}

@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B78 (overnight loop): Voice barks: ordering a squad answers with a tiny synth two-syllable 'hup!' (buzzy voice through a vowel filter) - faction pitch + contour (Backwoods low rise, Activists bright, Hard Hats gruff, Old Money snooty fall, Street Crew 'yo-yo-yo'); attack orders louder/higher, heroes lower, vehicles honk twice; one voice per order, throttled 260 ms, respects mute
 - B77 (overnight loop): Faction-coloured HUD: your faction colour (set as CSS --fc/--fc2 at match start) fills the power meter and edges it and the command cards; selection rings on squads and buildings take it too (washed 35% toward white). Friend/foe team discs stay blue/red so the read never changes
 - B76 (overnight loop): Old Money balance: new Trust Fund trait - starts with 20% more cash (720) and 40% more HQ/depot passive income. AI round robin (3 seeds x every pairing): before bw 18 ac 16 hh 13 om 1 sc 11 (of 24); after bw 15 ac 15 om 14 hh 8 sc 7. (cash 1.5 / income x2 overshot to om 23/24.) Very sensitive to starting cash
 - B75 (overnight loop): Street Crew traits visible: The DJ's own ability Drop the Beat (in a fight, squads within 9 m get +20% speed for 8 s; three neon rings roll out and every squad in range hops 3 times with music-note sparks); the Graffiti Tagger sprays a paint arc and leaves coloured tag splats on the wall of the building it hits (snapped to the facing wall; max 40, 40 s, gone when the building falls)

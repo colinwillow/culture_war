@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=77';
-import { walkH } from '../map/layout.js?v=77';
-import { getSim, command } from '../sim/sim.js?v=77';
-import { UI, select, selSquads } from '../ui/state.js?v=77';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=77';
-import { fxMarker } from '../fx/fx.js?v=77';
-import { ack } from '../render/sync.js?v=77';
+import { THREE, camera, canvas } from '../render/scene.js?v=78';
+import { walkH } from '../map/layout.js?v=78';
+import { getSim, command } from '../sim/sim.js?v=78';
+import { UI, select, selSquads } from '../ui/state.js?v=78';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=78';
+import { fxMarker } from '../fx/fx.js?v=78';
+import { ack } from '../render/sync.js?v=78';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -55,7 +55,7 @@ function onTap(cx, cy) {
   }
   const sel = selSquads(), ids = sel.map((s) => s.id);
   const enemy = pickSquad(S, cx, cy, 1) || pickBld(S, g, 1);
-  if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); ack(ids); return; }
+  if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); ack(ids, true); return; }
   const node = pickNode(S, g);
   if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); ack(ids); return; }
   const ob = pickBld(S, g, 0);

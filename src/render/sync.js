@@ -1,15 +1,16 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=77';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=77';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=77';
-import { emit } from '../fx/particles.js?v=77';
-import { TICK } from '../config/factions.js?v=77';
-import { walkH } from '../map/layout.js?v=77';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=77';
-import { Q, pl, getSim } from '../sim/sim.js?v=77';
-import { UI } from '../ui/state.js?v=77';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=77';
-import { lerpAngle } from '../util/math.js?v=77';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=78';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=78';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=78';
+import { emit } from '../fx/particles.js?v=78';
+import { bark } from '../fx/sfx.js?v=78';
+import { TICK } from '../config/factions.js?v=78';
+import { walkH } from '../map/layout.js?v=78';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=78';
+import { Q, pl, getSim } from '../sim/sim.js?v=78';
+import { UI } from '../ui/state.js?v=78';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=78';
+import { lerpAngle } from '../util/math.js?v=78';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -150,7 +151,11 @@ function updateRallyLines(S, time) {
   rallyLines.material.opacity = 0.45 + 0.35 * Math.abs(Math.sin(time * 3));
 }
 /** Squads answer an order with a little hop, so a command visibly lands. */
-export function ack(ids) { for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; } }
+export function ack(ids, attack) {
+  for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; }
+  const s = getSim() && getSim().squads.find((q) => q.id === ids[0]); // one voice answers for the whole selection
+  if (s) bark(s.f, s.slot, attack);
+}
 const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 - i * 0.04; return k > 0 && k < 1 ? Math.sin(k * Math.PI) * 0.4 : 0; };
 
 export function syncRender(S, alpha, dt, time) {
