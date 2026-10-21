@@ -94,3 +94,11 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .again .ic { width: 40px; height: 40px; }
 @media (prefers-reduced-motion: reduce) { .btn.armed, .btn.shake { animation: none; } }
 #bootErr { position: fixed; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); z-index: 40; white-space: pre-wrap; font: 12px/1.3 monospace; color: #fff; background: #b3261e; padding: 8px; border-radius: 8px; }
+#queue { position: absolute; left: max(10px, env(safe-area-inset-left, 0px)); bottom: 100%; display: flex; gap: 6px; pointer-events: none; }
+.btn.q { width: 46px; height: 46px; border: none; background: conic-gradient(var(--good) var(--ring, 0deg), rgba(0, 0, 0, .55) 0); }
+.btn.q::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--panel); }
+.btn.q .ic { width: 22px; height: 22px; color: var(--fg); }
+.btn.q:first-child { width: 54px; height: 54px; }
+@media (orientation: landscape) {
+  #queue { left: auto; right: calc(100% - 4px); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); flex-direction: column-reverse; align-items: center; }
+}

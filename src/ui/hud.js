@@ -1,17 +1,17 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=5';
-import { UI, select, selSquads } from './state.js?v=5';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=5';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=5';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=5';
-import { camera } from '../render/scene.js?v=5';
-import { walkH } from '../map/layout.js?v=5';
-import { THREE } from '../render/scene.js?v=5';
-import { showHint } from './hint.js?v=5';
+import { svg } from './icons.js?v=7';
+import { UI, select, selSquads } from './state.js?v=7';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=7';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=7';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=7';
+import { camera } from '../render/scene.js?v=7';
+import { walkH } from '../map/layout.js?v=7';
+import { THREE } from '../render/scene.js?v=7';
+import { showHint } from './hint.js?v=7';
 
-const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd');
+const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
 const specs = new Map();
 
@@ -26,6 +26,7 @@ function applyBtn(el, b) {
   el.querySelector('.prog').style.width = (b.prog != null ? Math.round(b.prog * 100) : 0) + '%';
   el.querySelector('.gauge').style.height = (b.gauge != null ? Math.round(b.gauge * 100) : 0) + '%';
   const pips = el.querySelector('.pips'), pn = b.pips || 0; if (pips.childElementCount !== pn) pips.innerHTML = '<span></span>'.repeat(pn);
+  if (b.ring != null) el.style.setProperty('--ring', Math.round(Math.min(1, b.ring) * 360) + 'deg');
 }
 
 function startPlace(kind) {
@@ -71,6 +72,15 @@ function panelSpec() {
   out.push({ id: 'close', name: 'Close', icon: 'x', noCost: true, cls: 'close', tap: () => select(null) });
   return out;
 }
+/** The selected building's production queue: one round icon per order, the front one fills a ring. Tap = cancel + refund. */
+function queueSpec() {
+  const S = getSim(), p = pl(0), F = fac(p), sel = UI.sel;
+  if (UI.place || !sel || sel.type !== 'bld') return [];
+  const b = S.blds.find((x) => x.id === sel.id);
+  if (!b || !b.queue.length) return [];
+  return b.queue.map((sl, i) => ({ id: 'q' + i + '-' + sl, name: F.units[sl].name, icon: sl, noCost: true, cls: 'sm q', ring: i === 0 ? b.prodT / F.units[sl].build : 0,
+    tap: () => command(0, { type: 'cancel', id: b.id, idx: i }) }));
+}
 function cmdSpec() {
   const S = getSim(), p = pl(0), F = fac(p);
   const out = [
@@ -96,6 +106,7 @@ export function refreshHUD() {
   specs.clear();
   renderButtons(panelEl, panelSpec());
   renderButtons(cmdEl, cmdSpec());
+  renderButtons(queueEl, queueSpec());
   const p = pl(0);
   document.querySelector('#cash b').textContent = Math.floor(p.cash);
   const used = cpUsed(p), cap = cpCap(p);
@@ -103,7 +114,7 @@ export function refreshHUD() {
   document.getElementById('cp').classList.toggle('full', used >= cap);
   document.getElementById('meterFill').style.width = Math.round(p.meter) + '%';
 }
-export function resetHUD() { panelEl.dataset.key = ''; cmdEl.dataset.key = ''; }
+export function resetHUD() { panelEl.dataset.key = ''; cmdEl.dataset.key = ''; queueEl.dataset.key = ''; }
 
 // ---- Placement confirm floats above the ghost ----
 const v3 = new THREE.Vector3();
@@ -153,7 +164,7 @@ function up(e) {
   refreshHUD();
 }
 function cancel() { if (hold) { clearTimeout(hold.t); hold = null; tipEl.hidden = true; } }
-for (const el of [panelEl, cmdEl, placeBar]) {
+for (const el of [panelEl, cmdEl, queueEl, placeBar]) {
   el.addEventListener('pointerdown', down);
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', cancel);

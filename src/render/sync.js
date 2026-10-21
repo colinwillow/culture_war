@@ -1,14 +1,14 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=5';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=5';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=5';
-import { TICK } from '../config/factions.js?v=5';
-import { walkH } from '../map/layout.js?v=5';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=5';
-import { Q, pl } from '../sim/sim.js?v=5';
-import { UI } from '../ui/state.js?v=5';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=5';
-import { lerpAngle } from '../util/math.js?v=5';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=7';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=7';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=7';
+import { TICK } from '../config/factions.js?v=7';
+import { walkH } from '../map/layout.js?v=7';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=7';
+import { Q, pl } from '../sim/sim.js?v=7';
+import { UI } from '../ui/state.js?v=7';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=7';
+import { lerpAngle } from '../util/math.js?v=7';
 
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 

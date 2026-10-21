@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B7 (overnight loop): production queue strip: one round icon per order, front one fills a green ring; tap an icon to cancel it (full refund + coin pop); portrait above the dock, landscape beside it
 - B5 (overnight loop): idle squads guard a post: engage within 10 m, break off past a 14 m leash and walk back (only fighting back point-blank on the way)
 - B4 (overnight loop): city life: trees sway, traffic lights cycle at intersections, manholes puff steam, bird flocks circle the parks
 - B3 (overnight loop): order marker (chevrons slide in, arrow bounces onto the spot) and ordered squads answer with a hop

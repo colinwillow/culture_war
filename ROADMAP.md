@@ -14,7 +14,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B3) Units: selected squad gets a bounce/cheer on command; move-order ground marker (animated chevrons)
 - [x] (B4) Map: animated city life — pedestrians-free ambient: swaying trees, blinking traffic lights, steam vents, birds
 - [x] (B5) Logic: squads auto-acquire nearby enemies when idle (aggro radius) and return to post; no chasing across the map
-- [ ] UI: train queue shown as icons with progress rings on the barracks/HQ panel; tap to cancel (refund)
+- [x] (B7) UI: train queue shown as icons with progress rings on the barracks/HQ panel; tap to cancel (refund)
 - [ ] Placeholder vehicles: monster truck bounces on suspension, wheels spin, dust trail; bike collective pedal anim
 - [ ] Placeholder heroes: bald eagle wing flap + dive attack; march leader with bullhorn shockwave rings
 - [ ] FX: building damage states (smoke at <50%, fire at <25%), collapse into rubble pile on death
