@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=91';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=91';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=91';
-import { mulberry32 } from '../util/math.js?v=91';
-import { aiStep } from './ai.js?v=91';
+} from '../config/factions.js?v=92';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=92';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=92';
+import { mulberry32 } from '../util/math.js?v=92';
+import { aiStep } from './ai.js?v=92';
 
 let S = null;
 export const getSim = () => S;
@@ -329,6 +329,10 @@ function heroAbility(s) {
       blds.forEach((b) => (b.ot = 10));
       s.abil = 22; S.events.push({ k: 'overtime', x: s.x, z: s.z });
     }
+  } else if (s.f === 'nd') {
+    // The Streamer goes live: every enemy within 6 m stops to stare at the phone for 2 s.
+    const near = S.squads.filter((o) => o.owner !== s.owner && !o.def.vehicle && Math.hypot(o.x - s.x, o.z - s.z) < 6 + o.r);
+    if (near.length) { near.forEach((o) => (o.stun = Math.max(o.stun, 2))); s.abil = 16; S.events.push({ k: 'golive', x: s.x, z: s.z, ids: near.map((o) => o.id) }); }
   } else if (s.f === 'sc') {
     // The DJ drops the beat: in a fight, squads within 9 m get +20% speed for 8 s and everyone in range hops to it.
     if (nearestEnemy(s, 6)) {

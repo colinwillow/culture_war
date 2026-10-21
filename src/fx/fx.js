@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=91';
-import { walkH } from '../map/layout.js?v=91';
-import { sfx } from './sfx.js?v=91';
-import { shake, CAM } from '../camera/camera.js?v=91';
-import { FC } from '../render/models.js?v=91';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=91';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=92';
+import { walkH } from '../map/layout.js?v=92';
+import { sfx } from './sfx.js?v=92';
+import { shake, CAM } from '../camera/camera.js?v=92';
+import { FC } from '../render/models.js?v=92';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=92';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -262,7 +262,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -371,6 +371,11 @@ export function handleEvents(S, bump) {
         fxRing(s.x, s.z, 0.4, 3, 0x7ee05b, 0.5, 0.2);
         for (let k = 0; k < 6; k++) emit({ x: s.x + (Math.random() - 0.5) * 2, y: gy(s.x, s.z, 0.3), z: s.z + (Math.random() - 0.5) * 2, vy: 2.5 + Math.random() * 2, c: k % 2 ? 0x7ee05b : 0xd6ffcf, s: 0.14, life: 1.2, g: -0.5 });
       } break;
+      case 'golive': { // camera flashes: a white pop over each stunned squad, a live-red ring off the Streamer
+        fxRing(ev.x, ev.z, 0.5, 6, 0xff3040, 0.6, 1.6);
+        for (const s of S.squads) if (ev.ids.includes(s.id)) for (let k = 0; k < 4; k++) emit({ x: s.x + (Math.random() - 0.5) * 2.5, y: gy(s.x, s.z, 1.4 + Math.random()), z: s.z + (Math.random() - 0.5) * 2.5, c: 0xffffff, s: 0.5, life: 0.15 + k * 0.12, g: 0 });
+        break;
+      }
       case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }
