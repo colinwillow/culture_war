@@ -63,3 +63,11 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B51) FX: projectile variety — Shotgun Hunters spray 3 pellets, Megaphone Crew fires visible sound-wave arcs
 - [x] (B52) Map: weather — light drifting clouds casting moving soft shadow patches over the city (cheap: 3 big transparent decals)
 - [x] (B55) UI: hero portrait button — a big round hero button appears once your hero exists; tap = select + jump to hero
+
+## Batch 5 (added 11:28 UTC by the loop, same rules) — a third launch faction: HARD HATS (design.md: Turtle / builder)
+- [ ] Logic: Hard Hats faction data — units (Odd-job → Apprentice worker, Nail-gunners pike, Wrecking crew melee, Surveyors ranged, Forklift cav, Excavator siege, Foreman hero), building names, 2 powers (Road Closed cones wall, Wrecking Ball); builds 2x faster + Overtime. Opponent picked at random from the other two
+- [ ] UI: menu shows three faction picks (Hard Hats in safety orange with a hard-hat icon); end screen + HUD work for all three
+- [ ] Units: Hard Hats cast with Colin's construction worker GLB (it already has its own swing / carry / hit clips) + placeholder vehicles (forklift, excavator with swinging arm)
+- [ ] FX: Hard Hats powers visuals — Road Closed drops a line of traffic cones + barriers that block movement; Wrecking Ball swings in from the sky and smashes
+- [ ] Logic: Hard Hats building trait visible — their buildings go up with extra cranes/scaffold and repair themselves slowly
+- [ ] Map: Hard Hats base dressing — cones, barriers and a porta-potty around their HQ
