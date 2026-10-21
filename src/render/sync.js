@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=125';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=125';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=125';
-import { emit } from '../fx/particles.js?v=125';
-import { bark } from '../fx/sfx.js?v=125';
-import { TICK } from '../config/factions.js?v=125';
-import { walkH } from '../map/layout.js?v=125';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=125';
-import { CAM } from '../camera/camera.js?v=125';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=128';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=128';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=128';
+import { emit } from '../fx/particles.js?v=128';
+import { bark } from '../fx/sfx.js?v=128';
+import { TICK } from '../config/factions.js?v=128';
+import { walkH } from '../map/layout.js?v=128';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=128';
+import { CAM } from '../camera/camera.js?v=128';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=125';
-import { UI } from '../ui/state.js?v=125';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=125';
+import { Q, pl, getSim } from '../sim/sim.js?v=128';
+import { UI } from '../ui/state.js?v=128';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=128';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=125';
+import { lerpAngle } from '../util/math.js?v=128';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -38,7 +38,8 @@ function makeSquadObj(s) {
   const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]];
   const members = offs.map(([ox, oz], i) => {
     const m = makeChar(s.f, s.slot, i) || makeMember(s.f, s.slot); const y = s.def.flies ? 3.8 : 0;
-    casts(m); m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
+    ox += (Math.random() - 0.5) * 0.35; oz += (Math.random() - 0.5) * 0.35; // nobody stands on an exact grid
+    casts(m); m.position.set(ox, y, oz); m.rotation.y += (Math.random() - 0.5) * 0.25; m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
   });
   const real = !!members[0].userData.anim;
   // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
@@ -238,13 +239,14 @@ export function syncRender(S, alpha, dt, time) {
         if (s.members[i] < m.userData.hp - 0.5) { m.userData.flashT = 0.16; if (!o.atk) play(m, 'hit'); }
         m.scale.set(1, 1, 1); squash(m, dt);
         m.userData.hp = s.members[i];
-        if (o.atk) play(m, A.atk, true);
+        if (o.atk && m.userData.atkIn === undefined) m.userData.atkIn = Math.random() * 0.3; // members swing a beat apart, not as one
+        if (m.userData.atkIn !== undefined) { m.userData.atkIn -= dt; if (m.userData.atkIn <= 0) { m.userData.atkIn = undefined; play(m, A.atk, true); } }
         else if (gather && A.lock <= 0) play(m, A.atk);
         else if (A.lock <= 0) {
           const st = v < 0.15 ? 'idle' : v < 1.8 ? 'walk' : 'run';
           play(m, st);
           // Clip speed follows ground speed so feet roughly match (refs are guesses: walk 1.2, run 3.0 m/s).
-          if (st !== 'idle') A.actions[st].setEffectiveTimeScale(Math.min(1.8, Math.max(0.6, v / (st === 'walk' ? 1.2 : 3.0))));
+          if (st !== 'idle') A.actions[st].setEffectiveTimeScale(Math.min(1.8, Math.max(0.6, v / (st === 'walk' ? 1.2 : 3.0))) * (A.jit || 1)); // each member's own stride rate
         }
         A.mixer.update(dt * (s.stun > 0 ? 0.25 : 1));
         m.position.z = m.userData.bz + o.lunge * 2.5;

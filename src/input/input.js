@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=125';
-import { walkH } from '../map/layout.js?v=125';
-import { getSim, command } from '../sim/sim.js?v=125';
-import { UI, select, selSquads } from '../ui/state.js?v=125';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=125';
-import { fxMarker } from '../fx/fx.js?v=125';
-import { ack } from '../render/sync.js?v=125';
+import { THREE, camera, canvas } from '../render/scene.js?v=128';
+import { walkH } from '../map/layout.js?v=128';
+import { getSim, command } from '../sim/sim.js?v=128';
+import { UI, select, selSquads } from '../ui/state.js?v=128';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=128';
+import { fxMarker } from '../fx/fx.js?v=128';
+import { ack } from '../render/sync.js?v=128';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -98,6 +98,7 @@ export function initInput() {
     try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     clearTimeout(pressTimer);
+    fling(0, 0); // a new touch catches the sliding map
     if (pointers.size === 1) {
       const rightMouse = e.pointerType === 'mouse' && e.button !== 0;
       gesture = { type: rightMouse ? 'box' : 'press', x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, t0: performance.now() };
@@ -115,14 +116,19 @@ export function initInput() {
     if (gesture.type === 'box') {
       const l = Math.min(gesture.x0, e.clientX), t = Math.min(gesture.y0, e.clientY);
       Object.assign(boxEl.style, { display: 'block', left: l + 'px', top: t + 'px', width: Math.abs(e.clientX - gesture.x0) + 'px', height: Math.abs(e.clientY - gesture.y0) + 'px' });
-    } else if (gesture.type === 'pan') { panBy(e.clientX - gesture.lx, e.clientY - gesture.ly); gesture.lx = e.clientX; gesture.ly = e.clientY; }
+    } else if (gesture.type === 'pan') {
+      const dx = e.clientX - gesture.lx, dy = e.clientY - gesture.ly, now = performance.now(), dtm = Math.max(1, now - (gesture.lt || now - 16));
+      panBy(dx, dy); gesture.lx = e.clientX; gesture.ly = e.clientY; gesture.lt = now;
+      // finger velocity (px/s), smoothed, so a flick can carry on after the finger lifts
+      gesture.vx = (gesture.vx || 0) * 0.6 + (dx / dtm) * 1000 * 0.4; gesture.vy = (gesture.vy || 0) * 0.6 + (dy / dtm) * 1000 * 0.4;
+    }
     else if (gesture.type === 'ghost') { const g = groundAt(e.clientX, e.clientY); if (g) { UI.place.x = g.x; UI.place.z = g.z; } }
     else if (gesture.type === 'pinch' && pointers.size === 2) {
       const n = pinchInfo();
       panBy(n.cx - gesture.cx, n.cy - gesture.cy);
       if (gesture.d > 0 && n.d > 0) { CAM.distT *= gesture.d / n.d; clampCam(); CAM.dist = CAM.distT; }
       let da = n.ang - gesture.ang; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI;
-      CAM.yaw -= da;
+      CAM.yaw += da; // turn the way the fingers turn (B126: was inverted)
       Object.assign(gesture, n);
     }
   });
@@ -132,6 +138,7 @@ export function initInput() {
     clearTimeout(pressTimer);
     if (gesture && !cancel) {
       if (gesture.type === 'press' && pointers.size === 0) onTap(e.clientX, e.clientY);
+      else if (gesture.type === 'pan' && pointers.size === 0 && performance.now() - (gesture.lt || 0) < 80) fling(gesture.vx || 0, gesture.vy || 0); // throw the map
       else if (gesture.type === 'box') {
         boxEl.style.display = 'none';
         if (Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 6) boxSelect(gesture.x0, gesture.y0, e.clientX, e.clientY);

@@ -1,7 +1,7 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera } from '../render/scene.js?v=125';
-import { walkH } from '../map/layout.js?v=125';
-import { smooth } from '../util/math.js?v=125';
+import { camera } from '../render/scene.js?v=128';
+import { walkH } from '../map/layout.js?v=128';
+import { smooth } from '../util/math.js?v=128';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
@@ -9,6 +9,7 @@ const pitchFor = (d) => 0.38 + (1.12 - 0.38) * smooth(14, 110, d);
 export const homeDist = () => (landscape ? 56 : 70);
 
 export function applyCam(dt) {
+  updateFling(dt);
   CAM.dist += (CAM.distT - CAM.dist) * Math.min(1, dt * 6);
   const pitch = pitchFor(CAM.dist), h = CAM.dist * Math.cos(pitch), v = CAM.dist * Math.sin(pitch), ty = walkH(CAM.tx, CAM.tz);
   camera.position.set(CAM.tx + Math.sin(CAM.yaw) * h, ty + v + 1, CAM.tz + Math.cos(CAM.yaw) * h);
@@ -40,6 +41,15 @@ export function panBy(dx, dy) {
   CAM.tx += (-dx * rx + (dy * fx) / sp) * k;
   CAM.tz += (-dx * rz + (dy * fz) / sp) * k;
   clampCam();
+}
+// Pan momentum: after a flick the map keeps sliding (screen px/s) and eases to a stop.
+const FL = { vx: 0, vy: 0 };
+export function fling(vx, vy) { const sp = Math.hypot(vx, vy), cap = 4000; FL.vx = sp > cap ? (vx / sp) * cap : vx; FL.vy = sp > cap ? (vy / sp) * cap : vy; if (sp < 60) FL.vx = FL.vy = 0; }
+function updateFling(dt) {
+  if (!FL.vx && !FL.vy) return;
+  panBy(FL.vx * dt, FL.vy * dt);
+  const k = Math.exp(-dt * 4.5); FL.vx *= k; FL.vy *= k;
+  if (Math.hypot(FL.vx, FL.vy) < 15) FL.vx = FL.vy = 0;
 }
 export function focus(x, z) { CAM.tx = x; CAM.tz = z; clampCam(); }
 /** Player 0 sits at +z looking toward -z. */

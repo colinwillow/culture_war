@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=125';
+import { THREE } from './scene.js?v=128';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -291,7 +291,7 @@ export function makeChar(f, slot, i) {
     actions[st] = a;
   }
   if (slot === 'worker') addCarry(g, f);
-  g.userData.anim = { mixer, actions, cur: null, atk: Array.isArray(c.atk) ? c.atk[i % c.atk.length] : c.atk, lock: 0 };
+  g.userData.anim = { jit: 0.88 + Math.random() * 0.24, mixer, actions, cur: null, atk: Array.isArray(c.atk) ? c.atk[i % c.atk.length] : c.atk, lock: 0 };
   if (actions.idle) { actions.idle.play(); g.userData.anim.cur = 'idle'; mixer.update(Math.random() * 3); }
   return g;
 }
@@ -305,6 +305,7 @@ export function play(g, st, force) {
   if (force && st === A.cur && DANCE.has(st) && A.lock > 0) return; // a dance runs its course: each hit does not restart it
   const next = A.actions[st], prev = A.cur && A.actions[A.cur];
   next.reset(); next.setEffectiveTimeScale(1); next.setEffectiveWeight(1);
+  if (!ONCE.has(st)) next.time = Math.random() * next.getClip().duration; // loops start at a random point: no marching in lockstep
   if (prev && prev !== next) next.crossFadeFrom(prev, 0.18, false);
   next.play();
   A.cur = st;

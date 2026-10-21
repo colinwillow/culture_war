@@ -35,7 +35,8 @@ npm run build:artifact # single self-contained HTML -> dist-artifact/index.html 
 - **Units:** 1 unit = 1 metre, Y up. Humans ~1.6 m.
 - **Show, don't label.** Every power/ability must read from the animation alone. No words on screen to explain an
   effect. Overlap between factions is fine; the exaggerated on-trope visual is what makes each one distinct.
-- **UI must be painfully obvious:** big icon buttons, no click-through tutorial popups. Current icons are
+- **UI must be painfully obvious:** big icon buttons with ONE short word under each (Colin asked for words after his
+  first playtest, B128), no click-through tutorial popups. Current icons are
   placeholders; real button art will be image-generated later. Long-press any button shows its name (dev aid).
 - **App Store safe:** factions are lifestyles/subcultures, never race, religion, ethnicity or gender. Every faction
   is mixed-race and mixed-gender. No real people. Roast every faction equally.

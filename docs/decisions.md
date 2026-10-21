@@ -19,6 +19,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B128 (Colin's first full playtest): twist-to-rotate turned the wrong way -> flipped; one-finger pan now carries momentum after a flick (eases out, a new touch catches it); one short word under every HUD button + labels under the menu mode buttons (Colin: icons alone were guesswork at first - this relaxes "no words on screen" for buttons); squads no longer walk in lockstep (each loop clip starts at a random point, each member has its own stride rate, formation offsets and facing jittered, attacks staggered by up to 0.3 s)
 - B125 (overnight loop): Power-ready ping: the moment a power's meter fills, its button pops once (scale + expanding gold ring) with a soft ding; only on the transition to ready
 - B124 (overnight loop): Win confetti: when you win, confetti in your faction's colours (+ white and gold) rains over the end-of-match swoop for ~5 s; when you lose, a slow grey drizzle of ash falls instead (not caught in a headless screenshot yet)
 - B123 (overnight loop): HQ in danger: once your HQ is under 40% health a soft red glow pulses in from the screen edges, stronger and faster the lower it gets (no words); gone on the menu and when the HQ is healthy

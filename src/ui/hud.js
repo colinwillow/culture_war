@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=125';
-import { UI, select, selSquads } from './state.js?v=125';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=125';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=125';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=125';
-import { camera } from '../render/scene.js?v=125';
-import { walkH } from '../map/layout.js?v=125';
-import { THREE } from '../render/scene.js?v=125';
-import { showHint } from './hint.js?v=125';
-import { sfx } from '../fx/sfx.js?v=125';
+import { svg } from './icons.js?v=128';
+import { UI, select, selSquads } from './state.js?v=128';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=128';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=128';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=128';
+import { camera } from '../render/scene.js?v=128';
+import { walkH } from '../map/layout.js?v=128';
+import { THREE } from '../render/scene.js?v=128';
+import { showHint } from './hint.js?v=128';
+import { sfx } from '../fx/sfx.js?v=128';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -20,8 +20,18 @@ let builtOnce = false;
 let trainedOnce = false;
 try { builtOnce = localStorage.getItem('cw-built') === '1'; trainedOnce = localStorage.getItem('cw-trained') === '1'; } catch (e) {}
 
+// One short word under every icon (Colin, after his first full playtest: icons alone were guesswork at first).
+const SHORT = { 'Ghost cam': 'View', 'Select army': 'Army', 'Go home': 'Home', 'Leave tower': 'Leave', 'Sit In': 'Sit-in', Close: 'Close' };
+function shortName(b) {
+  if (b.short) return b.short;
+  const n = (b.name || '').replace(/^The /, '');
+  if (SHORT[b.name]) return SHORT[b.name];
+  if (/^Upgrade/.test(n)) return 'Upgrade';
+  if (n.length <= 8) return n;
+  const w = n.split(/[\s-]/); return w[w.length - 1]; // the noun: Pitchfork Farmers -> Farmers, Monster Truck -> Truck
+}
 function btnHTML(b) {
-  return `<button type="button" class="btn${b.noCost ? ' noCost' : ''}${b.cls ? ' ' + b.cls : ''}" data-id="${b.id}" aria-label="${b.name || b.id}"><span class="gauge"></span><span class="pips"></span><span class="ic">${svg(b.icon)}</span>${b.noCost ? '' : '<span class="cost"></span>'}<span class="badge"></span><span class="prog"></span></button>`;
+  return `<button type="button" class="btn${b.noCost ? ' noCost' : ''}${b.cls ? ' ' + b.cls : ''}" data-id="${b.id}" aria-label="${b.name || b.id}"><span class="gauge"></span><span class="pips"></span><span class="ic">${svg(b.icon)}</span><span class="lbl">${shortName(b)}</span>${b.noCost ? '' : '<span class="cost"></span>'}<span class="badge"></span><span class="prog"></span></button>`;
 }
 function applyBtn(el, b) {
   for (const k of ['dis', 'poor', 'ready', 'armed', 'on']) el.classList.toggle(k, !!b[k]);
@@ -120,7 +130,7 @@ function cmdSpec() {
     on: UI.sel && UI.sel.type === 'sq' && UI.sel.ids.length === 1 && UI.sel.ids[0] === hero.id, tap: () => { select({ type: 'sq', ids: [hero.id] }); focus(hero.x, hero.z); } });
   F.powers.forEach((pw, i) => {
     const ready = Q.powerReady(p, i);
-    out.push({ id: 'pw-' + pw.id, name: pw.name, icon: pw.icon, noCost: true, cls: 'sm', gauge: Math.min(1, p.meter / pw.cost), ready, armed: UI.armed === i, dis: !ready && p.meter >= pw.cost,
+    out.push({ id: 'pw-' + pw.id, name: pw.name, short: pw.short, icon: pw.icon, noCost: true, cls: 'sm', gauge: Math.min(1, p.meter / pw.cost), ready, armed: UI.armed === i, dis: !ready && p.meter >= pw.cost,
       tap: () => { if (!Q.powerReady(p, i)) return false; if (pw.target) UI.armed = UI.armed === i ? null : i; else command(0, { type: 'power', idx: i }); } });
   });
   return out;

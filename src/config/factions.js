@@ -40,8 +40,8 @@ export const FACTIONS = {
       hero: { name: 'Bald Eagle', n: 1, hp: 470, dmg: 16, range: 1.4, speed: 6.5, cost: 800, build: 45, cp: 15, flies: true },
     },
     powers: [
-      { id: 'mud', name: 'Mud Bog', cost: 40, target: true, icon: 'mud' },
-      { id: 'fireworks', name: 'Fourth of July', cost: 100, target: true, icon: 'fireworks' },
+      { id: 'mud', name: 'Mud Bog', short: 'Mud', cost: 40, target: true, icon: 'mud' },
+      { id: 'fireworks', name: 'Fourth of July', short: 'Boom', cost: 100, target: true, icon: 'fireworks' },
     ],
   },
   ac: {
@@ -57,8 +57,8 @@ export const FACTIONS = {
       hero: { name: 'March Leader', n: 1, hp: 560, dmg: 19, range: 1.4, speed: 5, cost: 700, build: 40, cp: 15 },
     },
     powers: [
-      { id: 'parade', name: 'Parade', cost: 40, target: false, icon: 'flag' },
-      { id: 'pie', name: 'Pie in the Face', cost: 60, target: false, icon: 'pie' },
+      { id: 'parade', name: 'Parade', short: 'Parade', cost: 40, target: false, icon: 'flag' },
+      { id: 'pie', name: 'Pie in the Face', short: 'Pie', cost: 60, target: false, icon: 'pie' },
     ],
   },
   // Hard Hats (Turtle / builder): sturdy, a bit slow, builds twice as fast and its buildings are 30% tougher.
@@ -76,8 +76,8 @@ export const FACTIONS = {
       hero: { name: 'The Foreman', n: 1, hp: 650, dmg: 20, range: 1.4, speed: 5, cost: 750, build: 40, cp: 15 },
     },
     powers: [
-      { id: 'cones', name: 'Road Closed', cost: 40, target: true, icon: 'cone' },
-      { id: 'wreck', name: 'Wrecking Ball', cost: 100, target: true, icon: 'ball' },
+      { id: 'cones', name: 'Road Closed', short: 'Cones', cost: 40, target: true, icon: 'cone' },
+      { id: 'wreck', name: 'Wrecking Ball', short: 'Wreck', cost: 100, target: true, icon: 'ball' },
     ],
   },
   // Old Money (Elite): tiny squads of 3, expensive, each member worth two of anyone else's.
@@ -95,8 +95,8 @@ export const FACTIONS = {
       hero: { name: 'The Tycoon', n: 1, hp: 590, dmg: 26, range: 1.4, speed: 5, cost: 850, build: 45, cp: 15 },
     },
     powers: [
-      { id: 'takeover', name: 'Hostile Takeover', cost: 70, target: true, icon: 'coin' },
-      { id: 'jet', name: 'Private Jet', cost: 110, target: true, icon: 'plane' },
+      { id: 'takeover', name: 'Hostile Takeover', short: 'Takeover', cost: 70, target: true, icon: 'coin' },
+      { id: 'jet', name: 'Private Jet', short: 'Jet', cost: 110, target: true, icon: 'plane' },
     ],
   },
   // Street Crew (Rush): cheap, fast, fragile. Hype - their power meter fills 25% faster.
@@ -114,8 +114,8 @@ export const FACTIONS = {
       hero: { name: 'The DJ', n: 1, hp: 520, dmg: 16, range: 6, speed: 5.5, cost: 700, build: 38, cp: 15 },
     },
     powers: [
-      { id: 'blockparty', name: 'Block Party', cost: 50, target: false, icon: 'music' },
-      { id: 'mixtape', name: 'Mixtape Drop', cost: 90, target: true, icon: 'disc' },
+      { id: 'blockparty', name: 'Block Party', short: 'Party', cost: 50, target: false, icon: 'music' },
+      { id: 'mixtape', name: 'Mixtape Drop', short: 'Mixtape', cost: 90, target: true, icon: 'disc' },
     ],
   },
   // Nerds (Tech): fragile up close, deadly at range; their towers are souped-up (+30% tower damage and range).
@@ -133,8 +133,8 @@ export const FACTIONS = {
       hero: { name: 'The Streamer', n: 1, hp: 540, dmg: 20, range: 7, speed: 5, cost: 720, build: 40, cp: 15 },
     },
     powers: [
-      { id: 'wifi', name: 'Wi-Fi Outage', cost: 60, target: true, icon: 'wifi' },
-      { id: 'patch', name: 'Patch Notes', cost: 90, target: false, icon: 'patch' },
+      { id: 'wifi', name: 'Wi-Fi Outage', short: 'Wi-Fi', cost: 60, target: true, icon: 'wifi' },
+      { id: 'patch', name: 'Patch Notes', short: 'Patch', cost: 90, target: false, icon: 'patch' },
     ],
   },
 };
