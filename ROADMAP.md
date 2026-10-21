@@ -56,7 +56,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B43) Units: Backwoods hero Screech — the bald eagle's stun cry gets a visible shockwave (expanding sound rings + feathers) and stunned squads wobble
 - [x] (B44) UI: tap-and-hold on empty ground = select all your army squads on screen (big friendly gesture; hold ring fills under the finger)
 - [x] (B45) Map: overpass traffic — little cars also drive the city avenues (render only), stopping at the red lights
-- [ ] FX: worker gather sparkle — while a worker is on shift a chef-hat steam puff / cash register 'ka-ching' coin flips up every second
+- [x] (B46) FX: worker gather sparkle — while a worker is on shift a chef-hat steam puff / cash register 'ka-ching' coin flips up every second
 - [ ] Logic: building repair — idle workers near a damaged own building fix it slowly (hammer sparks), costs a trickle of cash
 - [ ] UI: income ticker — the cash chip briefly flashes green and bumps when money comes in, red when spent
 - [ ] Placeholder: Bike Collective rides real bikes — frame triangle, handlebars, bell flash on attack; rider leans into turns

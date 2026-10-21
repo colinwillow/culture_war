@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=45';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=45';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=45';
-import { emit } from '../fx/particles.js?v=45';
-import { TICK } from '../config/factions.js?v=45';
-import { walkH } from '../map/layout.js?v=45';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=45';
-import { Q, pl } from '../sim/sim.js?v=45';
-import { UI } from '../ui/state.js?v=45';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=45';
-import { lerpAngle } from '../util/math.js?v=45';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=46';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=46';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=46';
+import { emit } from '../fx/particles.js?v=46';
+import { TICK } from '../config/factions.js?v=46';
+import { walkH } from '../map/layout.js?v=46';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=46';
+import { Q, pl } from '../sim/sim.js?v=46';
+import { UI } from '../ui/state.js?v=46';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=46';
+import { lerpAngle } from '../util/math.js?v=46';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -263,6 +263,16 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (o.lunge > 0) o.lunge = Math.max(0, o.lunge - dt);
     if (o.ack > 0) o.ack -= dt;
+    // On shift: every second a worker at a truck flips a coin up ("ka-ching") with a little white glint.
+    if (s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather') {
+      o.kaching = (o.kaching || 0) - dt;
+      if (o.kaching <= 0) {
+        o.kaching = 0.9 + Math.random() * 0.3;
+        const g0 = walkH(x, z);
+        emit({ x, y: g0 + 2, z, vx: (Math.random() - 0.5) * 0.8, vy: 4.5, vz: (Math.random() - 0.5) * 0.8, c: 0xf5b83a, s: 0.32, life: 0.8, g: 9 });
+        emit({ x, y: g0 + 2.3, z, vy: 1, c: 0xffffff, s: 0.18, life: 0.25, g: 0, grow: 2 });
+      }
+    }
     // Victory: a squad that was just fighting and has no enemy left within 12 m celebrates - three hops, then
     // Activists throw confetti and Backwoods toss their hats in the air.
     if (o.lastAtk !== undefined) {
