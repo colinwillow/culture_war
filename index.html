@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Culture Wars Greybox</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="top">
+  <div class="chip" id="cash"><span class="ic" data-i="coin"></span><b>600</b></div>
+  <div class="chip" id="cp"><span class="ic" data-i="people"></span><b>0/50</b></div>
+  <div class="chip meter"><i id="meterFill"></i><span class="ic" data-i="star"></span></div>
+</div>
+<div id="placeBar" hidden>
+  <button type="button" class="btn noCost ok" id="placeOk" aria-label="Place building"><span class="ic" data-i="check"></span></button>
+  <button type="button" class="btn noCost close" id="placeNo" aria-label="Cancel"><span class="ic" data-i="x"></span></button>
+</div>
+<div id="tip" hidden></div>
+<div id="dock"><div id="panel"></div><div id="cmd"></div></div>
+<div id="box"></div>
+<div id="menu" class="overlay">
+  <h1>Culture <em>Wars</em><span>GREYBOX 03</span></h1>
+  <div class="picks">
+    <button class="pick" data-f="bw" type="button"><span class="ic" data-i="truck"></span>Backwoods<small>FEWER · TOUGHER</small></button>
+    <button class="pick" data-f="ac" type="button"><span class="ic" data-i="megaphone"></span>Activists<small>MORE · FASTER</small></button>
+  </div>
+</div>
+<div id="end" class="overlay" hidden>
+  <div class="big" id="endIcon"></div>
+  <button class="again" id="again" type="button" aria-label="Play again"><span class="ic" data-i="replay"></span></button>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

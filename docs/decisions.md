@@ -1,0 +1,36 @@
+# Decisions and feedback log
+
+Newest first. Colin's feedback in his words where it matters.
+
+## Greybox 03 (Oct 20, 2026)
+- Moved into this repo, split into modules (see CLAUDE.md). Sim is deterministic and command-driven for future multiplayer.
+- **Placement confirm/cancel now float next to the building ghost** (Colin: the yes/no should be up next to where the building is being placed, not in the lower corner).
+- **Map rethemed to a city** (Colin: it's a culture war, the map should be urban; grassland read as knights and castles).
+  Sunken freeway with 3 overpasses splits the map; bases sit behind building walls with two openings; parks and a parking lot are the open fights; food trucks are the businesses workers work at.
+- Long-press any button to see its name (Colin didn't understand what the placeholder icons meant). Real button art will be image-generated later.
+- Colin wants many more passes on UI, the level, unit movement/animation and attack effects (mostly code-driven particles). He sees the greybox "dance" of moving characters as worth the time even though art is the selling point.
+
+## Greybox 02
+Colin's feedback on 01 ("like a little board game"):
+- Wants a fully developed 3D map, angled-down third-person-game look, not a flat board.
+- Wants to zoom right down to watch battles up close, a "ghost" camera; maybe later possess a unit in first/third person (left out for now).
+- Building placement must be free and strategic (choose where; openings and chokepoints matter), not preset circles.
+- Wants workers going out to gather money (equivalent of mining/lumber).
+- One-finger drag must pan the map (box-select moved to hold-then-drag).
+- Units should run out from the base; bases shouldn't start right in front of each other.
+- Menus need to be much better.
+Built: terrain map with river/fords, free placement with ghost + confirm, workers + resource piles, towers, one-finger pan, ghost cam, rally point.
+Bug in 02: duplicate function name broke the script (faction screen did nothing) — fixed.
+
+## Greybox 01
+First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs computer.
+
+## Design conversation (before code)
+- Live RTS like BFME II / Warcraft, not Clash-style async raids, not turn-based.
+- Factions are subculture tropes; keep it light; App Store 1.1.1 safe (no race-coded factions, no real politicians).
+  "Gangsters" reframed as Street Crew: hip-hop, streetwear, car culture, open to anyone.
+- Merged similar groups (goth/emo/punk -> Alt Kids; skate/surf/snow -> Shredders; rednecks + patriots -> Backwoods).
+- Launch six chosen by Colin: Backwoods, Nerds, Old Money, Street Crew, Activists, Hard Hats.
+- Powers must be visual ("Cancel" as a word on screen fails; Colin liked the Cancel idea itself though).
+- Alien-races edition is a planned second game on the same engine.
+- Parallel agents ("ultracode"): only after the code is split into modules with clear contracts; keep game logic in one place. See agents.md.

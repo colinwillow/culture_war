@@ -1,0 +1,36 @@
+// Placeholder line icons (24x24 stroke). To be replaced by generated button art later:
+// keep the same keys and swap svg() to return an <img> for the matching file.
+export const ICON = {
+  coin: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>',
+  people: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c3 .1 5.5 1.8 5.5 4.9"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  barracks: '<path d="M3 20V10l9-6 9 6v10z"/><path d="M9 20v-5h6v5"/>',
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  tower: '<path d="M7 21V7h10v14"/><path d="M7 7V4h2v2h2V4h2v2h2V4h2v3"/><path d="M10 21v-5h4v5"/>',
+  depot: '<path d="M3 20V9l9-4 9 4v11z"/><circle cx="12" cy="14" r="3"/>',
+  up: '<path d="M6 13l6-6 6 6"/><path d="M6 19l6-6 6 6"/>',
+  pike: '<path d="M12 22V3"/><path d="M8 7l4-4 4 4"/><path d="M9 3v4M15 3v4"/>',
+  melee: '<path d="M14.5 4.5l5 5-9 9H5.5v-5z"/><path d="M4 20l3-3"/>',
+  ranged: '<circle cx="12" cy="12" r="7"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>',
+  cav: '<circle cx="6.5" cy="16" r="3.5"/><circle cx="17.5" cy="16" r="3.5"/><path d="M3 12l2-5h9l3 5h4"/><path d="M10 7v5"/>',
+  truck: '<circle cx="7" cy="17" r="3.5"/><circle cx="17" cy="17" r="3.5"/><path d="M2 13l3-6h9l3 6h5"/><path d="M11 7v6"/>',
+  siege: '<path d="M4 18l6-9"/><circle cx="12" cy="6" r="2.5"/><path d="M15 4l3-2M16 8l4 1M13 11l2 3"/><path d="M2 20h10"/>',
+  hero: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  worker: '<path d="M3 12h11l2-7h4"/><path d="M14 12l-2 5"/><circle cx="9" cy="18" r="2.5"/><path d="M11 17h8"/>',
+  mud: '<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/><path d="M9 15c.5 1.5 1.5 2 3 2"/>',
+  fireworks: '<path d="M12 12V3M12 12l6-6M12 12l9 0M12 12l6 6M12 12v9M12 12l-6 6M12 12H3M12 12L6 6"/>',
+  pie: '<path d="M3 13h18"/><path d="M5 13a7 7 0 0 1 14 0"/><path d="M4 13l2 6h12l2-6"/><path d="M9 9.5l1 1M13 8.5l1 1"/>',
+  flag: '<path d="M5 21V3"/><path d="M5 4h12l-3 4 3 4H5"/>',
+  megaphone: '<path d="M3 10v4h3l8 5V5L6 10z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
+  eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  check: '<path d="M4 12l5 5 11-11"/>',
+  drag: '<path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/>',
+  skull: '<path d="M12 3a8 8 0 0 0-8 8c0 3 2 4.5 3 5v4h10v-4c1-.5 3-2 3-5a8 8 0 0 0-8-8z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10 20v-2M14 20v-2"/>',
+  replay: '<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4h4"/>',
+};
+export const svg = (n) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICON[n] || '') + '</svg>';
+export function fillIcons(root = document) { root.querySelectorAll('[data-i]').forEach((el) => (el.innerHTML = svg(el.dataset.i))); }

@@ -1,0 +1,195 @@
+// Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js';
+import { walkH } from '../map/layout.js';
+import { NODE_AMOUNT, BLD } from '../config/factions.js';
+import { Q, pl } from '../sim/sim.js';
+import { UI } from '../ui/state.js';
+import { fxConfetti, fxDeath } from '../fx/fx.js';
+import { lerpAngle } from '../util/math.js';
+
+const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
+
+function makeBar(w) {
+  const g = new THREE.Group();
+  const bg = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.08, 0.24), basic(0x000000, 0.6));
+  const fill = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.16), basic(0x7ee05b, 1));
+  fill.position.z = 0.01; g.add(bg, fill); g.renderOrder = 5;
+  return { g, fill, w };
+}
+function setBar(bar, f, color) {
+  f = Math.max(0.001, Math.min(1, f));
+  bar.fill.scale.x = f; bar.fill.position.x = (-(1 - f) * bar.w) / 2;
+  bar.fill.material.color.setHex(color || (f > 0.5 ? 0x7ee05b : f > 0.25 ? 0xf2c232 : 0xff5a4f));
+}
+function makeSquadObj(s) {
+  const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
+  const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]];
+  const members = offs.map(([ox, oz]) => { const m = makeMember(s.f, s.slot); const y = s.def.flies ? 3.8 : 0; m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; body.add(m); return m; });
+  const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.25));
+  team.rotation.x = -Math.PI / 2; team.position.y = 0.08; root.add(team);
+  const sel = ringMesh(s.r + 0.45, s.r + 0.72, 0xffffff, 0.95); sel.visible = false; root.add(sel);
+  const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
+  const h = new THREE.Box3().setFromObject(body).max.y;
+  const bar = makeBar(Math.max(1.4, s.r * 1.5)); bar.g.position.y = h + 0.7; root.add(bar.g);
+  const stun = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 6, 14), mat(0xffe14d)); stun.rotation.x = Math.PI / 2; stun.position.y = h + 0.25; stun.visible = false; root.add(stun);
+  const pie = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat(0xfff8ec)); pie.scale.y = 0.6; pie.position.y = h + 0.05; pie.visible = false; root.add(pie);
+  const carry = box(0.5, 0.4, 0.5, 0xf5b83a, 0, h + 0.1, 0); carry.visible = false; root.add(carry);
+  const rank = new THREE.Group(); rank.position.y = h + 1.05;
+  for (let i = 0; i < 2; i++) { const d = box(0.2, 0.2, 0.2, 0xf5b83a, (i - 0.5) * 0.32, 0, 0); d.visible = false; rank.add(d); }
+  root.add(rank);
+  scene.add(root);
+  return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, yaw: s.heading, lunge: 0, lastAlive: s.def.n, confT: 0 };
+}
+function makeBldObj(b) {
+  const root = new THREE.Group(), mesh = bldMesh(b.kind, b.f); root.add(mesh);
+  const pips = new THREE.Group(); pips.position.set(0, b.kind === 'barracks' ? 3 : 0, 0);
+  if (b.kind === 'barracks') for (let i = 0; i < 3; i++) pips.add(box(0.4, 0.4, 0.4, 0xf5b83a, (i - 1) * 0.6, 0, 0));
+  root.add(pips);
+  const scaff = new THREE.Mesh(new THREE.BoxGeometry(b.r * 1.8, 2.8, b.r * 1.8), new THREE.MeshBasicMaterial({ color: 0xf2c232, wireframe: true }));
+  scaff.position.y = 1.4; root.add(scaff);
+  const sel = ringMesh(b.r + 0.3, b.r + 0.6, 0xffffff, 0.95); sel.visible = false; root.add(sel);
+  const team = new THREE.Mesh(new THREE.CircleGeometry(b.r + 0.2, 32), basic(b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.2));
+  team.rotation.x = -Math.PI / 2; team.position.y = 0.07; root.add(team);
+  const h = new THREE.Box3().setFromObject(mesh).max.y;
+  const bar = makeBar(b.r * 1.4); bar.g.position.y = h + 0.8; root.add(bar.g);
+  root.position.set(b.x, walkH(b.x, b.z), b.z);
+  if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
+  scene.add(root);
+  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar };
+}
+function makeNodeObj(n) {
+  const g = nodeMesh();
+  const ring = ringMesh(2.6, 2.9, 0xf5b83a, 0.5); g.add(ring);
+  g.position.set(n.x, walkH(n.x, n.z), n.z);
+  g.rotation.y = (n.x * 7 + n.z) % 6;
+  ring.rotation.z = 0;
+  scene.add(g);
+  return { g, ring, coin: g.userData.coin };
+}
+
+export function bump(id) { const o = R.sq.get(id); if (o) o.lunge = 0.15; }
+export function squadObj(id) { return R.sq.get(id); }
+
+export function syncRender(S, alpha, dt, time) {
+  const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
+  const seen = new Set();
+  for (const s of S.squads) {
+    seen.add(s.id);
+    let o = R.sq.get(s.id);
+    if (!o) { o = makeSquadObj(s); R.sq.set(s.id, o); }
+    const x = s.px + (s.x - s.px) * alpha, z = s.pz + (s.z - s.pz) * alpha;
+    o.root.position.set(x, walkH(x, z), z);
+    o.yaw = lerpAngle(o.yaw, s.heading, Math.min(1, dt * 10)); o.body.rotation.y = o.yaw;
+    const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
+    const par = pl(s.owner).parade > 0, bs = par ? 18 : s.bull > 0 ? 14 : 10;
+    let alive = 0;
+    for (let i = 0; i < o.members.length; i++) {
+      const m = o.members[i], live = s.members[i] > 0;
+      m.visible = live;
+      if (!live) continue;
+      alive++;
+      let y = m.userData.by;
+      if (s.def.flies) y += Math.sin(time * 3 + i) * 0.3;
+      else if (moving && s.def.vehicle) y += Math.abs(Math.sin(time * 16)) * 0.1;
+      else if (moving) y += Math.abs(Math.sin(time * bs + i * 1.3)) * 0.08;
+      m.position.y = y; m.scale.y = s.sit ? 0.55 : 1; m.position.z = m.userData.bz + o.lunge * 2.5;
+      const legs = m.userData.legs;
+      if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
+      if (s.def.flies) m.children[0].rotation.z = Math.sin(time * 6) * 0.15;
+      m.rotation.x = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather' ? Math.sin(time * 10) * 0.25 : 0;
+    }
+    if (o.lunge > 0) o.lunge = Math.max(0, o.lunge - dt);
+    if (alive < o.lastAlive) for (let k = 0; k < o.lastAlive - alive; k++) fxDeath(x, z, s.f);
+    o.lastAlive = alive;
+    o.sel.visible = selIds.has(s.id);
+    o.team.material.opacity = 0.25 + s.rally * 2 + (s.bull > 0 ? 0.25 : 0);
+    o.team.material.color.setHex(s.bull > 0 ? 0xe85d9a : s.owner === 0 ? 0x7fd1ff : 0xff5a4f);
+    let tot = 0; for (const h of s.members) tot += h;
+    setBar(o.bar, tot / (s.members.length * s.mhp));
+    o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;
+    o.bar.g.quaternion.copy(camera.quaternion);
+    o.stun.visible = s.stun > 0 && s.stun <= 2.5; o.stun.rotation.z = time * 6;
+    o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; o.carry.visible = s.carry > 0;
+    o.rank.children.forEach((c, i) => (c.visible = i < s.rank)); o.rank.quaternion.copy(camera.quaternion);
+    if (par) { o.confT -= dt; if (o.confT <= 0) { o.confT = 0.5; fxConfetti(x, z, 4); } }
+  }
+  for (const [id, o] of R.sq) if (!seen.has(id)) { disposeObj(o.root); R.sq.delete(id); }
+
+  const seenB = new Set();
+  for (const b of S.blds) {
+    seenB.add(b.id);
+    let o = R.bl.get(b.id);
+    if (!o) { o = makeBldObj(b); R.bl.set(b.id, o); }
+    o.mesh.scale.y = 0.25 + 0.75 * b.built; o.scaff.visible = b.built < 1;
+    if (o.coin) o.coin.rotation.z += dt * 2.5;
+    o.pips.children.forEach((p, i) => { p.visible = i < b.level || (b.up > 0 && i === b.level && Math.sin(time * 10) > 0); });
+    o.sel.visible = !!(UI.sel && UI.sel.type === 'bld' && UI.sel.id === b.id);
+    setBar(o.bar, b.built < 1 ? b.built : b.hp / b.maxHp, b.built < 1 ? 0xf2c232 : 0);
+    o.bar.g.visible = b.built < 1 || b.hp < b.maxHp || o.sel.visible;
+    o.bar.g.quaternion.copy(camera.quaternion);
+  }
+  for (const [id, o] of R.bl) if (!seenB.has(id)) { disposeObj(o.root); R.bl.delete(id); }
+
+  for (const n of S.nodes) {
+    let o = R.nodes.get(n.id);
+    if (!o) { o = makeNodeObj(n); R.nodes.set(n.id, o); }
+    const k = n.amount / NODE_AMOUNT;
+    o.g.visible = k > 0;
+    o.coin.rotation.z += dt * 2;
+    o.coin.scale.setScalar(0.4 + 0.6 * k);
+    o.ring.material.opacity = 0.3 + 0.2 * Math.sin(time * 2);
+  }
+
+  const seenZ = new Set();
+  for (const zn of S.zones) {
+    seenZ.add(zn.id);
+    let m = R.zones.get(zn.id);
+    if (!m) {
+      m = new THREE.Group();
+      const d = new THREE.Mesh(new THREE.CircleGeometry(zn.r, 40), basic(0x5b4026, 0.85)); d.rotation.x = -Math.PI / 2; d.position.y = 0.11; m.add(d);
+      for (let i = 0; i < 10; i++) { const a = Math.random() * 6.28, rr = Math.random() * zn.r * 0.8; const bl = new THREE.Mesh(new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 7, 5), mat(0x4a331d)); bl.scale.y = 0.4; bl.position.set(Math.cos(a) * rr, 0.12, Math.sin(a) * rr); m.add(bl); }
+      m.position.set(zn.x, walkH(zn.x, zn.z), zn.z); scene.add(m); R.zones.set(zn.id, m);
+    }
+    m.children[0].material.opacity = Math.min(0.85, zn.t);
+  }
+  for (const [id, m] of R.zones) if (!seenZ.has(id)) { disposeObj(m); R.zones.delete(id); }
+
+  const seenP = new Set();
+  for (const pd of S.pending) {
+    seenP.add(pd.id);
+    let m = R.pend.get(pd.id);
+    if (!m) { m = ringMesh(pd.r - 0.4, pd.r, 0xff5a4f, 0.8); m.position.set(pd.x, walkH(pd.x, pd.z) + 0.14, pd.z); scene.add(m); R.pend.set(pd.id, m); }
+    m.material.opacity = 0.4 + 0.4 * Math.abs(Math.sin(time * 12));
+  }
+  for (const [id, m] of R.pend) if (!seenP.has(id)) { disposeObj(m); R.pend.delete(id); }
+
+  // Building placement ghost (green = OK, red = blocked).
+  if (UI.place) {
+    if (!R.ghost || R.ghost.kind !== UI.place.kind) {
+      if (R.ghost) disposeObj(R.ghost.g);
+      const g = bldMesh(UI.place.kind, pl(0).f);
+      g.rotation.y = Math.PI;
+      g.traverse((n) => { if (n.material) { n.material = n.material.clone(); n.material.transparent = true; n.material.opacity = 0.55; } });
+      const r = BLD[UI.place.kind].r;
+      const ring = ringMesh(r + 0.4, r + 0.9, 0x9dff78, 0.9); g.add(ring);
+      scene.add(g); R.ghost = { g, ring, kind: UI.place.kind };
+    }
+    const ok = Q.canPlace(pl(0), UI.place.kind, UI.place.x, UI.place.z);
+    UI.place.ok = ok;
+    R.ghost.g.position.set(UI.place.x, walkH(UI.place.x, UI.place.z), UI.place.z);
+    R.ghost.ring.material.color.setHex(ok ? 0x9dff78 : 0xff6557);
+    R.ghost.g.traverse((n) => { if (n.material && n !== R.ghost.ring) n.material.color.setHex(ok ? 0xffffff : 0xff6557); });
+  } else if (R.ghost) { disposeObj(R.ghost.g); R.ghost = null; }
+}
+
+export function clearRender() {
+  for (const o of R.sq.values()) disposeObj(o.root);
+  for (const o of R.bl.values()) disposeObj(o.root);
+  for (const o of R.nodes.values()) disposeObj(o.g);
+  for (const m of R.zones.values()) disposeObj(m);
+  for (const m of R.pend.values()) disposeObj(m);
+  if (R.ghost) disposeObj(R.ghost.g);
+  R.ghost = null;
+  R.sq.clear(); R.bl.clear(); R.nodes.clear(); R.zones.clear(); R.pend.clear();
+}
