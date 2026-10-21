@@ -102,3 +102,5 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 @media (orientation: landscape) {
   #queue { left: auto; right: calc(100% - 4px); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); flex-direction: column-reverse; align-items: center; }
 }
+#mini { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 48px); left: max(10px, env(safe-area-inset-left, 0px)); width: 66px; height: 110px; border-radius: 10px; border: 2px solid var(--line); box-shadow: 0 4px 0 rgba(0, 0, 0, .35); pointer-events: auto; touch-action: none; z-index: 4; }
+@media (orientation: landscape) { #mini { width: 78px; height: 130px; } }
