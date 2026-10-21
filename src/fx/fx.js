@@ -1,10 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=31';
-import { walkH } from '../map/layout.js?v=31';
-import { FC } from '../render/models.js?v=31';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=31';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=32';
+import { walkH } from '../map/layout.js?v=32';
+import { shake } from '../camera/camera.js?v=32';
+import { FC } from '../render/models.js?v=32';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=32';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -155,6 +156,7 @@ export function handleEvents(S, bump) {
         else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }
         bump(ev.id); break;
       case 'hit':
+        if (ev.area && ev.slot === 'cav') shake(0.5, ev.tx, ev.tz); // monster truck slam
         if (ev.slot === 'hero' && ev.f === 'ac') { // bullhorn blast: rings roll from him to the target
           const dx = ev.tx - ev.x, dz = ev.tz - ev.z;
           for (let k = 0; k < 3; k++) setTimeout(() => fxRing(ev.x + dx * (0.3 + k * 0.3), ev.z + dz * (0.3 + k * 0.3), 0.3, 1.4 + k * 0.4, 0xe85d9a, 0.3, 1.4), k * 90);
@@ -162,7 +164,7 @@ export function handleEvents(S, bump) {
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
         else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
         bump(ev.id); break;
-      case 'boom': fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
+      case 'boom': shake(1.6, ev.x, ev.z); fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
       case 'scrap': fxBits(ev.x, ev.z, 0x9a9a9a, 6, 1, 5); fxCoin(ev.x, 2, ev.z); break;
       case 'income': if (ev.owner === 0) for (const b of S.blds) if (b.owner === 0 && b.kind === 'depot' && b.built >= 1) fxCoin(b.x, 3.2, b.z); break;
@@ -186,7 +188,7 @@ export function handleEvents(S, bump) {
       case 'parade': for (const s of S.squads) if (s.owner === ev.owner) { fxConfetti(s.x, s.z, 14); confettiCannon(s.x, s.z); } break;
       case 'mud': fxRing(ev.x, ev.z, 1, 8, 0x5b4026, 0.5, 0.15); fxBits(ev.x, ev.z, 0x5b4026, 10, 0.3, 8); break;
       case 'fwlaunch': { const p = S.players[ev.owner]; for (let i = 0; i < 6; i++) fxRocket(p.hqx + (Math.random() - 0.5) * 3, p.hqz, ev.x + (Math.random() - 0.5) * 8, ev.z + (Math.random() - 0.5) * 8, CONF[i], 1.5 + i * 0.05); break; }
-      case 'fwboom': fxFireworks(ev.x, ev.z, ev.r); break;
+      case 'fwboom': fxFireworks(ev.x, ev.z, ev.r); shake(1.2, ev.x, ev.z); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }
   }

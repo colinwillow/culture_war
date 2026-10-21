@@ -41,7 +41,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B31) Units: celebration when a squad wins a fight (nearby enemies gone): quick cheer/hop + confetti for Activists, hat toss for Backwoods
 
 ## Batch 3 (added 10:39 UTC by the loop, same rules)
-- [ ] FX: camera shake on big hits (building destroyed, fireworks, monster truck slam) — small, decays fast
+- [x] (B32) FX: camera shake on big hits (building destroyed, fireworks, monster truck slam) — small, decays fast
 - [ ] Placeholder: parade puppet sways its arms + bobs its head as it walks; fireworks cart tubes smoke after each shot
 - [ ] UI: pause button (big icon, top-right) — freezes the sim, dims the screen; tap anywhere on the dim to resume
 - [ ] UI: difficulty picker on the menu — three big icons (easy / normal / hard) that change AI wave size + income

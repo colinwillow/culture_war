@@ -1,7 +1,7 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera } from '../render/scene.js?v=31';
-import { walkH } from '../map/layout.js?v=31';
-import { smooth } from '../util/math.js?v=31';
+import { camera } from '../render/scene.js?v=32';
+import { walkH } from '../map/layout.js?v=32';
+import { smooth } from '../util/math.js?v=32';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
@@ -15,6 +15,19 @@ export function applyCam(dt) {
   const minY = Math.max(0, walkH(camera.position.x, camera.position.z)) + 2.5;
   if (camera.position.y < minY) camera.position.y = minY;
   camera.lookAt(CAM.tx, ty + 1, CAM.tz);
+  // Shake: jitter the view a little, decaying fast. Applied after lookAt so it never drifts the target.
+  if (shakeK > 0.002) {
+    const a = shakeK * (CAM.dist / 60);
+    camera.position.x += (Math.random() - 0.5) * a; camera.position.y += (Math.random() - 0.5) * a; camera.position.z += (Math.random() - 0.5) * a;
+    shakeK *= Math.exp(-dt * 9);
+  }
+}
+let shakeK = 0;
+/** Kick the camera: strength in metres at the default zoom, softened by distance from what the camera looks at. */
+export function shake(k, x, z) {
+  const d = x === undefined ? 0 : Math.hypot(x - CAM.tx, z - CAM.tz);
+  if (d > 60) return;
+  shakeK = Math.min(2.5, Math.max(shakeK, k * (1 - d / 60)));
 }
 export function clampCam() {
   CAM.tx = Math.max(-62, Math.min(62, CAM.tx));
