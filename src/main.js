@@ -1,21 +1,21 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=73';
-import { buildWorld, updateWorld } from './render/world.js?v=73';
-import { syncRender, clearRender, bump } from './render/sync.js?v=73';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=73';
-import { newSim, getSim, step } from './sim/sim.js?v=73';
-import { TICK } from './config/factions.js?v=73';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=73';
-import { initInput, lockPageZoom } from './input/input.js?v=73';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=73';
-import { resetUI } from './ui/state.js?v=73';
-import { fillIcons, svg } from './ui/icons.js?v=73';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=73';
-import { updateMinimap } from './ui/minimap.js?v=73';
-import { isMuted, setMuted } from './fx/sfx.js?v=73';
-import { loadChars } from './render/chars.js?v=73';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=74';
+import { buildWorld, updateWorld } from './render/world.js?v=74';
+import { syncRender, clearRender, bump } from './render/sync.js?v=74';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=74';
+import { newSim, getSim, step } from './sim/sim.js?v=74';
+import { TICK } from './config/factions.js?v=74';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=74';
+import { initInput, lockPageZoom } from './input/input.js?v=74';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=74';
+import { resetUI } from './ui/state.js?v=74';
+import { fillIcons, svg } from './ui/icons.js?v=74';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=74';
+import { updateMinimap } from './ui/minimap.js?v=74';
+import { isMuted, setMuted } from './fx/sfx.js?v=74';
+import { loadChars } from './render/chars.js?v=74';
 
-export const BUILD = 73; // written by `npm run bump`
+export const BUILD = 74; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -40,7 +40,7 @@ function start(f) {
   newSim(f, (Date.now() & 0xffffff) + 1, diff);
   resetUI(); resetHUD();
   menu.hidden = true; endEl.hidden = true; running = true; setPause(false);
-  resetCam(); refreshHUD();
+  cin = null; resetCam(); refreshHUD();
 }
 // Difficulty: 1-3 stars on the menu, remembered on this phone.
 let diff = 1;
@@ -83,6 +83,16 @@ function devTick(dt, S) {
   devN = 0; devT = 0; devWorst = 0;
 }
 let last = performance.now(), acc = 0, hudT = 0;
+// End-of-match cinematic: the camera swoops down onto the fallen HQ and slowly circles the rubble; stats follow.
+let cin = null;
+function cinema(dt) {
+  if (!cin) return;
+  cin.t += dt;
+  const k = Math.min(1, cin.t / 2), e = k * k * (3 - 2 * k);
+  CAM.tx = cin.x0 + (cin.x - cin.x0) * e; CAM.tz = cin.z0 + (cin.z - cin.z0) * e;
+  CAM.distT = cin.d0 + (24 - cin.d0) * e;
+  CAM.yaw = cin.yaw0 + e * 0.8 + Math.max(0, cin.t - 2) * 0.12;
+}
 function frame(now) {
   const dt = paused ? 0 : Math.min(0.1, (now - last) / 1000);
   last = now;
@@ -106,10 +116,13 @@ function frame(now) {
       const mx = Math.max(1, a[k], e[k]);
       return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;
     }).join('');
-    setTimeout(() => (endEl.hidden = false), 900);
+    const lost = S.players[1 - S.over.winner];
+    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: lost.hqx, z: lost.hqz };
+    setTimeout(() => (endEl.hidden = false), 2600);
   }
   hudT -= dt;
   if (hudT <= 0) { hudT = 0.15; refreshHUD(); }
+  cinema(dt);
   applyCam(dt);
   followSun(CAM.tx, CAM.tz);
   if (S && running) { updateMinimap(dt); updateAlert(dt); }

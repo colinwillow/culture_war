@@ -86,4 +86,12 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B71) Logic: STREET CREW (Rush) data — sneakerhead runners, breakdancers, boombox crew (sound-wave ranged), lowrider cav, graffiti tagger siege, DJ hero; powers Block Party (army buff) + Mixtape Drop (shockwave stun)
 - [x] (B72) Units: Street Crew cast with Colin's moussa GLB (has hip-hop dance clips - breakdancers attack by dancing) + bouncing lowrider placeholder
 - [x] (B73) Map: Street Crew buildings (record shop HQ, sneaker store depot, rec centre barracks, speaker-stack tower) + menu card + power visuals
-- [ ] FX: end-of-match cinematic — on victory/defeat the camera swoops to the destroyed HQ before the stats screen
+- [x] (B74) FX: end-of-match cinematic — on victory/defeat the camera swoops to the destroyed HQ before the stats screen
+
+## Batch 8 (added 12:24 UTC by the loop, same rules)
+- [ ] Logic: Street Crew traits made visible — the DJ's own ability "Drop the Beat" (nearby squads dance-cheer, +speed), Graffiti Tagger tags hit buildings (paint splats stay on walls)
+- [ ] Logic: Old Money balance — it won 1/24 in the B71 round robin; tune until it sits mid-pack again (rerun tools/balance.cjs)
+- [ ] UI: faction-coloured HUD accents — the power meter, selection rings and command card take your faction colour (5 factions now)
+- [ ] FX: unit voice barks — tiny synth "hup!" / cheer blips per faction pitch when a squad is ordered (throttled, respects mute)
+- [ ] Map: Street Crew base dressing — basketball court lines, a parked boombox and graffiti-tagged dumpsters round their HQ
+- [ ] Units: hero entrance — when a hero is trained, a short spotlight + faction flourish (eagle cry / bullhorn / whistle / jet / record scratch)
