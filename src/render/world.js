@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=51';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=51';
-import { hash } from '../util/math.js?v=51';
-import { emit } from '../fx/particles.js?v=51';
+import { THREE, scene, mat, box } from './scene.js?v=52';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=52';
+import { hash } from '../util/math.js?v=52';
+import { emit } from '../fx/particles.js?v=52';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -188,7 +188,19 @@ export function buildWorld() {
   ccIM.count = ccars.length * 2; ccIM.frustumCulled = false; scene.add(ccIM);
   const lightAt = []; // intersections that have a lamp, with their phase (same formula as the lamps themselves)
   for (const ax of AVENUES) for (const cz0 of CROSS_STREETS) for (const sz of [1, -1]) { const cz = sz * cz0; if (open(ax + 5.4, cz + 4.6 * sz) || open(ax, cz)) lightAt.push({ ax, cz, ph: (ax + cz) * 0.37 }); }
-  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM, pigeons, pigIM, ccars, ccIM, lightAt };
+  // Cloud shadows: three huge soft dark blobs (a radial-gradient texture) drifting slowly across the city.
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const cx = cv.getContext('2d'), gr = cx.createRadialGradient(64, 64, 8, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.6, 'rgba(0,0,0,.6)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
+  const ctex = new THREE.CanvasTexture(cv);
+  const clouds = [];
+  for (let i = 0; i < 3; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ctex, transparent: true, opacity: 0.16, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.scale.set(38 + i * 9, 26 + i * 6, 1); m.position.set(-60 + i * 50, 0.3, -80 + i * 70); m.renderOrder = 2;
+    scene.add(m); clouds.push({ m, vx: 1.6 + i * 0.4, vz: 0.9 + i * 0.2 });
+  }
+  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM, pigeons, pigIM, ccars, ccIM, lightAt, clouds };
 
   // Freeway traffic (render only, loops forever).
   const lanes = [-3.2, -1, 1, 3.2];
@@ -241,6 +253,11 @@ function updateLife(dt, S) {
     birdIM.setMatrixAt(i, M);
   });
   birdIM.instanceMatrix.needsUpdate = true;
+  for (const c of life.clouds) { // drift diagonally; wrap round once fully off the map
+    c.m.position.x += c.vx * dt; c.m.position.z += c.vz * dt;
+    if (c.m.position.x > 100) c.m.position.x -= 200;
+    if (c.m.position.z > 130) c.m.position.z -= 260;
+  }
   const { ccars, ccIM, lightAt } = life;
   ccars.forEach((c, i) => {
     const x = c.g.ax + c.dir * 1.8; // keep right

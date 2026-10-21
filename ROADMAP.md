@@ -61,5 +61,5 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B48) UI: income ticker — the cash chip briefly flashes green and bumps when money comes in, red when spent
 - [x] (B49) Placeholder: Bike Collective rides real bikes — frame triangle, handlebars, bell flash on attack; rider leans into turns
 - [x] (B51) FX: projectile variety — Shotgun Hunters spray 3 pellets, Megaphone Crew fires visible sound-wave arcs
-- [ ] Map: weather — light drifting clouds casting moving soft shadow patches over the city (cheap: 3 big transparent decals)
+- [x] (B52) Map: weather — light drifting clouds casting moving soft shadow patches over the city (cheap: 3 big transparent decals)
 - [ ] UI: hero portrait button — a big round hero button appears once your hero exists; tap = select + jump to hero
