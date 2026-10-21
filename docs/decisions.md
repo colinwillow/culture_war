@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B22 (overnight loop): command card: one portrait per selected squad (up to 6) with alive/dead member dots, a green-amber-red health bar and gold rank stars; tap a portrait to pick just that squad and fly the camera to it
 - B21 (overnight loop): veterancy: heroes level up to 5 (kills 4/10/18/28/40, +12% hp/dmg each) and grow 6% per level with a pulsing ring that turns gold at level 3; veteran squads wear a silver then gold ring; every rank-up throws a spiral of gold sparks
 - B20 (overnight loop): lighting: warmer sun + cooler sky fill; ONE soft shadow-casting sun whose 80 m shadow box follows the camera (texel-snapped, no shimmer); only units and player buildings cast, ground/lawns/sidewalks receive
 - B19 (overnight loop): end screen stats: four icon rows (kills, cash earned, buildings built, buildings razed), your blue bar vs their red bar growing in one after another, numbers pop in at the bar ends; sim now tracks per-player stats

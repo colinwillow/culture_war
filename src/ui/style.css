@@ -114,3 +114,7 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 @keyframes grow { to { width: max(6px, var(--w)); } }
 @keyframes fadein { to { opacity: 1; } }
 @media (orientation: landscape) { #end { flex-direction: row; flex-wrap: wrap; } }
+.btn .pips span.off { background: rgba(255, 255, 255, .15); }
+.btn.card .badge { background: rgba(0, 0, 0, .55); color: var(--gold); font-size: 9px; letter-spacing: -1px; }
+.btn.card .pips { flex-wrap: wrap; width: 40px; }
+.btn.card .prog { height: 5px; }

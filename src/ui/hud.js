@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=21';
-import { UI, select, selSquads } from './state.js?v=21';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=21';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=21';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=21';
-import { camera } from '../render/scene.js?v=21';
-import { walkH } from '../map/layout.js?v=21';
-import { THREE } from '../render/scene.js?v=21';
-import { showHint } from './hint.js?v=21';
+import { svg } from './icons.js?v=22';
+import { UI, select, selSquads } from './state.js?v=22';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=22';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=22';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=22';
+import { camera } from '../render/scene.js?v=22';
+import { walkH } from '../map/layout.js?v=22';
+import { THREE } from '../render/scene.js?v=22';
+import { showHint } from './hint.js?v=22';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -26,6 +26,8 @@ function applyBtn(el, b) {
   el.querySelector('.prog').style.width = (b.prog != null ? Math.round(b.prog * 100) : 0) + '%';
   el.querySelector('.gauge').style.height = (b.gauge != null ? Math.round(b.gauge * 100) : 0) + '%';
   const pips = el.querySelector('.pips'), pn = b.pips || 0; if (pips.childElementCount !== pn) pips.innerHTML = '<span></span>'.repeat(pn);
+  if (b.pipsOn != null) [...pips.children].forEach((c, i) => c.classList.toggle('off', i >= b.pipsOn));
+  if (b.hp != null) { const pr = el.querySelector('.prog'); pr.style.width = Math.round(b.hp * 100) + '%'; pr.style.background = b.hp > 0.5 ? '#7ee05b' : b.hp > 0.25 ? '#f2c232' : '#ff5a4f'; }
   if (b.ring != null) el.style.setProperty('--ring', Math.round(Math.min(1, b.ring) * 360) + 'deg');
 }
 
@@ -66,6 +68,13 @@ function panelSpec() {
   } else if (sel.type === 'sq') {
     const sq = selSquads();
     if (!sq.length) { select(null); return out; }
+    // Command card: one portrait per selected squad (max 6) - members alive as pips, health bar, rank as stars.
+    // Tap a portrait: select just that squad and fly the camera to it.
+    for (const q of sq.slice(0, 6)) {
+      let hp = 0, alive = 0; for (const h of q.members) { hp += h; if (h > 0) alive++; }
+      out.push({ id: 'sq-' + q.id, name: F.units[q.slot].name, icon: q.slot, noCost: true, cls: 'card', pips: q.members.length > 1 ? q.members.length : 0, pipsOn: alive, hp: hp / (q.members.length * q.mhp),
+        badge: q.rank ? '\u2605'.repeat(Math.min(q.rank, 5)) : '', tap: () => { select({ type: 'sq', ids: [q.id] }); focus(q.x, q.z); } });
+    }
     const sitters = sq.filter((s) => s.f === 'ac' && s.slot === 'melee');
     if (sitters.length) { const allSit = sitters.every((s) => s.sit); out.push({ id: 'sit', name: 'Sit In', icon: 'shield', noCost: true, on: allSit, tap: () => command(0, { type: 'sit', ids: sitters.map((s) => s.id), on: !allSit }) }); }
   }
