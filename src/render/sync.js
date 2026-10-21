@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=133';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=133';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=133';
-import { emit } from '../fx/particles.js?v=133';
-import { bark } from '../fx/sfx.js?v=133';
-import { TICK } from '../config/factions.js?v=133';
-import { walkH } from '../map/layout.js?v=133';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=133';
-import { CAM } from '../camera/camera.js?v=133';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=137';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=137';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=137';
+import { emit } from '../fx/particles.js?v=137';
+import { bark } from '../fx/sfx.js?v=137';
+import { TICK } from '../config/factions.js?v=137';
+import { walkH } from '../map/layout.js?v=137';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=137';
+import { CAM } from '../camera/camera.js?v=137';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=133';
-import { UI } from '../ui/state.js?v=133';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=133';
+import { Q, pl, getSim } from '../sim/sim.js?v=137';
+import { UI } from '../ui/state.js?v=137';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=137';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=133';
+import { lerpAngle } from '../util/math.js?v=137';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -189,6 +189,7 @@ const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 -
 export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
   hillRender(S, time);
+  driftRender(S, time);
   capRender(S, time);
   aimRender(S, time);
   const seen = new Set();
@@ -602,6 +603,28 @@ function aimRender(S, time) {
   R.aim.visible = true; R.aim.position.set(x, walkH(x, z), z); R.aim.scale.setScalar(1 + Math.sin(time * 6) * 0.03);
 }
 // King of the Hill marker: a glowing ring + flag on the middle overpass, tinted to the holder, flickering when contested.
+// Drifters (Downtown): neutral street folk in faded clothes holding a cardboard sign. They sway, and shake when upset
+// (one more floor falling next to them and they join the wreckers).
+const DRIFT_SHIRT = [0x8a7f6a, 0x6b7f8a, 0x7a6a8a, 0x8a6a5a, 0x6a8a6a], DRIFT_SKIN = [0xf2c9a0, 0xc68a5e, 0x8d5a3b, 0xe0b48c];
+function driftMesh(i) {
+  const g = new THREE.Group(), sh = DRIFT_SHIRT[i % 5], sk = DRIFT_SKIN[(i * 3) % 4];
+  g.add(box(0.16, 0.5, 0.18, 0x3a3a3a, -0.12, 0.25, 0), box(0.16, 0.5, 0.18, 0x3a3a3a, 0.12, 0.25, 0), box(0.5, 0.62, 0.32, sh, 0, 0.82, 0), box(0.32, 0.32, 0.32, sk, 0, 1.3, 0), box(0.36, 0.12, 0.36, 0x5a4a3a, 0, 1.5, 0));
+  g.add(box(0.6, 0.42, 0.03, 0xc9a26a, 0, 0.95, 0.3), box(0.04, 0.5, 0.04, 0x6b4a2a, 0, 0.6, 0.28)); // cardboard sign
+  return casts(g);
+}
+function driftRender(S, time) {
+  if (!R.drift) R.drift = new Map();
+  const live = new Set();
+  for (const d of S.drift || []) {
+    live.add(d.id);
+    let g = R.drift.get(d.id);
+    if (!g) { g = driftMesh(d.id); g.rotation.y = d.ph; scene.add(g); R.drift.set(d.id, g); }
+    const y = walkH(d.x, d.z), shake = d.upset ? Math.sin(time * 30) * 0.04 * d.upset : 0;
+    g.position.set(d.x + shake, y + Math.abs(Math.sin(time * 1.3 + d.ph)) * 0.03, d.z);
+    g.rotation.z = Math.sin(time * 0.8 + d.ph) * 0.05;
+  }
+  for (const [id, g] of R.drift) if (!live.has(id)) { disposeObj(g); R.drift.delete(id); }
+}
 function flagMarker(x, z, r) {
   const g = new THREE.Group(), ring = ringMesh(r - 0.5, r, 0xffffff, 0.8), fill = new THREE.Mesh(new THREE.CircleGeometry(r - 0.5, 40), basic(0xffffff, 0.12));
   fill.rotation.x = -Math.PI / 2; fill.position.y = 0.08;
@@ -636,6 +659,7 @@ function hillRender(S, time) {
   o.flag.rotation.y = Math.sin(time * 3) * 0.3; o.flag.scale.x = 1 + Math.sin(time * 7) * 0.08;
 }
 export function clearRender() {
+  if (R.drift) { for (const g of R.drift.values()) disposeObj(g); R.drift.clear(); }
   if (R.aim) { disposeObj(R.aim); R.aim = null; }
   if (R.hill) { disposeObj(R.hill.g); R.hill = null; }
   if (R.cap) { R.cap.forEach((o) => disposeObj(o.g)); R.cap = null; }

@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=133';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=133';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=137';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command } from './sim.js?v=137';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -102,6 +102,11 @@ export function aiStep(S, dt, pi = 1) {
   // and keep it there; full waves still go for the HQ.
   if (S.down) { // Downtown
     const role = S.down.role[pi];
+    // Both sides recruit the nearest drifter when they have the cash to spare.
+    if (S.drift && S.drift.length && p.cash > (role === 'b' ? 160 : 110)) {
+      const d = S.drift.slice().sort((a, b) => Math.hypot(a.x - p.hqx, a.z - p.hqz) - Math.hypot(b.x - p.hqx, b.z - p.hqz))[0];
+      command(pi, { type: 'recruit', id: d.id });
+    }
     if (role === 'b') {
       // two workers keep patching the most-wrecked storefront nearest home; the army guards wherever the city was last hit
       const hurt = S.city.filter((b) => b.hp < b.maxHp).sort((a, b) => (a.hp / a.maxHp + Math.hypot(a.x - p.hqx, a.z - p.hqz) / 200) - (b.hp / b.maxHp + Math.hypot(b.x - p.hqx, b.z - p.hqz) / 200))[0];

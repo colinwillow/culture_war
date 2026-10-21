@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=133';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=133';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=133';
-import { mulberry32 } from '../util/math.js?v=133';
-import { aiStep } from './ai.js?v=133';
+} from '../config/factions.js?v=137';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=137';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=137';
+import { mulberry32 } from '../util/math.js?v=137';
+import { aiStep } from './ai.js?v=137';
 
 let S = null;
 export const getSim = () => S;
@@ -38,7 +38,7 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     // Resource Race: first to EARN this much (income + deposits + scrap; spending doesn't count against you) wins.
     race: mode === 'race' ? { goal: 2500 } : null,
     // Downtown: one side wrecks the city, the other keeps it standing. meter = share of all floors still up.
-    down: mode === 'down-w' || mode === 'down-b' ? { role: mode === 'down-w' ? ['w', 'b'] : ['b', 'w'], meter: 1, start: 0, total: 0, limit: 480, lose: 0.35, win: 0.97, hold: 0.6, hot: null } : null,
+    down: mode === 'down-w' || mode === 'down-b' ? { role: mode === 'down-w' ? ['w', 'b'] : ['b', 'w'], meter: 1, start: 0, total: 0, limit: 480, lose: 0.35, win: 0.97, hold: 0.56, hot: null } : null,
     // Capture and Hold: three flags (the middle overpass + one park on each side). Fighters of one side alone at a flag
     // swing it over in ~6 s; every second, the side holding MORE flags drains the other's 300-point counter by the margin.
     cap: mode === 'cap' ? { pts: [[0, 0], [-18, 29], [18, -29]].map(([x, z]) => ({ x, z, r: 6, prog: 0, owner: -1 })), score: [300, 300], max: 300, t: 0 } : null,
@@ -62,6 +62,7 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     for (const b of S.city) { const k = S.rng(); const lost = k < 0.12 ? b.floors : k < 0.5 ? Math.floor(S.rng() * b.floors * 0.7) : 0; b.fl = b.floors - lost; b.hp = b.fl * FLOOR_HP; b.dead = b.fl === 0; }
     S.down.total = S.city.reduce((a, b) => a + b.floors, 0);
     S.down.meter = S.down.start = S.city.reduce((a, b) => a + b.fl, 0) / S.down.total;
+    S.drift = []; for (let i = 0; i < 8; i++) addDrifter();
   }
   return S;
 }
@@ -207,6 +208,14 @@ function applyCmd(c) {
     case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
     case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
     case 'repair': { const b = byId(c.id); if (b && (b.owner === p.i || b.city) && b.built >= 1 && b.hp < b.maxHp) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
+    case 'recruit': { // Downtown: tap a drifter. Builders give a job (worker, 50), wreckers hand over a spray can (fighter, 40).
+      const d = S.drift && S.drift.find((q) => q.id === c.id), D = S.down;
+      if (!d || !D) break;
+      const role = D.role[p.i], cost = role === 'b' ? 50 : 40;
+      if (p.cash < cost) break;
+      p.cash -= cost; recruit(d, p.i);
+      break;
+    }
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -283,6 +292,7 @@ function hitBld(b, d, by) {
     const fl = floorsFor(b);
     while (b.fl > fl) {
       b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors });
+      if (S.down) for (const d of [...S.drift]) if (Math.hypot(d.x - b.x, d.z - b.z) < 9 && ++d.upset >= 2) recruit(d, S.down.role.indexOf('w'));
       if (S.down) { S.down.hot = { x: b.x, z: b.z, t: S.t }; if (by !== undefined && S.down.role[by] === 'w') { const p = pl(by); p.cash += 20; p.st.earned += 20; S.events.push({ k: 'deposit', x: b.x, z: b.z, owner: by }); } } // looting a floor pays the wreckers
     }
     if (b.hp <= 0) { b.dead = true; S.events.push({ k: 'boom', x: b.x, z: b.z, r: b.r * 0.6 }); }
@@ -531,9 +541,27 @@ function resolvePending(pd) {
     S.events.push({ k: 'wreckboom', x: pd.x, z: pd.z, r: pd.r });
   }
 }
+// Drifters: neutral street people standing about downtown. Recruited with cash by either side, or - if two floors fall
+// right next to them - they give up on the city and join the wreckers for free. New ones wander in every 25 s (max 10).
+function addDrifter() {
+  const b = S.city[Math.floor(S.rng() * S.city.length)], side = S.rng() < 0.5 ? 1 : -1;
+  const [x, z] = nearestFree(b.x + (S.rng() - 0.5) * b.sx * 0.6, b.z + side * (b.sz / 2 + 2.5));
+  S.drift.push({ id: S.nid++, x, z, upset: 0, ph: S.rng() * 6.28 });
+}
+function recruit(d, owner) {
+  const i = S.drift.indexOf(d); if (i < 0) return;
+  S.drift.splice(i, 1);
+  const p = pl(owner), role = S.down.role[owner];
+  const q = spawnSquad(p, role === 'b' ? 'worker' : 'pike', d.x, d.z);
+  if (role === 'b') q.task = { state: 'find' };
+  else { q.members = q.members.map((h, k) => (k === 0 ? h : 0)); q.post = { x: d.x, z: d.z }; } // one new recruit, not a whole squad
+  S.events.push({ k: role === 'b' ? 'hired' : 'riled', x: d.x, z: d.z, owner, f: p.f });
+}
 function stepDown(dt) {
   const D = S.down;
   D.meter = S.city.reduce((a, b) => a + b.fl, 0) / D.total;
+  D.dT = (D.dT || 0) + dt;
+  if (D.dT >= 25) { D.dT -= 25; if (S.drift.length < 10) addDrifter(); }
   const wi = D.role.indexOf('w'), bi = D.role.indexOf('b');
   // City taxes: every 10 s the builders collect more the more of the city is standing.
   D.taxT = (D.taxT || 0) + dt;

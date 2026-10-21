@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=133';
-import { CAM } from '../camera/camera.js?v=133';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=133';
-import { hash } from '../util/math.js?v=133';
-import { emit } from '../fx/particles.js?v=133';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=137';
+import { CAM } from '../camera/camera.js?v=137';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=137';
+import { hash } from '../util/math.js?v=137';
+import { emit } from '../fx/particles.js?v=137';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
