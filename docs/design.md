@@ -86,7 +86,7 @@ Match length is set by the mode, as in BFME II (Xbox 360 had Versus plus Capture
 | Resource Race | First to a cash target | 8–12 min |
 | Hero vs. Hero | Heroes only, last hero standing | 3–5 min |
 
-Built: Versus and King of the Hill (the hill is the middle overpass, r 7 m; 90 s held alone = win; HQ kill still wins), both vs computer. Mode toggle sits beside the difficulty stars. Alien story campaign later.
+Built: Versus, King of the Hill (middle overpass, 90 s held alone), Resource Race (first to earn 2500) and Capture and Hold (3 flags, 300-point counters), all vs computer; HQ kill wins in every mode. Mode row sits with the difficulty stars. Hero vs. Hero is next. Alien story campaign later.
 
 ## Variant: alien races edition
 Same engine and rules, factions from UFO lore. Archetypes carry over.
@@ -130,15 +130,15 @@ Junkyard: destroyed vehicles refund 50%. Screech: stuns nearby enemies 2 s. Powe
 
 Rally: +5% damage per nearby friendly squad (max +25%). Sit In: unmovable wall, half damage, can't attack. Megaphone hits: target deals 20% less for 5 s. Bullhorn: nearby squads +25% speed and damage for 10 s. Powers: Pie in the Face (enemy hero blind 15 s), Parade (army +30% speed 15 s).
 
-## Built so far (Oct 21 2026, greybox 04 / B91)
+## Built so far (Oct 21 2026, greybox 04 / B112)
 | Faction | Archetype | Trait | Real model | Powers | Hero ability |
 | --- | --- | --- | --- | --- | --- |
 | Backwoods | Brute | vehicles leave scrap refunds | hick, fat bikers | Mud Bog, Fourth of July | Bald Eagle Screech (stun) |
 | Activists | Swarm | ranged debuff, sit-in | fat activist, hippie, hipster | Parade, Pie in the Face | Bullhorn (+25%) |
 | Hard Hats | Turtle / builder | 2x build, +30% bld hp, self-repair | construction worker | Road Closed, Wrecking Ball | Foreman Overtime |
-| Old Money | Elite (squads of 3) | Trust Fund (cash x1.1, income x1.2) | secret service | Hostile Takeover, Private Jet | (bullhorn for now) |
+| Old Money | Elite (squads of 3) | Trust Fund (cash x1.1, income x1.2) | secret service | Hostile Takeover, Private Jet | Tycoon Hush Money (bribe stun) |
 | Street Crew | Rush | Hype (meter +25%) | moussa (dance clips), jack, blonde, asian | Block Party, Mixtape Drop | DJ Drop the Beat (+speed) |
-| Nerds | Tech (ranged) | towers +30% range/dmg | hipster, jack, blonde, asian in costume | Wi-Fi Outage, Patch Notes | (bullhorn for now; Go Live next) |
+| Nerds | Tech (ranged) | towers +30% range/dmg | hipster, jack, blonde, asian in costume | Wi-Fi Outage, Patch Notes | Streamer Go Live (stare stun) |
 All numbers live in `src/config/factions.js`. Balance is checked with `node tools/balance.cjs [seeds]` (AI vs AI round robin
 in a headless page; needs `python3 -m http.server 4174` from the repo's parent). At B90 with 5 seeds every faction wins
 22-28 of 50.

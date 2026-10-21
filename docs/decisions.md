@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B112 (overnight loop): Docs: CLAUDE.md + docs/design.md brought to B112 - four modes (Versus / Hill / Race / Capture and Hold), every hero's own ability in the faction table, the perf numbers + mergeStatic, and the graphics toggle
 - B111 (overnight loop): Minimap objectives: the King of the Hill hill and the three Capture and Hold flags are drawn as rings in their holder's colour (white = nobody), flickering blue/red when contested
 - B110 (overnight loop): Capture and Hold: fourth mode button (hold-flag icon); three flags - the middle overpass and one park on each side (rotationally fair). Fighters of only one side at a flag swing it over in ~6 s (the flag climbs its pole, ring tints, contested flicker); each second the side holding more flags drains the other's 300-point counter by the margin; HUD bars show both counters. AI goes for the nearest flag it doesn't hold. A 200-point test match ended at 148 s, so the counter is 300
 - B108 (overnight loop): Graphics toggle: a round button left of the speaker (gold star = HIGH, grey eye = LOW), shown on the menu and while paused, remembered on the phone. LOW turns off the sun's shadows, renders at pixel ratio 1, and drops rain + pedestrians; a LOW match starts at ~90 draw calls
