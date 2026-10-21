@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=86';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=86';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=86';
-import { mulberry32 } from '../util/math.js?v=86';
-import { aiStep } from './ai.js?v=86';
+} from '../config/factions.js?v=88';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=88';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=88';
+import { mulberry32 } from '../util/math.js?v=88';
+import { aiStep } from './ai.js?v=88';
 
 let S = null;
 export const getSim = () => S;
@@ -133,6 +133,15 @@ export const A = {
     if (pw.id === 'pie') { const h = S.squads.find((o) => o.owner !== p.i && o.slot === 'hero'); h.stun = 15; S.events.push({ k: 'pie', x: h.x, z: h.z }); }
     else if (pw.id === 'blockparty') { p.party = 12; S.events.push({ k: 'blockparty', owner: p.i }); } // whole army +30% damage and speed
     else if (pw.id === 'mixtape') { S.pending.push({ id: S.nid++, kind: 'mixtape', owner: p.i, x, z, r: 7, t: 1.2 }); S.events.push({ k: 'mixlaunch', x, z, owner: p.i }); }
+    else if (pw.id === 'wifi') { // Wi-Fi Outage: everyone on the other side within 8 m freezes (3 s) and their towers there go dark (6 s)
+      for (const o of S.squads) if (o.owner !== p.i && Math.hypot(o.x - x, o.z - z) < 8 + o.r) o.stun = Math.max(o.stun, 3);
+      for (const b of S.blds) if (b.owner !== p.i && (b.kind === 'tower' || b.kind === 'hq') && Math.hypot(b.x - x, b.z - z) < 8 + b.r) b.jam = 6;
+      S.events.push({ k: 'wifi', x, z, r: 8 });
+    }
+    else if (pw.id === 'patch') { // Patch Notes: every squad of yours is patched up 25% and hits 25% harder for 12 s
+      for (const o of S.squads) if (o.owner === p.i) { o.members = o.members.map((h) => (h > 0 ? Math.min(o.mhp, h + o.mhp * 0.25) : h)); o.patch = 12; }
+      S.events.push({ k: 'patch', owner: p.i });
+    }
     else if (pw.id === 'parade') { p.parade = 15; S.events.push({ k: 'parade', owner: p.i }); }
     else if (pw.id === 'mud') { S.zones.push({ id: S.nid++, kind: 'mud', owner: p.i, x, z, r: 8, t: 10 }); S.events.push({ k: 'mud', x, z }); }
     else if (pw.id === 'cones') { S.zones.push({ id: S.nid++, kind: 'cones', owner: p.i, x, z, r: 7, t: 12 }); S.events.push({ k: 'cones', x, z, r: 7 }); }
@@ -206,6 +215,7 @@ function perHit(s, t) {
   if (s.debuff > 0) m *= 0.8;
   if (s.bull > 0) m *= 1.25;
   if (pl(s.owner).party > 0) m *= 1.3;
+  if (s.patch > 0) m *= 1.25;
   let d = s.def.dmg * m;
   if (t.isBld) d *= s.slot === 'siege' ? 3 : 0.5;
   else if (s.slot === 'siege') d *= 0.5;
@@ -406,6 +416,7 @@ function updateSquad(s, dt) {
   if (s.debuff > 0) s.debuff -= dt;
   if (s.bull > 0) s.bull -= dt;
   if (s.ot > 0) s.ot -= dt;
+  if (s.patch > 0) s.patch -= dt;
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
@@ -503,6 +514,7 @@ export function step() {
     if (b.dead) continue;
     const p = pl(b.owner);
     if (b.ot > 0) b.ot -= dt;
+    if (b.jam > 0) b.jam -= dt;
     // Hard Hats trait: finished buildings slowly patch themselves when no enemy is near.
     const sr = fac(p).traits && fac(p).traits.selfRepair;
     if (sr && b.built >= 1 && b.hp < b.maxHp && !S.squads.some((q) => q.owner !== b.owner && Math.hypot(q.x - b.x, q.z - b.z) < 14)) {
@@ -536,8 +548,9 @@ export function step() {
     }
     if (b.kind === 'hq' || b.kind === 'tower') {
       b.cd -= dt;
-      if (b.cd <= 0) {
-        const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : BLD.tower.range + (gar ? 4 : 0), dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1);
+      if (b.cd <= 0 && !(b.jam > 0)) {
+        const tm = b.kind === 'tower' ? (fac(p).traits?.towerMul || 1) : 1; // Nerds: souped-up towers
+        const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : (BLD.tower.range + (gar ? 4 : 0)) * tm, dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1) * tm;
         let t = null, bd = rng;
         for (const o of S.squads) { if (o.owner === b.owner || o.gar) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
         if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq', bk: b.kind, to: t.owner }); hitSquad(t, dmg, false, null); }

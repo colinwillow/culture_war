@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=86';
-import { walkH } from '../map/layout.js?v=86';
-import { sfx } from './sfx.js?v=86';
-import { shake, CAM } from '../camera/camera.js?v=86';
-import { FC } from '../render/models.js?v=86';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=86';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=88';
+import { walkH } from '../map/layout.js?v=88';
+import { sfx } from './sfx.js?v=88';
+import { shake, CAM } from '../camera/camera.js?v=88';
+import { FC } from '../render/models.js?v=88';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=88';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -262,7 +262,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -361,6 +361,16 @@ export function handleEvents(S, bump) {
       case 'fwlaunch': { const p = S.players[ev.owner]; for (let i = 0; i < 6; i++) fxRocket(p.hqx + (Math.random() - 0.5) * 3, p.hqz, ev.x + (Math.random() - 0.5) * 8, ev.z + (Math.random() - 0.5) * 8, CONF[i], 1.5 + i * 0.05); break; }
       case 'fwboom': fxFireworks(ev.x, ev.z, ev.r); shake(1.2, ev.x, ev.z); break;
       case 'hill': if (ev.owner >= 0) { fxRing(ev.x, ev.z, 1, 9, ev.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.7, 0.3); fxBits(ev.x, ev.z, ev.owner === 0 ? 0x7fd1ff : 0xff5a4f, 10, 1, 6); } break;
+      case 'wifi': { // the signal dies: wifi arcs collapse inward, then a red static crackle over the area
+        for (let k = 0; k < 3; k++) fxRing(ev.x, ev.z, ev.r * (1 - k * 0.25), 0.4, 0x5aa9e6, 0.5 + k * 0.15, 0.3 + k * 0.4);
+        fxRing(ev.x, ev.z, 0.5, ev.r, 0xff5a4f, 0.4, 0.2);
+        for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, d = Math.random() * ev.r; emit({ x: ev.x + Math.cos(a) * d, y: gy(ev.x, ev.z, 0.5 + Math.random() * 2), z: ev.z + Math.sin(a) * d, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, vz: (Math.random() - 0.5) * 6, c: i % 2 ? 0xffffff : 0x5aa9e6, s: 0.12, life: 0.25 + Math.random() * 0.3, g: 0 }); }
+        break;
+      }
+      case 'patch': for (const s of S.squads) if (s.owner === ev.owner) { // green code bits stream up off every squad
+        fxRing(s.x, s.z, 0.4, 3, 0x7ee05b, 0.5, 0.2);
+        for (let k = 0; k < 6; k++) emit({ x: s.x + (Math.random() - 0.5) * 2, y: gy(s.x, s.z, 0.3), z: s.z + (Math.random() - 0.5) * 2, vy: 2.5 + Math.random() * 2, c: k % 2 ? 0x7ee05b : 0xd6ffcf, s: 0.14, life: 1.2, g: -0.5 });
+      } break;
       case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }

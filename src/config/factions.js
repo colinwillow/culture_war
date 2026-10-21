@@ -118,4 +118,23 @@ export const FACTIONS = {
       { id: 'mixtape', name: 'Mixtape Drop', cost: 90, target: true, icon: 'disc' },
     ],
   },
+  // Nerds (Tech): fragile up close, deadly at range; their towers are souped-up (+30% tower damage and range).
+  nd: {
+    name: 'Nerds',
+    traits: { towerMul: 1.3 },
+    bldNames: { hq: 'Game Shop', depot: 'Server Rack', barracks: 'LAN Cafe', tower: 'Antenna Tower' },
+    units: {
+      worker: { name: 'Tech Support', n: 1, hp: 50, dmg: 2, range: 1, speed: 4.8, cost: 60, build: 7, cp: 1 },
+      pike: { name: 'LARPers', n: 5, hp: 68, dmg: 7, range: 1.4, speed: 3.6, cost: 95, build: 9, cp: 5 },
+      melee: { name: 'Cosplay Knights', n: 5, hp: 88, dmg: 9, range: 1.2, speed: 3.4, cost: 115, build: 10, cp: 5 },
+      ranged: { name: 'Drone Pilots', n: 4, hp: 42, dmg: 13, range: 10, speed: 3.6, cost: 130, build: 12, cp: 5 },
+      cav: { name: 'Segway Patrol', n: 1, hp: 420, dmg: 22, range: 1.4, speed: 8, cost: 260, build: 18, cp: 10, area: true, vehicle: true },
+      siege: { name: 'Mech Suit', n: 1, hp: 500, dmg: 50, range: 2.5, speed: 2.6, cost: 340, build: 26, cp: 10, area: true, vehicle: true },
+      hero: { name: 'The Streamer', n: 1, hp: 500, dmg: 18, range: 7, speed: 5, cost: 720, build: 40, cp: 15 },
+    },
+    powers: [
+      { id: 'wifi', name: 'Wi-Fi Outage', cost: 60, target: true, icon: 'wifi' },
+      { id: 'patch', name: 'Patch Notes', cost: 90, target: false, icon: 'patch' },
+    ],
+  },
 };

@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=86';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=86';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=88';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=88';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -25,7 +25,7 @@ function aiPick(S, p, e, bar) {
 function aiPower(S, p, i, pw) {
   const mine = S.squads.filter((s) => s.owner === p.i && s.slot !== 'worker'), foes = S.squads.filter((s) => s.owner !== p.i && s.slot !== 'worker');
   if (pw.id === 'pie') { const h = foes.find((s) => s.slot === 'hero'); if (h && mine.some((m) => Math.hypot(m.x - h.x, m.z - h.z) < 15)) A.power(p, i); return; }
-  if (pw.id === 'parade' || pw.id === 'blockparty') { if (mine.length >= 3 && mine.some((m) => m.order.type !== 'idle')) A.power(p, i); return; }
+  if (pw.id === 'parade' || pw.id === 'blockparty' || pw.id === 'patch') { if (mine.length >= 3 && mine.some((m) => m.order.type !== 'idle')) A.power(p, i); return; }
   let best = null, bc = 1;
   for (const f of foes) {
     if (!mine.some((m) => Math.hypot(m.x - f.x, m.z - f.z) < 16) && Math.hypot(f.x - p.hqx, f.z - p.hqz) > 30) continue;
