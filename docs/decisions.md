@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B118 (overnight loop): First-match train nudge: with a finished barracks selected, its first trainable unit button pulses (same gold pulse as the hammer) until a squad is trained once; remembered (cw-trained)
 - B117 (overnight loop): First-match nudge: on a phone that has never opened the build menu, the hammer button gently pulses (scale + gold ring) until it is tapped once; remembered (cw-built), no words
 - B116 (overnight loop): Rain reads better: streaks longer (0.9 -> 1.4 m), thicker and brighter (opacity 0.45 -> 0.6), plus little ripple rings that grow and fade where drops land (pool of 24 reused rings)
 - B115 (overnight loop): End screen matchup: under the trophy/skull, your faction's badge vs theirs (faction colour + menu icon); the winner's is 35% bigger, the loser's greyed out

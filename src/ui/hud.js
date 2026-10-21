@@ -1,22 +1,23 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=117';
-import { UI, select, selSquads } from './state.js?v=117';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=117';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=117';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=117';
-import { camera } from '../render/scene.js?v=117';
-import { walkH } from '../map/layout.js?v=117';
-import { THREE } from '../render/scene.js?v=117';
-import { showHint } from './hint.js?v=117';
+import { svg } from './icons.js?v=118';
+import { UI, select, selSquads } from './state.js?v=118';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=118';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=118';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=118';
+import { camera } from '../render/scene.js?v=118';
+import { walkH } from '../map/layout.js?v=118';
+import { THREE } from '../render/scene.js?v=118';
+import { showHint } from './hint.js?v=118';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
 const specs = new Map();
 // First match ever on this phone: the build (hammer) button pulses until it is first tapped. No words.
 let builtOnce = false;
-try { builtOnce = localStorage.getItem('cw-built') === '1'; } catch (e) {}
+let trainedOnce = false;
+try { builtOnce = localStorage.getItem('cw-built') === '1'; trainedOnce = localStorage.getItem('cw-trained') === '1'; } catch (e) {}
 
 function btnHTML(b) {
   return `<button type="button" class="btn${b.noCost ? ' noCost' : ''}${b.cls ? ' ' + b.cls : ''}" data-id="${b.id}" aria-label="${b.name || b.id}"><span class="gauge"></span><span class="pips"></span><span class="ic">${svg(b.icon)}</span>${b.noCost ? '' : '<span class="cost"></span>'}<span class="badge"></span><span class="prog"></span></button>`;
@@ -62,6 +63,8 @@ function panelSpec() {
         const def = F.units[sl], why = Q.canTrain(p, b, sl), q = b.queue.filter((x) => x === sl).length;
         out.push({ id: 't-' + sl, name: def.name, icon: sl, cost: def.cost, dis: why === 'lock' || b.built < 1, poor: why === 'cash', cp: why === 'cp', badge: q || '', prog: b.queue[0] === sl ? b.prodT / def.build : null, pips: b.level < REQ[sl] ? REQ[sl] : 0, tap: () => (why ? false : command(0, { type: 'train', id: b.id, slot: sl })) });
       }
+      // First match ever: the first trainable slot pulses until a squad is trained once (remembered).
+      if (!trainedOnce && b.built >= 1) { const f = out.find((o) => o.id && o.id.startsWith('t-') && !o.dis); if (f) { f.nudge = true; const t0 = f.tap; f.tap = () => { const r = t0(); if (r !== false) { trainedOnce = true; try { localStorage.setItem('cw-trained', '1'); } catch (e) {} } return r; }; } }
       if (b.level < 3) out.push({ id: 'up', name: 'Upgrade to level ' + (b.level + 1), icon: 'up', cost: UPG[b.level], dis: b.built < 1 || b.up > 0, poor: p.cash < UPG[b.level], pips: b.level + 1, prog: b.up > 0 ? 1 - b.up / b.upT : null, tap: () => (Q.canUpgrade(p, b) ? command(0, { type: 'upgrade', id: b.id }) : false) });
     } else if (b.kind === 'tower' && b.garrison) {
       const q = S.squads.find((x) => x.id === b.garrison);
