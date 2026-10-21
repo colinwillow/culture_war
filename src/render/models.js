@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=60';
+import { THREE, box, cyl, mat } from './scene.js?v=61';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -156,6 +156,12 @@ export function bldMesh(kind, f) {
       mesh.add(box(5.6, 2, 2.6, 0xe8e0cc, 0, 1, 0.9), box(5.6, 2, 2.6, 0xf2c232, 0, 3, 0.9), box(5.6, 2, 2.4, 0xe8e0cc, 0, 1, -1.6));
       mesh.add(box(1, 1.2, 0.1, 0x2b3a4c, -1.6, 3, 2.22), box(1, 1.2, 0.1, 0x2b3a4c, 1.6, 3, 2.22), box(0.9, 1.6, 0.1, 0x3a2416, 0, 0.8, 2.22));
       const cr = crane(9, 9, -2.6, -2.4); mesh.add(cr); mesh.userData.jib = cr.userData.jib;
+      // Site dressing: a porta-potty, a dumpster, a lumber stack, pipes and a barrier.
+      mesh.add(box(1, 2.2, 1, 0x3d6fd6, 4.2, 1.1, -1.2), box(0.6, 1.6, 0.04, 0x2a4fa0, 4.2, 0.95, -0.68), box(0.18, 0.3, 0.18, 0xdddddd, 4.2, 2.35, -1.2));
+      mesh.add(box(2.2, 1.1, 1.3, 0x2f6b3a, -4.4, 0.55, 1.4), box(2.3, 0.1, 1.4, 0x244f2b, -4.4, 1.15, 1.4));
+      for (let i = 0; i < 4; i++) mesh.add(box(2.4, 0.18, 0.3, 0xc9a26a, 4.4, 0.1 + i * 0.19, 1.4 + (i % 2) * 0.1));
+      for (let i = 0; i < 3; i++) { const pp = cyl(0.22, 0.22, 2.6, 0x8a8a8a, -4.5, 0.22 + (i === 2 ? 0.38 : 0), -1.6 + (i === 2 ? 0 : (i - 0.5) * 0.46), 8); pp.rotation.x = Math.PI / 2; mesh.add(pp); }
+      mesh.add(box(0.08, 0.6, 0.08, 0xffffff, 1.3, 0.3, 3.9), box(0.08, 0.6, 0.08, 0xffffff, -1.3, 0.3, 3.9), box(2.8, 0.22, 0.06, 0xf28c28, 0, 0.62, 3.9));
     } else if (kind === 'depot') {
       mesh.add(box(2.8, 1.8, 2.3, 0x9aa3ab, 0, 0.9), box(3, 0.2, 2.5, 0x6b7a85, 0, 1.9), box(1.2, 1.2, 0.1, 0xf2c232, 0, 0.6, 1.16));
       for (let i = -1; i <= 1; i++) mesh.add(box(0.06, 1.8, 2.32, 0x7a838b, i * 0.9, 0.9, 0));
@@ -169,6 +175,9 @@ export function bldMesh(kind, f) {
     return mesh;
   }
   if (kind === 'hq') {
+    // Faction dressing round each HQ: Backwoods hay bales + a tyre; Activists a bike rack + a placard stack.
+    if (f === 'bw') { for (const [x, z] of [[3.8, 2.6], [4.4, 1.4], [3.9, 1.9]]) { const h = cyl(0.55, 0.55, 0.9, 0xd9b44a, x, 0.55, z, 10); h.rotation.z = Math.PI / 2; mesh.add(h); } const t = cyl(0.6, 0.6, 0.35, 0x1c1c1c, -4, 0.2, 2.6, 12); mesh.add(t); }
+    else for (let i = 0; i < 4; i++) { mesh.add(box(0.05, 0.7, 0.9, 0x888888, -3.6 + i * 0.4, 0.35, 3), box(0.6, 0.4, 0.04, [0xe85d9a, 0xf4f1de, 0x2cc2ad, 0xf2b632][i], 3.8 + (i % 2) * 0.3, 0.5 + i * 0.05, 2.2 - i * 0.25)); }
     if (f === 'bw') mesh.add(box(5.4, 3.2, 5.4, 0x9c3b2b, 0, 1.6), box(5.9, 0.5, 5.9, 0xe8e0cc, 0, 3.4), box(2.2, 4.4, 2.2, 0x9c3b2b, 2, 2.2, -2), box(1.5, 1.5, 0.1, 0x3a2416, 0, 1, 2.72), box(6.5, 0.3, 1.6, 0xc9b98a, 0, 0.15, 3.6));
     else mesh.add(box(6, 2.8, 5, 0x2a6f75, 0, 1.4), box(5, 0.9, 4, 0xf4f1de, 0, 3.25), box(3.6, 1.1, 0.1, C.alt, 0, 2.2, 2.52), box(1.2, 1.2, 1.2, 0xf4f1de, 2, 4.3, 1.2));
     mesh.add(cyl(0.08, 0.08, 5, 0xdddddd, -2.2, 5.2, 2, 6), box(1.6, 0.9, 0.06, C.main, -1.4, 7.2, 2));
