@@ -24,6 +24,6 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
       }
     }
     return out.join('\n') + '\n' + fs.map(f => f + ' ' + wins[f].w + '/' + wins[f].g).join('  ');
-  }, [1, 2, 3]));
+  }, Array.from({ length: +(process.argv[2] || 3) }, (_, i) => i + 1))); // node tools/balance.cjs [seeds]
   await b.close();
 })();

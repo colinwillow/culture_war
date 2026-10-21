@@ -32,8 +32,8 @@ export const FACTIONS = {
     bldNames: { hq: 'Homestead', depot: 'Bait Shop', barracks: 'Barracks', tower: 'Deer Stand' },
     units: {
       worker: { name: 'Odd-Jobber', n: 1, hp: 60, dmg: 3, range: 1, speed: 4.5, cost: 60, build: 8, cp: 1 },
-      pike: { name: 'Pitchfork Farmers', n: 5, hp: 65, dmg: 9, range: 1.2, speed: 3.2, cost: 100, build: 10, cp: 5 },
-      melee: { name: 'Bar Brawlers', n: 5, hp: 90, dmg: 10, range: 1.2, speed: 3.2, cost: 120, build: 12, cp: 5 },
+      pike: { name: 'Pitchfork Farmers', n: 5, hp: 70, dmg: 9, range: 1.2, speed: 3.2, cost: 95, build: 10, cp: 5 },
+      melee: { name: 'Bar Brawlers', n: 5, hp: 95, dmg: 10, range: 1.2, speed: 3.2, cost: 112, build: 12, cp: 5 },
       ranged: { name: 'Shotgun Hunters', n: 5, hp: 45, dmg: 12, range: 8, speed: 3.2, cost: 140, build: 14, cp: 5 },
       cav: { name: 'Monster Truck', n: 1, hp: 500, dmg: 30, range: 1.4, speed: 7, cost: 300, build: 25, cp: 10, area: true, vehicle: true },
       siege: { name: 'Fireworks Launcher', n: 1, hp: 200, dmg: 60, range: 14, speed: 2.2, cost: 350, build: 30, cp: 10, area: true, vehicle: true },
@@ -83,7 +83,7 @@ export const FACTIONS = {
   // Old Money (Elite): tiny squads of 3, expensive, each member worth two of anyone else's.
   om: {
     name: 'Old Money',
-    traits: { cash: 1.2, inc: 1.4 }, // trust fund: starts with 20% more cash and 40% more passive income
+    traits: { cash: 1.1, inc: 1.2 }, // trust fund: starts with 10% more cash and 20% more passive income
     bldNames: { hq: 'The Mansion', depot: 'Bank Vault', barracks: 'Country Club', tower: 'Guard Booth' },
     units: {
       worker: { name: 'Butler', n: 1, hp: 70, dmg: 3, range: 1, speed: 4.5, cost: 70, build: 8, cp: 1 },
@@ -106,8 +106,8 @@ export const FACTIONS = {
     bldNames: { hq: 'Record Shop', depot: 'Sneaker Store', barracks: 'Rec Centre', tower: 'Speaker Stack' },
     units: {
       worker: { name: 'Hustler', n: 1, hp: 50, dmg: 2, range: 1, speed: 5.5, cost: 55, build: 7, cp: 1 },
-      pike: { name: 'Sneakerheads', n: 6, hp: 48, dmg: 6, range: 1.2, speed: 4.6, cost: 90, build: 8, cp: 5 },
-      melee: { name: 'Breakdancers', n: 6, hp: 52, dmg: 7, range: 1.2, speed: 4.6, cost: 100, build: 9, cp: 5 },
+      pike: { name: 'Sneakerheads', n: 6, hp: 44, dmg: 5, range: 1.2, speed: 4.6, cost: 90, build: 8, cp: 5 },
+      melee: { name: 'Breakdancers', n: 6, hp: 48, dmg: 6, range: 1.2, speed: 4.6, cost: 100, build: 9, cp: 5 },
       ranged: { name: 'Boombox Crew', n: 4, hp: 40, dmg: 9, range: 8, speed: 4.4, cost: 120, build: 10, cp: 5 },
       cav: { name: 'Lowrider', n: 1, hp: 420, dmg: 24, range: 1.4, speed: 8.5, cost: 260, build: 18, cp: 10, area: true, vehicle: true },
       siege: { name: 'Graffiti Tagger', n: 1, hp: 180, dmg: 45, range: 6, speed: 4, cost: 280, build: 22, cp: 10 },

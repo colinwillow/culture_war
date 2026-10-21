@@ -104,4 +104,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B86) UI: King of the Hill visuals — glowing ring that tints to the holder and flickers when contested, two progress bars in the HUD, AI goes for the hill
 - [x] (B88) Logic: NERDS faction data (Tech) — LARPers, cosplay knights, drone pilots (ranged), segway cav, giant mech-suit siege, the Streamer hero; powers Wi-Fi Outage (enemy stun) + Patch Notes (army buff)
 - [x] (B89) Units + Map: Nerds cast + placeholders, buildings (game shop HQ, server rack depot, LAN cafe barracks, antenna tower) + menu card + power visuals
-- [ ] Logic: balance pass with 6 factions — B88 round robin (3 seeds, 30 games each): bw 12 ac 11 hh 13 om 17 sc 22 nd 14; pull Street Crew back toward mid-pack, maybe run 5 seeds for less noise
+- [x] (B90) Logic: balance pass with 6 factions — B88 round robin (3 seeds, 30 games each): bw 12 ac 11 hh 13 om 17 sc 22 nd 14; pull Street Crew back toward mid-pack, maybe run 5 seeds for less noise
