@@ -64,7 +64,7 @@ export const FACTIONS = {
   // Hard Hats (Turtle / builder): sturdy, a bit slow, builds twice as fast and its buildings are 30% tougher.
   hh: {
     name: 'Hard Hats',
-    traits: { buildMul: 2, bldHp: 1.3 },
+    traits: { buildMul: 2, bldHp: 1.3, selfRepair: 4 }, // selfRepair: hp/s on finished buildings with no enemy close
     bldNames: { hq: 'Site Office', depot: 'Tool Shed', barracks: 'Union Hall', tower: 'Crane Tower' },
     units: {
       worker: { name: 'Apprentice', n: 1, hp: 55, dmg: 3, range: 1, speed: 4.5, cost: 55, build: 7, cp: 1 },

@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=59';
+import { THREE, box, cyl, mat } from './scene.js?v=60';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -137,8 +137,37 @@ export function makeMember(f, slot) {
 }
 
 /** Building mesh, front facing +z. userData.coin = spinning coin (depots). */
+// A tower crane: lattice mast, slewing jib with counterweight and a hanging hook (sync.js turns userData.jib).
+function crane(h, reach, x = 0, z = 0) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  g.add(box(0.5, h, 0.5, 0xf2c232, 0, h / 2, 0));
+  for (let y = 1; y < h; y += 1.2) g.add(box(0.56, 0.08, 0.56, 0x9a7a1a, 0, y, 0));
+  const jib = new THREE.Group(); jib.position.y = h; g.add(jib);
+  jib.add(box(0.4, 0.4, reach, 0xf2c232, 0, 0, reach / 2 - 1), box(0.9, 0.7, 0.9, 0x555555, 0, -0.1, -1.6), box(0.7, 0.6, 0.7, 0x2b3a4c, 0, -0.55, 0.3));
+  jib.add(box(0.04, 3, 0.04, 0x333333, 0, -1.5, reach - 2), box(0.3, 0.3, 0.3, 0xd64545, 0, -3, reach - 2));
+  g.userData.jib = jib;
+  return g;
+}
 export function bldMesh(kind, f) {
   const mesh = new THREE.Group(), C = FC[f];
+  if (f === 'hh') {
+    // Hard Hats: everything is a building site - portable cabins, corrugated sheds, and a crane over the base.
+    if (kind === 'hq') {
+      mesh.add(box(5.6, 2, 2.6, 0xe8e0cc, 0, 1, 0.9), box(5.6, 2, 2.6, 0xf2c232, 0, 3, 0.9), box(5.6, 2, 2.4, 0xe8e0cc, 0, 1, -1.6));
+      mesh.add(box(1, 1.2, 0.1, 0x2b3a4c, -1.6, 3, 2.22), box(1, 1.2, 0.1, 0x2b3a4c, 1.6, 3, 2.22), box(0.9, 1.6, 0.1, 0x3a2416, 0, 0.8, 2.22));
+      const cr = crane(9, 9, -2.6, -2.4); mesh.add(cr); mesh.userData.jib = cr.userData.jib;
+    } else if (kind === 'depot') {
+      mesh.add(box(2.8, 1.8, 2.3, 0x9aa3ab, 0, 0.9), box(3, 0.2, 2.5, 0x6b7a85, 0, 1.9), box(1.2, 1.2, 0.1, 0xf2c232, 0, 0.6, 1.16));
+      for (let i = -1; i <= 1; i++) mesh.add(box(0.06, 1.8, 2.32, 0x7a838b, i * 0.9, 0.9, 0));
+    } else if (kind === 'barracks') {
+      mesh.add(box(4, 2.4, 3.4, 0x6b7a85, 0, 1.2), box(4.3, 0.35, 3.7, 0xf28c28, 0, 2.55), box(1.4, 1.5, 0.1, 0x1a1a12, 0, 0.75, 1.72), box(2.4, 0.5, 0.06, 0xf2c232, 0, 2.05, 1.74));
+    } else {
+      const cr = crane(6, 6); mesh.add(cr, box(1.6, 0.5, 1.6, 0x555555, 0, 0.25, 0)); mesh.userData.jib = cr.userData.jib;
+    }
+    if (kind !== 'tower') mesh.add(box(0.5, 0.75, 0.5, 0xf28c28, 3.3, 0.38, 2.6), box(0.5, 0.75, 0.5, 0xf28c28, -3.3, 0.38, 2.6));
+    if (kind === 'depot') { const coin = cyl(0.75, 0.75, 0.16, 0xf5b83a, 0, 3, 0, 16); coin.rotation.x = Math.PI / 2; mesh.add(coin); mesh.userData.coin = coin; }
+    return mesh;
+  }
   if (kind === 'hq') {
     if (f === 'bw') mesh.add(box(5.4, 3.2, 5.4, 0x9c3b2b, 0, 1.6), box(5.9, 0.5, 5.9, 0xe8e0cc, 0, 3.4), box(2.2, 4.4, 2.2, 0x9c3b2b, 2, 2.2, -2), box(1.5, 1.5, 0.1, 0x3a2416, 0, 1, 2.72), box(6.5, 0.3, 1.6, 0xc9b98a, 0, 0.15, 3.6));
     else mesh.add(box(6, 2.8, 5, 0x2a6f75, 0, 1.4), box(5, 0.9, 4, 0xf4f1de, 0, 3.25), box(3.6, 1.1, 0.1, C.alt, 0, 2.2, 2.52), box(1.2, 1.2, 1.2, 0xf4f1de, 2, 4.3, 1.2));

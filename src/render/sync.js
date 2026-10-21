@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=59';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=59';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=59';
-import { emit } from '../fx/particles.js?v=59';
-import { TICK } from '../config/factions.js?v=59';
-import { walkH } from '../map/layout.js?v=59';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=59';
-import { Q, pl } from '../sim/sim.js?v=59';
-import { UI } from '../ui/state.js?v=59';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=59';
-import { lerpAngle } from '../util/math.js?v=59';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=60';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=60';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=60';
+import { emit } from '../fx/particles.js?v=60';
+import { TICK } from '../config/factions.js?v=60';
+import { walkH } from '../map/layout.js?v=60';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=60';
+import { Q, pl } from '../sim/sim.js?v=60';
+import { UI } from '../ui/state.js?v=60';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=60';
+import { lerpAngle } from '../util/math.js?v=60';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -378,6 +378,7 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (b.built >= 1 && o.scaffDrop >= 1) o.scaff.visible = false;
     if (o.coin) o.coin.rotation.z += dt * 2.5;
+    if (o.mesh.userData.jib) o.mesh.userData.jib.rotation.y = Math.sin(time * 0.15 + b.id) * 2.2; // crane slowly slews back and forth
     o.pips.children.forEach((p, i) => { p.visible = i < b.level || (b.up > 0 && i === b.level && Math.sin(time * 10) > 0); });
     o.sel.visible = !!(UI.sel && UI.sel.type === 'bld' && UI.sel.id === b.id);
     setBar(o.bar, b.built < 1 ? b.built : b.hp / b.maxHp, b.built < 1 ? 0xf2c232 : 0);

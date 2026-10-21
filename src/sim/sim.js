@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=59';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=59';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=59';
-import { mulberry32 } from '../util/math.js?v=59';
-import { aiStep } from './ai.js?v=59';
+} from '../config/factions.js?v=60';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=60';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=60';
+import { mulberry32 } from '../util/math.js?v=60';
+import { aiStep } from './ai.js?v=60';
 
 let S = null;
 export const getSim = () => S;
@@ -451,6 +451,12 @@ export function step() {
   for (const b of [...S.blds]) {
     if (b.dead) continue;
     const p = pl(b.owner);
+    // Hard Hats trait: finished buildings slowly patch themselves when no enemy is near.
+    const sr = fac(p).traits && fac(p).traits.selfRepair;
+    if (sr && b.built >= 1 && b.hp < b.maxHp && !S.squads.some((q) => q.owner !== b.owner && Math.hypot(q.x - b.x, q.z - b.z) < 14)) {
+      b.hp = Math.min(b.maxHp, b.hp + sr * dt); b.srT = (b.srT || 0) - dt;
+      if (b.srT <= 0) { b.srT = 1; S.events.push({ k: 'repair', x: b.x + (S.rng() - 0.5) * b.r, z: b.z + (S.rng() - 0.5) * b.r }); }
+    }
     if (b.built < 1) {
       const bt = BLD[b.kind].build / ((fac(p).traits && fac(p).traits.buildMul) || 1);
       b.built = Math.min(1, b.built + dt / bt); b.hp = Math.min(b.maxHp, b.hp + (b.maxHp * 0.9 * dt) / bt);
