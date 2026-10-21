@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=78';
+import { THREE, box, cyl, mat } from './scene.js?v=79';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -215,6 +215,14 @@ export function bldMesh(kind, f) {
       tag(1.6, 0.8, -2, 2.9, 2.32, 0xff5ad1); tag(1.2, 0.6, 2.1, 0.5, 2.32, C.alt);
       const disc = cyl(1.8, 1.8, 0.12, 0x111111, 0, 5.2, 0, 24); disc.rotation.x = Math.PI / 2; disc.add(cyl(0.6, 0.6, 0.14, C.main, 0, 0, 0, 16)); mesh.add(disc, box(0.3, 1.6, 0.3, 0x333333, 0, 3.9, 0)); mesh.userData.disc = disc;
       speaker(0.9, 1.1, -3.6, 0.55, 2.2); speaker(0.9, 1.1, -3.6, 1.65, 2.2); speaker(0.9, 1.1, 3.6, 0.55, 2.2);
+      // Block dressing: a half basketball court, a parked boombox on a milk crate, tagged dumpsters and a bench.
+      mesh.add(box(3.6, 0.03, 4.4, 0x3a5a7a, -5.6, 0.03, 0.4), box(3.6, 0.04, 0.08, 0xffffff, -5.6, 0.05, 2.55), box(0.08, 0.04, 4.4, 0xffffff, -3.84, 0.05, 0.4), box(0.08, 0.04, 4.4, 0xffffff, -7.36, 0.05, 0.4));
+      const key = cyl(1, 1, 0.04, 0xffffff, -5.6, 0.04, -1.2, 20); key.scale.z = 0.6; mesh.add(key, cyl(0.9, 0.9, 0.05, 0x3a5a7a, -5.6, 0.05, -1.2, 20));
+      mesh.add(box(0.12, 3, 0.12, 0x888888, -5.6, 1.5, -2.1), box(1.1, 0.75, 0.06, 0xffffff, -5.6, 2.9, -1.95), box(0.45, 0.04, 0.45, 0xf28c28, -5.6, 2.62, -1.65));
+      mesh.add(box(0.6, 0.45, 0.6, 0x3a6fd6, 3.9, 0.22, 3.4), box(0.8, 0.42, 0.26, 0x2a2a2a, 3.9, 0.66, 3.4), box(0.6, 0.04, 0.04, 0x999999, 3.9, 0.92, 3.4));
+      speaker(0.36, 0.3, 3.75, 0.66, 3.28); speaker(0.36, 0.3, 4.05, 0.66, 3.28);
+      for (const [x, z, c] of [[4.6, -1.6, 0x2f6b3a], [4.6, 0.2, 0x3a3a46]]) { mesh.add(box(1.3, 1.1, 1.6, c, x, 0.55, z), box(1.35, 0.08, 1.65, 0x222222, x, 1.14, z)); tag(0.04, 0.6, x + 0.67, 0.6, z, [0xff5ad1, C.alt][z > 0 ? 1 : 0]); }
+      mesh.add(box(1.8, 0.1, 0.45, 0x8a6a3e, -1.6, 0.45, 3.4), box(0.1, 0.45, 0.4, 0x444444, -2.3, 0.22, 3.4), box(0.1, 0.45, 0.4, 0x444444, -0.9, 0.22, 3.4));
     } else if (kind === 'depot') { // Sneaker Store: white box, a giant sneaker on the roof
       mesh.add(box(2.8, 1.9, 2.4, 0xf4f4f4, 0, 0.95), box(3, 0.28, 2.6, C.main, 0, 2.04), box(1.8, 0.9, 0.08, 0x9fd6ff, 0, 1, 1.22));
       mesh.add(box(0.9, 0.5, 2, 0xffffff, 0, 2.5, 0), box(0.95, 0.15, 2.05, C.main, 0, 2.25, 0), box(0.8, 0.6, 0.8, C.alt, 0, 2.9, -0.5));

@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE } from './render/scene.js?v=78';
-import { buildWorld, updateWorld } from './render/world.js?v=78';
-import { syncRender, clearRender, bump } from './render/sync.js?v=78';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=78';
-import { newSim, getSim, step } from './sim/sim.js?v=78';
-import { TICK } from './config/factions.js?v=78';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=78';
-import { initInput, lockPageZoom } from './input/input.js?v=78';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=78';
-import { resetUI } from './ui/state.js?v=78';
-import { fillIcons, svg } from './ui/icons.js?v=78';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=78';
-import { updateMinimap } from './ui/minimap.js?v=78';
-import { isMuted, setMuted } from './fx/sfx.js?v=78';
-import { loadChars } from './render/chars.js?v=78';
-import { FC } from './render/models.js?v=78';
+import { renderer, scene, camera, followSun, THREE } from './render/scene.js?v=79';
+import { buildWorld, updateWorld } from './render/world.js?v=79';
+import { syncRender, clearRender, bump } from './render/sync.js?v=79';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=79';
+import { newSim, getSim, step } from './sim/sim.js?v=79';
+import { TICK } from './config/factions.js?v=79';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=79';
+import { initInput, lockPageZoom } from './input/input.js?v=79';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=79';
+import { resetUI } from './ui/state.js?v=79';
+import { fillIcons, svg } from './ui/icons.js?v=79';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=79';
+import { updateMinimap } from './ui/minimap.js?v=79';
+import { isMuted, setMuted } from './fx/sfx.js?v=79';
+import { loadChars } from './render/chars.js?v=79';
+import { FC } from './render/models.js?v=79';
 
-export const BUILD = 78; // written by `npm run bump`
+export const BUILD = 79; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
