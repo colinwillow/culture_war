@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=46';
-import { walkH } from '../map/layout.js?v=46';
-import { getSim, command } from '../sim/sim.js?v=46';
-import { UI, select, selSquads } from '../ui/state.js?v=46';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=46';
-import { fxMarker } from '../fx/fx.js?v=46';
-import { ack } from '../render/sync.js?v=46';
+import { THREE, camera, canvas } from '../render/scene.js?v=47';
+import { walkH } from '../map/layout.js?v=47';
+import { getSim, command } from '../sim/sim.js?v=47';
+import { UI, select, selSquads } from '../ui/state.js?v=47';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=47';
+import { fxMarker } from '../fx/fx.js?v=47';
+import { ack } from '../render/sync.js?v=47';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -60,6 +60,8 @@ function onTap(cx, cy) {
   if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); ack(ids); return; }
   const ob = pickBld(S, g, 0);
   // Squads selected + tap your finished tower = send one squad in to man it.
+  // Workers selected + tap one of your damaged buildings = go fix it.
+  if (ob && ob.built >= 1 && ob.hp < ob.maxHp && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'repair', ids, id: ob.id }); fxMarker(ob.x, ob.z, 0xf2c232); ack(ids); return; }
   if (ob && sel.length && ob.kind === 'tower' && ob.built >= 1 && !ob.garrison && sel.some((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero')) { command(0, { type: 'garrison', ids, tower: ob.id }); fxMarker(ob.x, ob.z, 0x7fd1ff); ack(ids); return; }
   if (ob) { select({ type: 'bld', id: ob.id }); return; }
   if (sel.length) { command(0, { type: 'move', ids, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x9dff78); ack(ids); return; }

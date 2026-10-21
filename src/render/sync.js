@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=46';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=46';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=46';
-import { emit } from '../fx/particles.js?v=46';
-import { TICK } from '../config/factions.js?v=46';
-import { walkH } from '../map/layout.js?v=46';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=46';
-import { Q, pl } from '../sim/sim.js?v=46';
-import { UI } from '../ui/state.js?v=46';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=46';
-import { lerpAngle } from '../util/math.js?v=46';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=47';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=47';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=47';
+import { emit } from '../fx/particles.js?v=47';
+import { TICK } from '../config/factions.js?v=47';
+import { walkH } from '../map/layout.js?v=47';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=47';
+import { Q, pl } from '../sim/sim.js?v=47';
+import { UI } from '../ui/state.js?v=47';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=47';
+import { lerpAngle } from '../util/math.js?v=47';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -180,7 +180,7 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (o.real) {
       const v = Math.hypot(s.x - s.px, s.z - s.pz) / TICK;
-      const gather = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather';
+      const gather = s.slot === 'worker' && ((s.gatherT > 0 && s.task && s.task.state === 'gather') || s.order.type === 'repair' && Math.hypot(s.x - s.px, s.z - s.pz) < 0.01);
       for (let i = 0; i < o.members.length; i++) {
         const m = o.members[i], A = m.userData.anim, live = s.members[i] > 0;
         A.lock -= dt;

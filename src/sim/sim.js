@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=46';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=46';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=46';
-import { mulberry32 } from '../util/math.js?v=46';
-import { aiStep } from './ai.js?v=46';
+} from '../config/factions.js?v=47';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=47';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=47';
+import { mulberry32 } from '../util/math.js?v=47';
+import { aiStep } from './ai.js?v=47';
 
 let S = null;
 export const getSim = () => S;
@@ -158,6 +158,7 @@ function applyCmd(c) {
     case 'stance': ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') { s.hold = !!c.hold; if (s.hold && s.order.type === 'idle') s.post = { x: s.x, z: s.z }; } }); break;
     case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
     case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
+    case 'repair': { const b = byId(c.id); if (b && b.owner === p.i && b.built >= 1 && b.hp < b.maxHp) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -300,6 +301,19 @@ function nearestDepot(s) { let best = null, bd = 1e9; for (const b of S.blds) { 
 function updateWorker(s, dt) {
   const o = s.order;
   if (o.type === 'move') { if (moveTo(s, o.x, o.z, dt)) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; } return; }
+  // Repair: walk to the building, then patch it up at 25 hp/s per worker for 1 cash per 10 hp; back to work when done.
+  if (o.type === 'repair') {
+    const b = o.b, p = pl(s.owner);
+    if (b.dead || b.hp >= b.maxHp || p.cash < 1) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; return; }
+    if (Math.hypot(b.x - s.x, b.z - s.z) > b.r + 2.2) { moveTo(s, b.x, b.z, dt); return; }
+    s.heading = Math.atan2(b.x - s.x, b.z - s.z);
+    const hp = Math.min(b.maxHp - b.hp, 25 * dt);
+    b.hp += hp; p.cash -= hp / 10;
+    s.gatherT = 1; // reads as "working" to the renderer (swing animation)
+    s.repT = (s.repT || 0) - dt;
+    if (s.repT <= 0) { s.repT = 0.5; S.events.push({ k: 'repair', x: s.x + (b.x - s.x) * 0.6, z: s.z + (b.z - s.z) * 0.6 }); }
+    return;
+  }
   if (!s.task) s.task = { state: 'find' };
   const t = s.task;
   if (t.state === 'find') {

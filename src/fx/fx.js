@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=46';
-import { walkH } from '../map/layout.js?v=46';
-import { shake } from '../camera/camera.js?v=46';
-import { FC } from '../render/models.js?v=46';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=46';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=47';
+import { walkH } from '../map/layout.js?v=47';
+import { shake } from '../camera/camera.js?v=47';
+import { FC } from '../render/models.js?v=47';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=47';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -215,6 +215,7 @@ export function handleEvents(S, bump) {
       case 'heal': for (let k = 0; k < 4; k++) emit({ x: ev.x + (Math.random() - 0.5) * 2, y: gy(ev.x, ev.z, 0.5), z: ev.z + (Math.random() - 0.5) * 2, vy: 1.5 + Math.random(), c: k % 2 ? 0x7ee05b : 0xd6ffcf, s: 0.22, life: 0.9, g: -0.5 }); break;
       case 'enter': fxRing(ev.x, ev.z, 0.5, 3, 0x7fd1ff, 0.4, 4.6); break;
       case 'eject': fxRing(ev.x, ev.z, 0.4, 2.5, 0x7fd1ff, 0.4); break;
+      case 'repair': for (let k = 0; k < 5; k++) emit({ x: ev.x, y: gy(ev.x, ev.z, 1.2 + Math.random()), z: ev.z, vx: (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 4, c: k % 2 ? 0xffe14d : 0xffffff, s: 0.12, life: 0.35, g: 14 }); break;
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;
