@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=101';
-import { CAM } from '../camera/camera.js?v=101';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=101';
-import { hash } from '../util/math.js?v=101';
-import { emit } from '../fx/particles.js?v=101';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=102';
+import { CAM } from '../camera/camera.js?v=102';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=102';
+import { hash } from '../util/math.js?v=102';
+import { emit } from '../fx/particles.js?v=102';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -327,8 +327,44 @@ function updateRain(dt) {
   });
   rain.im.instanceMatrix.needsUpdate = true;
 }
+// Pedestrians (render only): townsfolk stroll the avenue sidewalks, turn back at the freeway trench and the map edge,
+// and run the other way when a fight breaks out near them. Two instanced draws (bodies, heads).
+let peds = null;
+const PED_SHIRTS = [0xd64545, 0x3d6fd6, 0xf2b632, 0x7ee05b, 0xe85d9a, 0xf4f1de, 0x8a6a3e, 0x6fc3ff];
+function buildPeds() {
+  const list = [];
+  for (const ax of AVENUES) for (const sd of [1, -1]) for (const side of [1, -1]) {
+    const x = sd * ax + 5.6 * (sd > 0 ? 1 : -1) * (side > 0 ? 1 : 0.88), z = side * (12 + Math.random() * 40);
+    list.push({ x, z, dir: Math.random() < 0.5 ? 1 : -1, v: 1 + Math.random() * 0.6, run: 0, ph: Math.random() * 6 });
+  }
+  const body = new THREE.InstancedMesh(new THREE.BoxGeometry(0.42, 0.8, 0.28), mat(0xffffff), list.length);
+  const head = new THREE.InstancedMesh(new THREE.BoxGeometry(0.28, 0.28, 0.28), mat(0xe0b48c), list.length);
+  list.forEach((p, i) => body.setColorAt(i, C.setHex(PED_SHIRTS[i % PED_SHIRTS.length])));
+  scene.add(body, head);
+  peds = { list, body, head };
+}
+function updatePeds(dt, S) {
+  if (!peds) buildPeds();
+  const fights = S ? S.squads.filter((q) => q.slot !== 'worker' && S.squads.some((o) => o.owner !== q.owner && Math.abs(o.x - q.x) < 9 && Math.abs(o.z - q.z) < 9)) : [];
+  peds.list.forEach((p, i) => {
+    const f = fights.find((q) => Math.abs(q.x - p.x) < 14 && Math.abs(q.z - p.z) < 14);
+    if (f) { p.dir = Math.sign(p.z - f.z) || 1; p.run = 2.5; }
+    p.run = Math.max(0, p.run - dt);
+    const sp = p.run > 0 ? 5 : p.v;
+    p.z += p.dir * sp * dt;
+    const az = Math.abs(p.z);
+    if (az < TRENCH.half + 3 || az > HOME_Z - 2) { p.dir = -p.dir; p.z = Math.sign(p.z) * Math.min(HOME_Z - 2, Math.max(TRENCH.half + 3, az)); }
+    p.ph += dt * sp * 3;
+    const y = walkH(p.x, p.z), bob = Math.abs(Math.sin(p.ph)) * (p.run > 0 ? 0.16 : 0.06);
+    Q.setFromAxisAngle(V.set(0, 1, 0), p.dir > 0 ? 0 : Math.PI);
+    M.compose(V.set(p.x, y + 0.65 + bob, p.z), Q, Sv.set(1, 1, 1)); peds.body.setMatrixAt(i, M);
+    M.compose(V.set(p.x, y + 1.25 + bob, p.z), Q, Sv); peds.head.setMatrixAt(i, M);
+  });
+  peds.body.instanceMatrix.needsUpdate = true; peds.head.instanceMatrix.needsUpdate = true;
+}
 export function updateWorld(dt, S) {
   updateRain(dt);
+  updatePeds(dt, S);
   updateLife(dt, S);
   if (!traffic) return;
   const { im, cars, lights } = traffic;

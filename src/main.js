@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=101';
-import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=101';
-import { syncRender, clearRender, bump } from './render/sync.js?v=101';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=101';
-import { newSim, getSim, step } from './sim/sim.js?v=101';
-import { TICK } from './config/factions.js?v=101';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=101';
-import { initInput, lockPageZoom } from './input/input.js?v=101';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=101';
-import { resetUI } from './ui/state.js?v=101';
-import { fillIcons, svg } from './ui/icons.js?v=101';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=101';
-import { updateMinimap } from './ui/minimap.js?v=101';
-import { isMuted, setMuted } from './fx/sfx.js?v=101';
-import { loadChars } from './render/chars.js?v=101';
-import { FC } from './render/models.js?v=101';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=102';
+import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=102';
+import { syncRender, clearRender, bump } from './render/sync.js?v=102';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=102';
+import { newSim, getSim, step } from './sim/sim.js?v=102';
+import { TICK } from './config/factions.js?v=102';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=102';
+import { initInput, lockPageZoom } from './input/input.js?v=102';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=102';
+import { resetUI } from './ui/state.js?v=102';
+import { fillIcons, svg } from './ui/icons.js?v=102';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=102';
+import { updateMinimap } from './ui/minimap.js?v=102';
+import { isMuted, setMuted } from './fx/sfx.js?v=102';
+import { loadChars } from './render/chars.js?v=102';
+import { FC } from './render/models.js?v=102';
 
-export const BUILD = 101; // written by `npm run bump`
+export const BUILD = 102; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();

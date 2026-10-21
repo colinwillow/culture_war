@@ -119,4 +119,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B98) UI: end screen rematch — a second big button that replays the same faction + mode + difficulty straight away
 - [x] (B100) Logic: Resource Race mode — third mode button (coin icon); first to earn 2500 wins; HUD bars like the hill
 - [x] (B101) FX: faction death flourishes — Old Money drops bills, Nerds lose their glasses, Street Crew a sneaker, Hard Hats a hard hat bounces
-- [ ] Map: pedestrians — a few render-only civilians walk the sidewalks and run away from fights
+- [x] (B102) Map: pedestrians — a few render-only civilians walk the sidewalks and run away from fights
