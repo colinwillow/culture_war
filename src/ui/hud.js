@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=108';
-import { UI, select, selSquads } from './state.js?v=108';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=108';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=108';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=108';
-import { camera } from '../render/scene.js?v=108';
-import { walkH } from '../map/layout.js?v=108';
-import { THREE } from '../render/scene.js?v=108';
-import { showHint } from './hint.js?v=108';
+import { svg } from './icons.js?v=110';
+import { UI, select, selSquads } from './state.js?v=110';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=110';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=110';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=110';
+import { camera } from '../render/scene.js?v=110';
+import { walkH } from '../map/layout.js?v=110';
+import { THREE } from '../render/scene.js?v=110';
+import { showHint } from './hint.js?v=110';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -139,18 +139,23 @@ export function refreshHUD() {
   document.querySelector('#cp b').textContent = used + '/' + cap;
   document.getElementById('cp').classList.toggle('full', used >= cap);
   const hc = document.getElementById('hillChip');
-  hc.style.display = S.hill || S.race ? '' : 'none';
+  hc.style.display = S.hill || S.race || S.cap ? '' : 'none';
   if (S.hill) {
     document.getElementById('hillMe').style.setProperty('--w', S.hill.prog[0] * 100 + '%');
     document.getElementById('hillThem').style.setProperty('--w', S.hill.prog[1] * 100 + '%');
     hc.className = 'chip hillc' + (S.hill.contested ? ' hc' : S.hill.holder >= 0 ? ' h' + S.hill.holder : '');
+  } else if (S.cap) { // Capture and Hold: the bars are each side's remaining counter
+    document.getElementById('hillMe').style.setProperty('--w', Math.max(0, S.cap.score[0] / S.cap.max) * 100 + '%');
+    document.getElementById('hillThem').style.setProperty('--w', Math.max(0, S.cap.score[1] / S.cap.max) * 100 + '%');
+    const n0 = S.cap.pts.filter((f) => f.owner === 0).length, n1 = S.cap.pts.filter((f) => f.owner === 1).length;
+    hc.className = 'chip hillc' + (n0 > n1 ? ' h0' : n1 > n0 ? ' h1' : '');
   } else if (S.race) { // Resource Race: same two bars, filled by money earned; a coin instead of the flag
     document.getElementById('hillMe').style.setProperty('--w', Math.min(1, S.players[0].st.earned / S.race.goal) * 100 + '%');
     document.getElementById('hillThem').style.setProperty('--w', Math.min(1, S.players[1].st.earned / S.race.goal) * 100 + '%');
     if (hc.dataset.i !== 'coin') { hc.dataset.i = 'coin'; hc.querySelector('.ic').innerHTML = svg('coin'); }
     hc.className = 'chip hillc race';
   }
-  if (S.hill && hc.dataset.i === 'coin') { hc.dataset.i = ''; hc.querySelector('.ic').innerHTML = svg('flag'); }
+  if ((S.hill || S.cap) && hc.dataset.i === 'coin') { hc.dataset.i = ''; hc.querySelector('.ic').innerHTML = svg('flag'); }
   document.getElementById('meterFill').style.width = Math.round(p.meter) + '%';
 }
 let lastCash = null;

@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=108';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=108';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=110';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=110';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -100,6 +100,10 @@ export function aiStep(S, dt, pi = 1) {
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
   // King of the Hill: the army's job is the hill - go take it (or retake it) as soon as there is a squad or two to send,
   // and keep it there; full waves still go for the HQ.
+  if (S.cap && armyCp >= 8 && armyCp < ai.wave) { // Capture and Hold: go for the nearest flag that isn't ours
+    const f = S.cap.pts.filter((q) => q.owner !== pi).sort((a, b) => Math.hypot(a.x - p.hqx, a.z - p.hqz) - Math.hypot(b.x - p.hqx, b.z - p.hqz))[0];
+    if (f) { mine.forEach((s) => { if (s.order.type === 'idle' || (s.order.type === 'move' && !s.escortFor)) setOrder(s, { type: 'amove', x: f.x + (S.rng() - 0.5) * 5, z: f.z + (S.rng() - 0.5) * 5 }); }); return; }
+  }
   if (S.hill && armyCp >= 8 && armyCp < ai.wave && S.hill.holder !== pi) {
     mine.forEach((s) => { if (s.order.type === 'idle' || (s.order.type === 'move' && !s.escortFor)) setOrder(s, { type: 'amove', x: S.hill.x + (S.rng() - 0.5) * 6, z: S.hill.z + (S.rng() - 0.5) * 6 }); });
     return;

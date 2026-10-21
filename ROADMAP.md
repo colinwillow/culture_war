@@ -130,4 +130,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 ## Batch 13 (added 13:52 UTC by the loop, same rules)
 - [x] (B107) Perf: measure draws/triangles mid-match (6 factions, rain, pedestrians); merge each placeholder building's static boxes into one mesh per colour so a base costs a handful of draws
 - [x] (B108) UI: graphics toggle on the menu (sparkle icon): LOW = no shadows, pixel ratio 1, no rain/pedestrians; remembered on the phone
-- [ ] Logic: Capture and Hold mode — three flags (hill + the two side parks); holding more of them drains the enemy's 200-point counter
+- [x] (B110) Logic: Capture and Hold mode — three flags (hill + the two side parks); holding more of them drains the enemy's counter

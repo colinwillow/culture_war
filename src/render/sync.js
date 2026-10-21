@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=108';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=108';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=108';
-import { emit } from '../fx/particles.js?v=108';
-import { bark } from '../fx/sfx.js?v=108';
-import { TICK } from '../config/factions.js?v=108';
-import { walkH } from '../map/layout.js?v=108';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=108';
-import { CAM } from '../camera/camera.js?v=108';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=110';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=110';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=110';
+import { emit } from '../fx/particles.js?v=110';
+import { bark } from '../fx/sfx.js?v=110';
+import { TICK } from '../config/factions.js?v=110';
+import { walkH } from '../map/layout.js?v=110';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=110';
+import { CAM } from '../camera/camera.js?v=110';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=108';
-import { UI } from '../ui/state.js?v=108';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=108';
+import { Q, pl, getSim } from '../sim/sim.js?v=110';
+import { UI } from '../ui/state.js?v=110';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=110';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=108';
+import { lerpAngle } from '../util/math.js?v=110';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -188,6 +188,7 @@ const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 -
 export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
   hillRender(S, time);
+  capRender(S, time);
   aimRender(S, time);
   const seen = new Set();
   for (const s of S.squads) {
@@ -599,6 +600,23 @@ function aimRender(S, time) {
   R.aim.visible = true; R.aim.position.set(x, walkH(x, z), z); R.aim.scale.setScalar(1 + Math.sin(time * 6) * 0.03);
 }
 // King of the Hill marker: a glowing ring + flag on the middle overpass, tinted to the holder, flickering when contested.
+function flagMarker(x, z, r) {
+  const g = new THREE.Group(), ring = ringMesh(r - 0.5, r, 0xffffff, 0.8), fill = new THREE.Mesh(new THREE.CircleGeometry(r - 0.5, 40), basic(0xffffff, 0.12));
+  fill.rotation.x = -Math.PI / 2; fill.position.y = 0.08;
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.9), basic(0xffffff, 0.95)); flag.position.set(0.72, 3.5, 0);
+  g.add(ring, fill, box(0.12, 4, 0.12, 0xdddddd, 0, 2, 0), flag); g.position.set(x, walkH(x, z), z); scene.add(g);
+  return { g, ring, fill, flag };
+}
+function capRender(S, time) {
+  if (!S.cap) { if (R.cap) { R.cap.forEach((o) => disposeObj(o.g)); R.cap = null; } return; }
+  if (!R.cap) R.cap = S.cap.pts.map((f) => flagMarker(f.x, f.z, f.r));
+  S.cap.pts.forEach((f, i) => {
+    const o = R.cap[i], c = f.contested ? (Math.sin(time * 18) > 0 ? 0x7fd1ff : 0xff5a4f) : f.owner === 0 ? 0x7fd1ff : f.owner === 1 ? 0xff5a4f : 0xf3efe2;
+    o.ring.material.color.setHex(c); o.fill.material.color.setHex(c); o.flag.material.color.setHex(c);
+    o.flag.position.y = 1.2 + Math.abs(f.prog) * 2.3; // the flag climbs the pole as it is captured
+    o.flag.rotation.y = Math.sin(time * 3 + i) * 0.3;
+  });
+}
 function hillRender(S, time) {
   if (!S.hill) { if (R.hill) { disposeObj(R.hill.g); R.hill = null; } return; }
   if (!R.hill) {
@@ -618,6 +636,7 @@ function hillRender(S, time) {
 export function clearRender() {
   if (R.aim) { disposeObj(R.aim); R.aim = null; }
   if (R.hill) { disposeObj(R.hill.g); R.hill = null; }
+  if (R.cap) { R.cap.forEach((o) => disposeObj(o.g)); R.cap = null; }
   for (const o of R.sq.values()) disposeObj(o.root);
   for (const o of R.bl.values()) { disposeObj(o.root); if (o.flag) { disposeObj(o.flag); disposeObj(o.dots); } }
   for (const o of R.nodes.values()) disposeObj(o.g);

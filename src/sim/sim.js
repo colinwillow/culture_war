@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=108';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=108';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=108';
-import { mulberry32 } from '../util/math.js?v=108';
-import { aiStep } from './ai.js?v=108';
+} from '../config/factions.js?v=110';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=110';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=110';
+import { mulberry32 } from '../util/math.js?v=110';
+import { aiStep } from './ai.js?v=110';
 
 let S = null;
 export const getSim = () => S;
@@ -37,6 +37,9 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     // King of the Hill: the middle overpass. Holding it alone (no enemy fighters on it) fills your bar; full = win.
     // Resource Race: first to EARN this much (income + deposits + scrap; spending doesn't count against you) wins.
     race: mode === 'race' ? { goal: 2500 } : null,
+    // Capture and Hold: three flags (the middle overpass + one park on each side). Fighters of one side alone at a flag
+    // swing it over in ~6 s; every second, the side holding MORE flags drains the other's 300-point counter by the margin.
+    cap: mode === 'cap' ? { pts: [[0, 0], [-18, 29], [18, -29]].map(([x, z]) => ({ x, z, r: 6, prog: 0, owner: -1 })), score: [300, 300], max: 300, t: 0 } : null,
     hill: mode === 'hill' ? { x: 0, z: 0, r: 7, prog: [0, 0], holder: -1, contested: false, win: 90 } : null,
   };
   S.players[1].inc = [0.7, 1, 1.35][diff];
@@ -495,6 +498,27 @@ function resolvePending(pd) {
     S.events.push({ k: 'wreckboom', x: pd.x, z: pd.z, r: pd.r });
   }
 }
+function stepCap(dt) {
+  const c = S.cap;
+  for (const f of c.pts) {
+    const on = [false, false];
+    for (const s of S.squads) if (s.slot !== 'worker' && !s.gar && aliveN(s) > 0 && Math.hypot(s.x - f.x, s.z - f.z) < f.r) on[s.owner] = true;
+    if (on[0] !== on[1]) {
+      const dir = on[0] ? 1 : -1, before = f.owner;
+      f.prog = Math.max(-1, Math.min(1, f.prog + (dir * dt) / 6));
+      if (f.prog >= 1) f.owner = 0; else if (f.prog <= -1) f.owner = 1; else if (Math.sign(f.prog) !== dir) f.owner = -1;
+      if (f.owner !== before) S.events.push({ k: 'hill', owner: f.owner, x: f.x, z: f.z });
+    }
+    f.contested = on[0] && on[1];
+  }
+  c.t += dt;
+  if (c.t >= 1) {
+    c.t -= 1;
+    const n0 = c.pts.filter((f) => f.owner === 0).length, n1 = c.pts.filter((f) => f.owner === 1).length;
+    if (n0 > n1) c.score[1] -= n0 - n1; else if (n1 > n0) c.score[0] -= n1 - n0;
+    if (c.score[0] <= 0) S.over = { winner: 1, cap: true }; else if (c.score[1] <= 0) S.over = { winner: 0, cap: true };
+  }
+}
 function stepHill(dt) {
   const h = S.hill, on = [false, false];
   for (const s of S.squads) if (s.slot !== 'worker' && !s.gar && aliveN(s) > 0 && Math.hypot(s.x - h.x, s.z - h.z) < h.r) on[s.owner] = true;
@@ -521,6 +545,7 @@ export function step() {
     if (p.party > 0) p.party -= dt;
   }
   if (S.hill && !S.over) stepHill(dt);
+  if (S.cap && !S.over) stepCap(dt);
   if (S.race && !S.over) for (const p of S.players) if (p.st.earned >= S.race.goal) { S.over = { winner: p.i, race: true }; break; }
   for (const b of [...S.blds]) {
     if (b.dead) continue;
