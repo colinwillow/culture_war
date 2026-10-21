@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=93';
+import { THREE, box, cyl, mat } from './scene.js?v=94';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -233,6 +233,12 @@ export function bldMesh(kind, f) {
       mesh.add(box(3, 1, 0.6, 0x2a2a2a, 0, 4.1, 0), box(0.8, 0.8, 0.62, 0x2a2a2a, -1.5, 3.9, 0), box(0.8, 0.8, 0.62, 0x2a2a2a, 1.5, 3.9, 0));
       led(0.9, 4.2, 0.32, 0xff3030); led(1.2, 4.0, 0.32, 0x3aff5a); led(-1.0, 4.1, 0.32, C.alt);
       const dish = cyl(0.9, 0.2, 0.3, 0xdddddd, 2.4, 4.0, -1.5, 14); dish.rotation.x = -0.8; mesh.add(dish);
+      // Block dressing: a cosplay photo-op cutout (face hole), a glowing vending machine, cable spaghetti and a folding table with dice.
+      mesh.add(box(1.4, 2, 0.08, C.alt, -4.2, 1, 2.6), box(0.36, 0.36, 0.1, 0x1b1d24, -4.2, 1.55, 2.6), box(1.2, 0.5, 0.09, C.main, -4.2, 0.6, 2.62), box(0.1, 0.6, 0.5, 0x8a6a3e, -4.2, 0.3, 2.3));
+      mesh.add(box(1, 2, 0.8, 0xc62f2f, 4.2, 1, 2.2)); led(4.2, 1.3, 2.62, 0x9fd6ff); led(4.0, 1.0, 2.62, C.alt); led(4.4, 0.7, 2.62, 0x3aff5a);
+      for (let i = 0; i < 6; i++) { const c = cyl(0.04, 0.04, 2.4, [0x111111, 0x2255aa, 0xd64545, 0xf2e14c][i % 4], 1 + i * 0.25, 0.04, 2.9 + Math.sin(i) * 0.3, 5); c.rotation.z = Math.PI / 2; c.rotation.y = (i - 2.5) * 0.25; mesh.add(c); }
+      mesh.add(box(1.6, 0.06, 0.8, 0xdddddd, -1.8, 0.75, 3.4), box(0.05, 0.75, 0.05, 0x666666, -2.5, 0.37, 3.1), box(0.05, 0.75, 0.05, 0x666666, -1.1, 0.37, 3.7));
+      for (const [x, z, c] of [[-2, 3.3, 0xff3030], [-1.7, 3.5, 0x3aff5a], [-1.5, 3.25, C.alt]]) { const d = box(0.14, 0.14, 0.14, c, x, 0.86, z); d.rotation.y = x * 3; mesh.add(d); }
     } else if (kind === 'depot') { // Server Rack: a black rack with rows of blinking LEDs
       mesh.add(box(2.4, 2.4, 2, 0x1b1d24, 0, 1.2), box(2.5, 0.2, 2.1, C.main, 0, 2.5));
       for (let r = 0; r < 4; r++) for (let c2 = 0; c2 < 4; c2++) led(-0.75 + c2 * 0.5, 0.5 + r * 0.5, 1.02, [0x3aff5a, 0x3aff5a, C.alt, 0x5aa9e6][(r + c2) % 4]);

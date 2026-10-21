@@ -110,6 +110,6 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B91) Docs: refresh CLAUDE.md "Current state" + docs/design.md for 6 factions, King of the Hill, time of day, AI garrisons, balance tool usage
 - [x] (B92) Units: The Streamer's own ability "Go Live" — nearby enemies stop to stare at the phone (2 s stun) with camera-flash sparkles; the Nerds hero stops being a bullhorn copy
 - [x] (B93) UI: power aiming preview — while aiming a targeted power, a ring of its real radius follows the finger in the faction colour
-- [ ] Map: Nerds base dressing — a cosplay photo-op cutout, a vending machine, cable spaghetti and a folding table with dice
+- [x] (B94) Map: Nerds base dressing — a cosplay photo-op cutout, a vending machine, cable spaghetti and a folding table with dice
 - [ ] FX: weather — some matches roll light rain (streaks, ground ripples, slightly darker sky); decided by the match seed
 - [ ] UI: match intro — the camera flies from the enemy HQ to yours in ~2.5 s at the start (tap to skip)
