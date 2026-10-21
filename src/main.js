@@ -1,21 +1,21 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=69';
-import { buildWorld, updateWorld } from './render/world.js?v=69';
-import { syncRender, clearRender, bump } from './render/sync.js?v=69';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=69';
-import { newSim, getSim, step } from './sim/sim.js?v=69';
-import { TICK } from './config/factions.js?v=69';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=69';
-import { initInput, lockPageZoom } from './input/input.js?v=69';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=69';
-import { resetUI } from './ui/state.js?v=69';
-import { fillIcons, svg } from './ui/icons.js?v=69';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=69';
-import { updateMinimap } from './ui/minimap.js?v=69';
-import { isMuted, setMuted } from './fx/sfx.js?v=69';
-import { loadChars } from './render/chars.js?v=69';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=70';
+import { buildWorld, updateWorld } from './render/world.js?v=70';
+import { syncRender, clearRender, bump } from './render/sync.js?v=70';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=70';
+import { newSim, getSim, step } from './sim/sim.js?v=70';
+import { TICK } from './config/factions.js?v=70';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=70';
+import { initInput, lockPageZoom } from './input/input.js?v=70';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=70';
+import { resetUI } from './ui/state.js?v=70';
+import { fillIcons, svg } from './ui/icons.js?v=70';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=70';
+import { updateMinimap } from './ui/minimap.js?v=70';
+import { isMuted, setMuted } from './fx/sfx.js?v=70';
+import { loadChars } from './render/chars.js?v=70';
 
-export const BUILD = 69; // written by `npm run bump`
+export const BUILD = 70; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -68,6 +68,20 @@ pauseDim.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(fa
 pauseDim.addEventListener('pointerdown', (e) => e.stopPropagation());
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
 drawMute();
+// Dev readout: tap the B# on the menu title to toggle FPS / frame ms / units / draw calls (remembered on the phone).
+const devEl = document.getElementById('devInfo');
+let devOn = false; try { devOn = localStorage.getItem('cw-dev') === '1'; } catch (e) {}
+devEl.hidden = !devOn;
+document.getElementById('build').addEventListener('pointerup', (e) => { e.stopPropagation(); devOn = !devOn; devEl.hidden = !devOn; try { localStorage.setItem('cw-dev', devOn ? '1' : '0'); } catch (er) {} });
+let devN = 0, devT = 0, devWorst = 0;
+function devTick(dt, S) {
+  if (!devOn) return;
+  devN++; devT += dt; devWorst = Math.max(devWorst, dt);
+  if (devT < 0.5) return;
+  const units = S ? S.squads.reduce((a, s) => a + s.members.filter((h) => h > 0).length, 0) : 0;
+  devEl.textContent = `${Math.round(devN / devT)} fps · worst ${Math.round(devWorst * 1000)} ms · ${units} units · ${renderer.info.render.calls} draws · ${renderer.info.render.triangles} tris`;
+  devN = 0; devT = 0; devWorst = 0;
+}
 let last = performance.now(), acc = 0, hudT = 0;
 function frame(now) {
   const dt = paused ? 0 : Math.min(0.1, (now - last) / 1000);
@@ -101,6 +115,7 @@ function frame(now) {
   if (S && running) { updateMinimap(dt); updateAlert(dt); }
   updatePlaceBar();
   renderer.render(scene, camera);
+  devTick((now - (frame.prev || now)) / 1000, S); frame.prev = now;
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

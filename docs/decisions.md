@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B70 (overnight loop): dev readout: tap the B# on the menu title to toggle a small line bottom-left - fps, worst frame ms, units alive, draw calls, triangles (remembered on the phone). Start of an Activists match here: ~130 draws, ~195k triangles
 - B69 (overnight loop): balance pass from AI-vs-AI round robins (aiStep can now drive either player; harness kept as tools/balance.cjs): Activists rally cap 25%->20% and Sign Wavers/Picket +10 cost; Backwoods pitchforks 65hp/9dmg, brawlers 90hp; Old Money infantry hp up, cost down ~10% and 3 army points instead of 5. Win rates over 18 games each went from bw4 ac9 hh7 om4 (of 12) to bw12 ac9 hh10 om5 (of 18)
 - (docs, no build) CLAUDE.md current state + design.md 'Built so far' table refreshed after the overnight loop.
 - B66 (overnight loop): Old Money complete: playable from the menu (gold card, 2x2 grid in portrait, one row of four in landscape); buildings = white-columned Mansion with gold trim + hedges, stone Bank Vault with a round vault door, Country Club with green roof + flag, Guard Booth on stilts; Private Jet now streaks overhead leaving a contrail and drops a gold-parachute crate onto the spot as the bodyguards land (money rain for Takeover already in)
