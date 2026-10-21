@@ -1,19 +1,19 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=24';
-import { buildWorld, updateWorld } from './render/world.js?v=24';
-import { syncRender, clearRender, bump } from './render/sync.js?v=24';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=24';
-import { newSim, getSim, step } from './sim/sim.js?v=24';
-import { TICK } from './config/factions.js?v=24';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=24';
-import { initInput, lockPageZoom } from './input/input.js?v=24';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=24';
-import { resetUI } from './ui/state.js?v=24';
-import { fillIcons, svg } from './ui/icons.js?v=24';
-import { updateMinimap } from './ui/minimap.js?v=24';
-import { loadChars } from './render/chars.js?v=24';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=25';
+import { buildWorld, updateWorld } from './render/world.js?v=25';
+import { syncRender, clearRender, bump } from './render/sync.js?v=25';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=25';
+import { newSim, getSim, step } from './sim/sim.js?v=25';
+import { TICK } from './config/factions.js?v=25';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=25';
+import { initInput, lockPageZoom } from './input/input.js?v=25';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=25';
+import { resetUI } from './ui/state.js?v=25';
+import { fillIcons, svg } from './ui/icons.js?v=25';
+import { updateMinimap } from './ui/minimap.js?v=25';
+import { loadChars } from './render/chars.js?v=25';
 
-export const BUILD = 24; // written by `npm run bump`
+export const BUILD = 25; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -56,7 +56,7 @@ function frame(now) {
   }
   if (S) { handleEvents(S, bump); syncRender(S, Math.min(1, acc / TICK), dt, time); }
   updateFx(dt);
-  updateWorld(dt);
+  updateWorld(dt, S);
   if (S && S.over && running) {
     running = false;
     const won = S.over.winner === 0, ic = document.getElementById('endIcon');

@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B25 (overnight loop): freeway traffic: every car/truck has warm headlights and red taillights facing the way it drives; cars passing under an overpass with troops on it honk - a bounce and a little yellow toot
 - B24 (overnight loop): footstep dust kicks up behind running infantry (more members = more dust) and a skid puff spurts forward round their feet when a squad pulls up from a run; no water in the trench so no splash
 - B23 (overnight loop): idle fidgets: standing box people now look around, stretch both arms up or scratch their head every few seconds (each on its own timer), and stop the moment they move or fight
 - B22 (overnight loop): command card: one portrait per selected squad (up to 6) with alive/dead member dots, a green-amber-red health bar and gold rank stars; tap a portrait to pick just that squad and fly the camera to it

@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=24';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=24';
-import { hash } from '../util/math.js?v=24';
-import { emit } from '../fx/particles.js?v=24';
+import { THREE, scene, mat, box } from './scene.js?v=25';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=25';
+import { hash } from '../util/math.js?v=25';
+import { emit } from '../fx/particles.js?v=25';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -172,7 +172,11 @@ export function buildWorld() {
   const im = new THREE.InstancedMesh(unitBox, mat(0xffffff), cars.length);
   cars.forEach((c, i) => im.setColorAt(i, C.setHex(c.c)));
   scene.add(im);
-  traffic = { im, cars };
+  // Lights: 2 warm headlights at the nose, 2 red taillights at the tail of every car (one unlit instanced draw).
+  const lights = new THREE.InstancedMesh(unitBox, new THREE.MeshBasicMaterial({ color: 0xffffff }), cars.length * 4);
+  cars.forEach((c, i) => { for (let k = 0; k < 4; k++) lights.setColorAt(i * 4 + k, C.setHex(k < 2 ? 0xfff3c0 : 0xff2a1a)); });
+  scene.add(lights);
+  traffic = { im, cars, lights };
 }
 
 const _e = new THREE.Euler(), LAMP = [0x5dff7a, 0xffc23a, 0xff4a3c], OFF = 0x333333;
@@ -214,17 +218,30 @@ function updateLife(dt) {
   birdIM.instanceMatrix.needsUpdate = true;
 }
 
-export function updateWorld(dt) {
+export function updateWorld(dt, S) {
   updateLife(dt);
   if (!traffic) return;
-  const { im, cars } = traffic;
+  const { im, cars, lights } = traffic;
+  // Which overpasses have troops on them right now? Cars passing underneath honk: a bounce and a little yellow toot.
+  const busy = OVERPASSES.map(([a, b]) => !!(S && S.squads.some((q) => !q.def.flies && Math.abs(q.z) < TRENCH.half + 1 && q.x > a - 1 && q.x < b + 1)));
   cars.forEach((c, i) => {
     c.x += c.v * dt;
     if (c.x > 80) c.x -= 160;
     if (c.x < -80) c.x += 160;
+    const under = OVERPASSES.findIndex(([a, b]) => c.x > a - 2 && c.x < b + 2);
+    if (under >= 0 && busy[under] && !(c.hop > 0) && !c.honked) { c.hop = 0.45; c.honked = true; for (let k = 0; k < 3; k++) emit({ x: c.x + Math.sign(c.v) * 2, y: -TRENCH.depth + 2, z: c.lane, vx: Math.sign(c.v) * 2 + (Math.random() - 0.5), vy: 2 + Math.random(), vz: (Math.random() - 0.5) * 2, c: 0xffe14d, s: 0.25, life: 0.5, g: 2 }); }
+    if (under < 0) c.honked = false;
+    const hop = c.hop > 0 ? Math.sin((c.hop / 0.45) * Math.PI) * 0.5 : 0; if (c.hop > 0) c.hop -= dt;
+    const h = c.truck ? 2.2 : 1.1, L = c.truck ? 7 : 3.8, y = -TRENCH.depth + h / 2 + hop, dir = Math.sign(c.v);
     Q.identity();
-    M.compose(V.set(c.x, -TRENCH.depth + (c.truck ? 1.2 : 0.6), c.lane), Q, Sv.set(c.truck ? 7 : 3.8, c.truck ? 2.2 : 1.1, 1.8));
+    M.compose(V.set(c.x, y, c.lane), Q, Sv.set(L, h, 1.8));
     im.setMatrixAt(i, M);
+    for (let k = 0; k < 4; k++) {
+      const front = k < 2, side = k % 2 ? 0.6 : -0.6;
+      M.compose(V.set(c.x + dir * (front ? 1 : -1) * (L / 2 + 0.03), y - h * 0.15, c.lane + side), Q, Sv.set(0.08, 0.22, 0.42));
+      lights.setMatrixAt(i * 4 + k, M);
+    }
   });
   im.instanceMatrix.needsUpdate = true;
+  lights.instanceMatrix.needsUpdate = true;
 }
