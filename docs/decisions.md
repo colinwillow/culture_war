@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B56 (overnight loop): Hard Hats faction (sim + data): Apprentices, Nail-Gunners, Wrecking Crew, Surveyors, Forklift, Excavator, The Foreman; buildings go up 2x faster with 30% more hp; Road Closed drops a cone ring that slows enemies to 35% for 12 s; Wrecking Ball lands after 1.4 s for 80 area dmg + stun and 450 to buildings. Your opponent is now picked at random from the other factions, so you can already meet Hard Hats (orange box placeholders)
 - B55 (overnight loop): hero button: a gold-ringed round button appears among the commands once your hero is on the field - green fill shows its health, stars its level; tap to select it and fly the camera there. Also fixed landscape: the squad panel now sits beside the command grid instead of stacking above it (it overflowed short phones and slid under the pause button)
 - B52 (overnight loop): cloud shadows: three huge soft dark patches drift diagonally across the city at different speeds and wrap around, so the ground lighting slowly shifts (3 transparent decals, one shared canvas texture)
 - B51 (overnight loop): ranged variety: Shotgun Hunters fire a 3-pellet spread (three flashes and slugs fanning onto the target); Megaphone Crew blasts three pink/white sound arcs that widen as they travel to the target

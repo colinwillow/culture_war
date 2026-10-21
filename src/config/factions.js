@@ -61,4 +61,23 @@ export const FACTIONS = {
       { id: 'pie', name: 'Pie in the Face', cost: 60, target: false, icon: 'pie' },
     ],
   },
+  // Hard Hats (Turtle / builder): sturdy, a bit slow, builds twice as fast and its buildings are 30% tougher.
+  hh: {
+    name: 'Hard Hats',
+    traits: { buildMul: 2, bldHp: 1.3 },
+    bldNames: { hq: 'Site Office', depot: 'Tool Shed', barracks: 'Union Hall', tower: 'Crane Tower' },
+    units: {
+      worker: { name: 'Apprentice', n: 1, hp: 55, dmg: 3, range: 1, speed: 4.5, cost: 55, build: 7, cp: 1 },
+      pike: { name: 'Nail-Gunners', n: 5, hp: 55, dmg: 7, range: 1.2, speed: 3, cost: 100, build: 9, cp: 5 },
+      melee: { name: 'Wrecking Crew', n: 5, hp: 85, dmg: 9, range: 1.2, speed: 3, cost: 120, build: 10, cp: 5 },
+      ranged: { name: 'Surveyors', n: 5, hp: 40, dmg: 11, range: 8, speed: 3, cost: 130, build: 12, cp: 5 },
+      cav: { name: 'Forklift', n: 1, hp: 450, dmg: 28, range: 1.4, speed: 6, cost: 280, build: 20, cp: 10, area: true, vehicle: true },
+      siege: { name: 'Excavator', n: 1, hp: 260, dmg: 55, range: 3, speed: 2, cost: 330, build: 25, cp: 10, area: true, vehicle: true },
+      hero: { name: 'The Foreman', n: 1, hp: 650, dmg: 20, range: 1.4, speed: 5, cost: 750, build: 40, cp: 15 },
+    },
+    powers: [
+      { id: 'cones', name: 'Road Closed', cost: 40, target: true, icon: 'shield' },
+      { id: 'wreck', name: 'Wrecking Ball', cost: 100, target: true, icon: 'skull' },
+    ],
+  },
 };

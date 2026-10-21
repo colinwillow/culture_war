@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=55';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=55';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=55';
-import { mulberry32 } from '../util/math.js?v=55';
-import { aiStep } from './ai.js?v=55';
+} from '../config/factions.js?v=56';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=56';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=56';
+import { mulberry32 } from '../util/math.js?v=56';
+import { aiStep } from './ai.js?v=56';
 
 let S = null;
 export const getSim = () => S;
@@ -27,7 +27,7 @@ function mkPlayer(i, f, side) {
 // diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
 export function newSim(pf, seed = 12345, diff = 1) {
   if (S) for (const b of S.blds) markCircle(b.x, b.z, b.r, -1); // free old building cells
-  const af = pf === 'bw' ? 'ac' : 'bw';
+  const others = Object.keys(FACTIONS).filter((k) => k !== pf), af = others[seed % others.length]; // random opponent
   S = {
     t: 0, nid: 1, rng: mulberry32(seed),
     players: [mkPlayer(0, pf, 1), mkPlayer(1, af, -1)],
@@ -64,7 +64,8 @@ const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.i
 
 function addBld(p, kind, x, z, done) {
   const d = BLD[kind];
-  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: d.hp, hp: done ? d.hp : d.hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false, rally: null, garrison: null };
+  const hp = d.hp * ((fac(p).traits && fac(p).traits.bldHp) || 1);
+  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: hp, hp: done ? hp : hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false, rally: null, garrison: null };
   S.blds.push(b);
   markCircle(x, z, d.r, 1);
   return b;
@@ -128,6 +129,8 @@ export const A = {
     if (pw.id === 'pie') { const h = S.squads.find((o) => o.owner !== p.i && o.slot === 'hero'); h.stun = 15; S.events.push({ k: 'pie', x: h.x, z: h.z }); }
     else if (pw.id === 'parade') { p.parade = 15; S.events.push({ k: 'parade', owner: p.i }); }
     else if (pw.id === 'mud') { S.zones.push({ id: S.nid++, kind: 'mud', owner: p.i, x, z, r: 8, t: 10 }); S.events.push({ k: 'mud', x, z }); }
+    else if (pw.id === 'cones') { S.zones.push({ id: S.nid++, kind: 'cones', owner: p.i, x, z, r: 7, t: 12 }); S.events.push({ k: 'cones', x, z, r: 7 }); }
+    else if (pw.id === 'wreck') { S.pending.push({ id: S.nid++, kind: 'wreck', owner: p.i, x, z, r: 5, t: 1.4 }); S.events.push({ k: 'wrecklaunch', x, z, owner: p.i }); }
     else if (pw.id === 'fireworks') { S.pending.push({ id: S.nid++, kind: 'fireworks', owner: p.i, x, z, r: 7, t: 1.8 }); S.events.push({ k: 'fwlaunch', x, z, owner: p.i }); }
     p.meter -= pw.cost; return true;
   },
@@ -257,7 +260,7 @@ function nearestEnemy(s, maxD) {
 }
 function speedMult(s) {
   let m = 1;
-  for (const z of S.zones) if (z.kind === 'mud' && z.owner !== s.owner && !s.def.flies && Math.hypot(z.x - s.x, z.z - s.z) < z.r) m *= 0.5;
+  for (const z of S.zones) if ((z.kind === 'mud' || z.kind === 'cones') && z.owner !== s.owner && !s.def.flies && Math.hypot(z.x - s.x, z.z - s.z) < z.r) m *= z.kind === 'mud' ? 0.5 : 0.35; // Road Closed: enemies squeeze through the cones
   if (pl(s.owner).parade > 0) m *= 1.3;
   if (s.bull > 0) m *= 1.25;
   return m;
@@ -426,6 +429,10 @@ function resolvePending(pd) {
     for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) hitSquad(o, 60, true, null, 99);
     for (const b of [...S.blds]) if (b.owner !== pd.owner && Math.hypot(b.x - pd.x, b.z - pd.z) < pd.r + b.r) hitBld(b, 300);
     S.events.push({ k: 'fwboom', x: pd.x, z: pd.z, r: pd.r });
+  } else if (pd.kind === 'wreck') {
+    for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) { hitSquad(o, 80, true, null, 99); o.stun = Math.max(o.stun, 1.5); }
+    for (const b of [...S.blds]) if (b.owner !== pd.owner && Math.hypot(b.x - pd.x, b.z - pd.z) < pd.r + b.r) hitBld(b, 450);
+    S.events.push({ k: 'wreckboom', x: pd.x, z: pd.z, r: pd.r });
   }
 }
 export const rallyPoint = (p) => [p.hqx, p.hqz - p.side * 20];
@@ -445,7 +452,7 @@ export function step() {
     if (b.dead) continue;
     const p = pl(b.owner);
     if (b.built < 1) {
-      const bt = BLD[b.kind].build;
+      const bt = BLD[b.kind].build / ((fac(p).traits && fac(p).traits.buildMul) || 1);
       b.built = Math.min(1, b.built + dt / bt); b.hp = Math.min(b.maxHp, b.hp + (b.maxHp * 0.9 * dt) / bt);
       if (b.built >= 1) { S.events.push({ k: 'done', x: b.x, z: b.z }); pl(b.owner).st.built++; }
       continue;

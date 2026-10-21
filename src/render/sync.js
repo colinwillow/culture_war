@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=55';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=55';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=55';
-import { emit } from '../fx/particles.js?v=55';
-import { TICK } from '../config/factions.js?v=55';
-import { walkH } from '../map/layout.js?v=55';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=55';
-import { Q, pl } from '../sim/sim.js?v=55';
-import { UI } from '../ui/state.js?v=55';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=55';
-import { lerpAngle } from '../util/math.js?v=55';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=56';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=56';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=56';
+import { emit } from '../fx/particles.js?v=56';
+import { TICK } from '../config/factions.js?v=56';
+import { walkH } from '../map/layout.js?v=56';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=56';
+import { Q, pl } from '../sim/sim.js?v=56';
+import { UI } from '../ui/state.js?v=56';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=56';
+import { lerpAngle } from '../util/math.js?v=56';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -454,13 +454,15 @@ export function syncRender(S, alpha, dt, time) {
     let m = R.zones.get(zn.id);
     if (!m) {
       m = new THREE.Group();
-      const d = new THREE.Mesh(new THREE.CircleGeometry(zn.r, 40), basic(0x5b4026, 0.85)); d.rotation.x = -Math.PI / 2; d.position.y = 0.11; m.add(d);
-      for (let i = 0; i < 10; i++) { const a = Math.random() * 6.28, rr = Math.random() * zn.r * 0.8; const bl = new THREE.Mesh(new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 7, 5), mat(0x4a331d)); bl.scale.y = 0.4; bl.position.set(Math.cos(a) * rr, 0.12, Math.sin(a) * rr); m.add(bl); }
+      const cones = zn.kind === 'cones';
+      const d = new THREE.Mesh(new THREE.CircleGeometry(zn.r, 40), basic(cones ? 0xf28c28 : 0x5b4026, cones ? 0.18 : 0.85)); d.rotation.x = -Math.PI / 2; d.position.y = 0.11; m.add(d);
+      if (cones) for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, c = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.75, 8), mat(i % 2 ? 0xf28c28 : 0xffffff)); c.position.set(Math.cos(a) * zn.r, 0.38, Math.sin(a) * zn.r); m.add(c); }
+      else for (let i = 0; i < 10; i++) { const a = Math.random() * 6.28, rr = Math.random() * zn.r * 0.8; const bl = new THREE.Mesh(new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 7, 5), mat(0x4a331d)); bl.scale.y = 0.4; bl.position.set(Math.cos(a) * rr, 0.12, Math.sin(a) * rr); m.add(bl); }
       m.position.set(zn.x, walkH(zn.x, zn.z), zn.z); scene.add(m); R.zones.set(zn.id, m);
     }
     m.children[0].material.opacity = Math.min(0.85, zn.t);
     // Mud bubbles: blobs well up all over the bog and pop.
-    if (Math.random() < dt * zn.r * 2.2) {
+    if (zn.kind === 'mud' && Math.random() < dt * zn.r * 2.2) {
       const a = Math.random() * 6.28, rr = Math.sqrt(Math.random()) * zn.r * 0.9, bx = zn.x + Math.cos(a) * rr, bz = zn.z + Math.sin(a) * rr;
       emit({ x: bx, y: walkH(bx, bz) + 0.15, z: bz, vy: 0.5 + Math.random() * 0.4, c: Math.random() < 0.5 ? 0x5b4026 : 0x7a5a3a, s: 0.35, life: 0.6, g: 0, grow: 1.9 });
       if (Math.random() < 0.3) for (let k = 0; k < 3; k++) emit({ x: bx, y: walkH(bx, bz) + 0.3, z: bz, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: 0x4a331d, s: 0.14, life: 0.5, g: 14 });

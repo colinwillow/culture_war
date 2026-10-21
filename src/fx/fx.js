@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=55';
-import { walkH } from '../map/layout.js?v=55';
-import { shake } from '../camera/camera.js?v=55';
-import { FC } from '../render/models.js?v=55';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=55';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=56';
+import { walkH } from '../map/layout.js?v=56';
+import { shake } from '../camera/camera.js?v=56';
+import { FC } from '../render/models.js?v=56';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=56';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -235,6 +235,9 @@ export function handleEvents(S, bump) {
       case 'enter': fxRing(ev.x, ev.z, 0.5, 3, 0x7fd1ff, 0.4, 4.6); break;
       case 'eject': fxRing(ev.x, ev.z, 0.4, 2.5, 0x7fd1ff, 0.4); break;
       case 'repair': for (let k = 0; k < 5; k++) emit({ x: ev.x, y: gy(ev.x, ev.z, 1.2 + Math.random()), z: ev.z, vx: (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 4, c: k % 2 ? 0xffe14d : 0xffffff, s: 0.12, life: 0.35, g: 14 }); break;
+      case 'cones': fxRing(ev.x, ev.z, 0.5, ev.r, 0xf28c28, 0.5, 0.15); fxBits(ev.x, ev.z, 0xf28c28, 10, 0.5, 6); break;
+      case 'wrecklaunch': break;
+      case 'wreckboom': fxRing(ev.x, ev.z, 1, ev.r * 1.6, 0x8a8378, 0.6); fxBits(ev.x, ev.z, 0x6b655c, 14, 1, 8); shake(1.4, ev.x, ev.z); break;
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;
