@@ -1,14 +1,14 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js';
-import { makeChar, charsReady, play, CAST } from './chars.js';
-import { TICK } from '../config/factions.js';
-import { walkH } from '../map/layout.js';
-import { NODE_AMOUNT, BLD } from '../config/factions.js';
-import { Q, pl } from '../sim/sim.js';
-import { UI } from '../ui/state.js';
-import { fxConfetti, fxDeath } from '../fx/fx.js';
-import { lerpAngle } from '../util/math.js';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=1';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=1';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=1';
+import { TICK } from '../config/factions.js?v=1';
+import { walkH } from '../map/layout.js?v=1';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=1';
+import { Q, pl } from '../sim/sim.js?v=1';
+import { UI } from '../ui/state.js?v=1';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=1';
+import { lerpAngle } from '../util/math.js?v=1';
 
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 

@@ -13,7 +13,11 @@ most help on game logic. Full design: `docs/design.md`. History of decisions and
 unbuilt in a browser: `three` and its addons resolve through the import map in `index.html` to `vendor/three/`
 (copied from node_modules, three 0.160), CSS is a `<link>`, and nothing may use `import.meta.env` or import CSS/JSON
 from JS. Assets (`models/`, `draco/`) sit at the repo root and are fetched relative to the page. New three addon =
-copy it into `vendor/three/jsm/` too. Push to `main` = live on his phone (allow ~10 min for Pages cache).
+copy it into `vendor/three/jsm/` too. Push to `main` = live on his phone.
+**Run `npm run bump` before EVERY push.** It raises `version.json`'s build, stamps `?v=N` on every relative
+script/CSS URL, and writes `B<N>` on the menu title. Without it iOS Safari runs the new `index.html` against cached
+OLD modules (seen: dead team buttons, then "ERROR could not load src/main.js"). Boot errors print in a red box on the
+menu (`#bootErr`), because a phone has no console; ask him for a screenshot of it.
 ```
 npm install
 npm run dev            # vite --host, open on phone over LAN

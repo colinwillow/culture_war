@@ -7,7 +7,8 @@
     "dev": "vite --host",
     "build": "vite build",
     "build:artifact": "vite build --mode artifact",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "bump": "node tools/bump.mjs"
   },
   "dependencies": {
     "three": "0.160.0"
