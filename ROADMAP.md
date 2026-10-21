@@ -96,3 +96,11 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B79) Map: Street Crew base dressing — basketball court lines, a parked boombox and graffiti-tagged dumpsters round their HQ
 - [x] (B80) Units: hero entrance — when a hero is trained, a short spotlight + faction flourish (eagle cry / bullhorn / whistle / jet / record scratch)
 - [x] (B81) Logic: Hard Hats + Street Crew balance — after B76 they win 8/24 and 7/24 in tools/balance.cjs; nudge toward mid-pack without touching starting cash much
+
+## Batch 9 (added 12:52 UTC by the loop, same rules)
+- [ ] Logic: AI garrisons its towers — when a fight comes near one of its towers, the AI sends its nearest ranged squad in
+- [ ] Map: time of day — the match slowly drifts from morning light to golden hour; street lamps and windows glow as it gets late
+- [ ] Logic: King of the Hill mode (sim) — a hill zone in the central park; holding it alone fills your bar, first to full wins; mode toggle on the menu (Versus / Hill)
+- [ ] UI: King of the Hill visuals — glowing ring that tints to the holder and flickers when contested, two progress bars in the HUD, AI goes for the hill
+- [ ] Logic: NERDS faction data (Tech) — LARPers, cosplay knights, drone pilots (ranged), segway cav, giant mech-suit siege, the Streamer hero; powers Wi-Fi Outage (enemy stun) + Patch Notes (army buff)
+- [ ] Units + Map: Nerds cast + placeholders, buildings (game shop HQ, server rack depot, LAN cafe barracks, antenna tower) + menu card + power visuals
