@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=30';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=30';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=30';
-import { emit } from '../fx/particles.js?v=30';
-import { TICK } from '../config/factions.js?v=30';
-import { walkH } from '../map/layout.js?v=30';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=30';
-import { Q, pl } from '../sim/sim.js?v=30';
-import { UI } from '../ui/state.js?v=30';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=30';
-import { lerpAngle } from '../util/math.js?v=30';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=31';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=31';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=31';
+import { emit } from '../fx/particles.js?v=31';
+import { TICK } from '../config/factions.js?v=31';
+import { walkH } from '../map/layout.js?v=31';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=31';
+import { Q, pl } from '../sim/sim.js?v=31';
+import { UI } from '../ui/state.js?v=31';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=31';
+import { lerpAngle } from '../util/math.js?v=31';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -85,7 +85,7 @@ function makeNodeObj(n) {
   return { g, ring, coin: g.userData.coin, flag: g.userData.flag, awning: g.userData.awning };
 }
 
-export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
+export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; o.lastAtk = 0; } }
 export function squadObj(id) { return R.sq.get(id); }
 const ud0 = (m) => m.userData;
 /** Idle fidgets for box people standing still: look around, stretch both arms up, or scratch the head. */
@@ -235,6 +235,24 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (o.lunge > 0) o.lunge = Math.max(0, o.lunge - dt);
     if (o.ack > 0) o.ack -= dt;
+    // Victory: a squad that was just fighting and has no enemy left within 12 m celebrates - three hops, then
+    // Activists throw confetti and Backwoods toss their hats in the air.
+    if (o.lastAtk !== undefined) {
+      o.lastAtk += dt;
+      if (o.lastAtk > 1.6 && s.slot !== 'worker' && !s.def.vehicle) {
+        o.lastAtk = undefined;
+        if (!S.squads.some((e) => e.owner !== s.owner && !e.gar && Math.hypot(e.x - s.x, e.z - s.z) < 12)) o.cheer = 1.4;
+      }
+    }
+    if (o.cheer > 0) {
+      const before = o.cheer; o.cheer -= dt;
+      for (const t of [1.4, 0.95, 0.5]) if (before > t - 0.0001 && o.cheer <= t) o.ack = 0.45; // a hop on each beat
+      if (before >= 1.4 - 1e-4) for (const m of o.members) if (m.visible) {
+        m.getWorldPosition(_wp);
+        if (s.f === 'ac') for (let k = 0; k < 6; k++) emit({ x: _wp.x, y: _wp.y + 1.8, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 4 + Math.random() * 3, vz: (Math.random() - 0.5) * 3, c: [0xff5a4f, 0xf5b83a, 0x7ee05b, 0x6fc3ff, 0xe85d9a][k % 5], s: 0.16, life: 1.8, g: 5, drag: 1.5 });
+        else emit({ x: _wp.x, y: _wp.y + 1.8, z: _wp.z, vx: (Math.random() - 0.5) * 1.5, vy: 7 + Math.random() * 2, vz: (Math.random() - 0.5) * 1.5, c: Math.random() < 0.5 ? 0xc62f2f : 0x6b4a2a, s: 0.32, life: 1.4, g: 12, floor: walkH(_wp.x, _wp.z) + 0.1 });
+      }
+    }
     if (alive < o.lastAlive) for (let k = 0; k < o.lastAlive - alive; k++) fxDeath(x, z, s.f);
     o.lastAlive = alive;
     o.sel.visible = selIds.has(s.id);
