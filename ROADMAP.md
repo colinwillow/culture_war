@@ -120,3 +120,9 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B100) Logic: Resource Race mode — third mode button (coin icon); first to earn 2500 wins; HUD bars like the hill
 - [x] (B101) FX: faction death flourishes — Old Money drops bills, Nerds lose their glasses, Street Crew a sneaker, Hard Hats a hard hat bounces
 - [x] (B102) Map: pedestrians — a few render-only civilians walk the sidewalks and run away from fights
+
+## Batch 12 (added 13:42 UTC by the loop, same rules)
+- [ ] UI: pause screen home button — a big round home icon on the pause dim quits the match to the menu
+- [ ] Units: Street Crew + Nerds worker kit — Hustler carries a shoebox that fills with cash, Tech Support a laptop bag that bulges
+- [ ] FX: victory dance — when the match ends, the winner's surviving real characters dance (moussa's clips) and the loser's slump
+- [ ] Docs: overnight wrap-up — CLAUDE.md current state + a short "what happened overnight" note at the top of docs/decisions.md
