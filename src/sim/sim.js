@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=37';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=37';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=37';
-import { mulberry32 } from '../util/math.js?v=37';
-import { aiStep } from './ai.js?v=37';
+} from '../config/factions.js?v=38';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=38';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=38';
+import { mulberry32 } from '../util/math.js?v=38';
+import { aiStep } from './ai.js?v=38';
 
 let S = null;
 export const getSim = () => S;
@@ -223,7 +223,7 @@ function hitSquad(t, dmg, area, attacker, cap = 5) {
 function killSquad(t) {
   t.dead = true;
   const i = S.squads.indexOf(t); if (i >= 0) S.squads.splice(i, 1);
-  if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); pl(t.owner).st.earned += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner }); }
+  if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); pl(t.owner).st.earned += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner, slot: t.slot, h: t.heading }); }
 }
 function hitBld(b, d) {
   if (b.dead) return;

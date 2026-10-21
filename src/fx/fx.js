@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=37';
-import { walkH } from '../map/layout.js?v=37';
-import { shake } from '../camera/camera.js?v=37';
-import { FC } from '../render/models.js?v=37';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=37';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=38';
+import { walkH } from '../map/layout.js?v=38';
+import { shake } from '../camera/camera.js?v=38';
+import { FC } from '../render/models.js?v=38';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=38';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -114,6 +114,30 @@ function fxFireworks(x, z, r) {
   for (let i = 0; i < 34; i++) { const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 7; fxSpark(x, 3, z, CONF[i % CONF.length], new THREE.Vector3(Math.cos(a) * s, 4 + Math.random() * 5, Math.sin(a) * s), 1.1); }
 }
 /** Order marker: ring closes in, four chevrons slide onto the spot, an arrow bounces down onto it. */
+/** Junkyard: a dead Backwoods vehicle leaves a charred, tilted husk with its wheels off, smoking for ~20 s, then sinks. */
+function fxWreck(x, z, big, h) {
+  const g = new THREE.Group(), g0 = gy(x, z), s = big ? 1 : 0.65;
+  const body = new THREE.Group(); body.rotation.set(0.12, 0, big ? 0.35 : -0.25); g.add(body);
+  body.add(new THREE.Mesh(new THREE.BoxGeometry(1.8 * s, 0.7 * s, 2.6 * s), mat(0x2b2724)));
+  if (big) { const cab = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.5, 1.1), mat(0x1c1a18)); cab.position.set(0, 0.55, -0.3); cab.rotation.z = 0.2; body.add(cab); }
+  body.position.y = 0.45 * s;
+  for (let i = 0; i < 4; i++) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.75 * s, 0.75 * s, 0.5 * s, 12), mat(0x161616));
+    const a = i * 1.57 + Math.random() * 0.6, d = (1.6 + Math.random()) * s;
+    w.position.set(Math.cos(a) * d, 0.25 * s, Math.sin(a) * d); w.rotation.set(Math.random() < 0.6 ? 0 : 1.57, Math.random() * 3, Math.random() < 0.6 ? 1.57 : 0);
+    g.add(w);
+  }
+  g.position.set(x, g0, z); g.rotation.y = h;
+  let puff = 0;
+  addFx(g, 22, (o, k, dt) => {
+    if (k > 0.9) o.position.y = g0 - ((k - 0.9) / 0.1) * 1.5;
+    if ((puff -= dt) <= 0 && k < 0.85) {
+      puff = 0.25 + k * 0.6;
+      emit({ x: x + (Math.random() - 0.5) * s, y: g0 + 0.9 * s, z: z + (Math.random() - 0.5) * s, vx: (Math.random() - 0.5) * 0.4 + 0.3, vy: 1.1 + Math.random() * 0.5, vz: (Math.random() - 0.5) * 0.4, c: Math.random() < 0.6 ? 0x3a3a3a : 0x555555, s: 0.5 * s + 0.2, life: 2, g: -0.3, drag: 0.8, grow: 3 });
+      if (k < 0.3 && Math.random() < 0.5) emit({ x, y: g0 + 0.8 * s, z, vx: (Math.random() - 0.5), vy: 1.5 + Math.random(), vz: (Math.random() - 0.5), c: Math.random() < 0.5 ? 0xff7a1c : 0xffc23a, s: 0.3, life: 0.5, g: -1 });
+    }
+  });
+}
 /** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
 function fxRubble(x, z, r) {
   const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
@@ -167,7 +191,7 @@ export function handleEvents(S, bump) {
         bump(ev.id); break;
       case 'boom': shake(1.6, ev.x, ev.z); fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
-      case 'scrap': fxBits(ev.x, ev.z, 0x9a9a9a, 6, 1, 5); fxCoin(ev.x, 2, ev.z); break;
+      case 'scrap': fxBits(ev.x, ev.z, 0x9a9a9a, 6, 1, 5); fxCoin(ev.x, 2, ev.z); fxWreck(ev.x, ev.z, ev.slot === 'cav', ev.h || 0); break;
       case 'income': if (ev.owner === 0) for (const b of S.blds) if (b.owner === 0 && b.kind === 'depot' && b.built >= 1) fxCoin(b.x, 3.2, b.z); break;
       case 'refund': if (ev.owner === 0) { burstCoins(ev.x, gy(ev.x, ev.z, 3), ev.z, gy(ev.x, ev.z)); fxCoin(ev.x, 3.5, ev.z); } break;
       case 'heal': for (let k = 0; k < 4; k++) emit({ x: ev.x + (Math.random() - 0.5) * 2, y: gy(ev.x, ev.z, 0.5), z: ev.z + (Math.random() - 0.5) * 2, vy: 1.5 + Math.random(), c: k % 2 ? 0x7ee05b : 0xd6ffcf, s: 0.22, life: 0.9, g: -0.5 }); break;

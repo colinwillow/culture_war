@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=37';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=37';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=37';
-import { emit } from '../fx/particles.js?v=37';
-import { TICK } from '../config/factions.js?v=37';
-import { walkH } from '../map/layout.js?v=37';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=37';
-import { Q, pl } from '../sim/sim.js?v=37';
-import { UI } from '../ui/state.js?v=37';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=37';
-import { lerpAngle } from '../util/math.js?v=37';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=38';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=38';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=38';
+import { emit } from '../fx/particles.js?v=38';
+import { TICK } from '../config/factions.js?v=38';
+import { walkH } from '../map/layout.js?v=38';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=38';
+import { Q, pl } from '../sim/sim.js?v=38';
+import { UI } from '../ui/state.js?v=38';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=38';
+import { lerpAngle } from '../util/math.js?v=38';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
