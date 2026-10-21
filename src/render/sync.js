@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=28';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=28';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=28';
-import { emit } from '../fx/particles.js?v=28';
-import { TICK } from '../config/factions.js?v=28';
-import { walkH } from '../map/layout.js?v=28';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=28';
-import { Q, pl } from '../sim/sim.js?v=28';
-import { UI } from '../ui/state.js?v=28';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=28';
-import { lerpAngle } from '../util/math.js?v=28';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=29';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=29';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=29';
+import { emit } from '../fx/particles.js?v=29';
+import { TICK } from '../config/factions.js?v=29';
+import { walkH } from '../map/layout.js?v=29';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=29';
+import { Q, pl } from '../sim/sim.js?v=29';
+import { UI } from '../ui/state.js?v=29';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=29';
+import { lerpAngle } from '../util/math.js?v=29';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -60,8 +60,11 @@ function makeBldObj(b) {
   const pips = new THREE.Group(); pips.position.set(0, b.kind === 'barracks' ? 3 : 0, 0);
   if (b.kind === 'barracks') for (let i = 0; i < 3; i++) pips.add(box(0.4, 0.4, 0.4, 0xf5b83a, (i - 1) * 0.6, 0, 0));
   root.add(pips);
-  const scaff = new THREE.Mesh(new THREE.BoxGeometry(b.r * 1.8, 2.8, b.r * 1.8), new THREE.MeshBasicMaterial({ color: 0xf2c232, wireframe: true }));
-  scaff.position.y = 1.4; root.add(scaff);
+  // Scaffolding: four yellow poles and plank rings, built as a unit-tall frame that sync.js stretches up with progress.
+  const scaff = new THREE.Group(), sw = b.r * 1.9, half = sw / 2;
+  for (const x of [-half, half]) for (const z of [-half, half]) scaff.add(box(0.12, 1, 0.12, 0xf2c232, x, 0.5, z));
+  for (const y of [0.33, 0.66, 1]) { scaff.add(box(sw, 0.06, 0.25, 0xc9a24a, 0, y, half), box(sw, 0.06, 0.25, 0xc9a24a, 0, y, -half), box(0.25, 0.06, sw, 0xc9a24a, half, y, 0), box(0.25, 0.06, sw, 0xc9a24a, -half, y, 0)); }
+  root.add(scaff);
   const sel = ringMesh(b.r + 0.3, b.r + 0.6, 0xffffff, 0.95); sel.visible = false; root.add(sel);
   const team = new THREE.Mesh(new THREE.CircleGeometry(b.r + 0.2, 32), basic(b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.2));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.07; root.add(team);
@@ -70,7 +73,7 @@ function makeBldObj(b) {
   root.position.set(b.x, walkH(b.x, b.z), b.z);
   if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
   scene.add(root);
-  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar, h, r: b.r, smokeT: 0 };
+  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar, h, r: b.r, smokeT: 0, buildFx: 0, wasBuilt: b.built >= 1, scaffDrop: b.built >= 1 ? 1 : 0 };
 }
 function makeNodeObj(n) {
   const g = nodeMesh();
@@ -274,7 +277,27 @@ export function syncRender(S, alpha, dt, time) {
     seenB.add(b.id);
     let o = R.bl.get(b.id);
     if (!o) { o = makeBldObj(b); R.bl.set(b.id, o); }
-    o.mesh.scale.y = 0.25 + 0.75 * b.built; o.scaff.visible = b.built < 1;
+    o.mesh.scale.y = 0.25 + 0.75 * b.built;
+    // Construction: scaffold climbs ahead of the walls, crates lob in from the ground, hammer sparks flash on top.
+    if (b.built < 1) {
+      o.scaff.visible = true; o.scaff.scale.y = Math.max(0.5, o.h * (0.35 + 0.75 * b.built)); o.scaff.position.y = 0;
+      o.buildFx -= dt;
+      if (o.buildFx <= 0) {
+        o.buildFx = 0.18 + Math.random() * 0.2;
+        const top = o.root.position.y + o.h * (0.25 + 0.75 * b.built);
+        const a = Math.random() * 6.28, sx = b.x + Math.cos(a) * b.r, sz = b.z + Math.sin(a) * b.r;
+        for (let k = 0; k < 3; k++) emit({ x: sx, y: top, z: sz, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: k ? 0xffe14d : 0xffffff, s: 0.12, life: 0.35, g: 14 });
+        if (Math.random() < 0.35) { const ca = Math.random() * 6.28, cx = b.x + Math.cos(ca) * (b.r + 4), cz = b.z + Math.sin(ca) * (b.r + 4), T = 0.7;
+          emit({ x: cx, y: walkH(cx, cz) + 0.3, z: cz, vx: (b.x - cx) / T, vy: (top - walkH(cx, cz)) / T + 7 * T, vz: (b.z - cz) / T, c: 0x9a6a3a, s: 0.55, life: T, g: 14 }); }
+      }
+    } else if (!o.wasBuilt) { o.wasBuilt = true; o.scaffDrop = 0.0001; }
+    // Finished: the scaffold drops through the ground in a puff of dust and is gone.
+    if (o.scaffDrop > 0 && o.scaffDrop < 1) {
+      o.scaffDrop = Math.min(1, o.scaffDrop + dt / 0.7);
+      o.scaff.position.y = -o.scaff.scale.y * o.scaffDrop * o.scaffDrop;
+      if (Math.random() < dt * 25) { const a = Math.random() * 6.28; emit({ x: b.x + Math.cos(a) * b.r, y: o.root.position.y + 0.3, z: b.z + Math.sin(a) * b.r, vx: Math.cos(a) * 2, vy: 1, vz: Math.sin(a) * 2, c: 0xc2b28e, s: 0.5, life: 0.8, g: -0.2, drag: 2, grow: 2.4 }); }
+    }
+    if (b.built >= 1 && o.scaffDrop >= 1) o.scaff.visible = false;
     if (o.coin) o.coin.rotation.z += dt * 2.5;
     o.pips.children.forEach((p, i) => { p.visible = i < b.level || (b.up > 0 && i === b.level && Math.sin(time * 10) > 0); });
     o.sel.visible = !!(UI.sel && UI.sel.type === 'bld' && UI.sel.id === b.id);
