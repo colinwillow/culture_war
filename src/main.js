@@ -1,19 +1,20 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=27';
-import { buildWorld, updateWorld } from './render/world.js?v=27';
-import { syncRender, clearRender, bump } from './render/sync.js?v=27';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=27';
-import { newSim, getSim, step } from './sim/sim.js?v=27';
-import { TICK } from './config/factions.js?v=27';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=27';
-import { initInput, lockPageZoom } from './input/input.js?v=27';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=27';
-import { resetUI } from './ui/state.js?v=27';
-import { fillIcons, svg } from './ui/icons.js?v=27';
-import { updateMinimap } from './ui/minimap.js?v=27';
-import { loadChars } from './render/chars.js?v=27';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=28';
+import { buildWorld, updateWorld } from './render/world.js?v=28';
+import { syncRender, clearRender, bump } from './render/sync.js?v=28';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=28';
+import { newSim, getSim, step } from './sim/sim.js?v=28';
+import { TICK } from './config/factions.js?v=28';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=28';
+import { initInput, lockPageZoom } from './input/input.js?v=28';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=28';
+import { resetUI } from './ui/state.js?v=28';
+import { fillIcons, svg } from './ui/icons.js?v=28';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=28';
+import { updateMinimap } from './ui/minimap.js?v=28';
+import { loadChars } from './render/chars.js?v=28';
 
-export const BUILD = 27; // written by `npm run bump`
+export const BUILD = 28; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -34,7 +35,7 @@ resetCam();
 const menu = document.getElementById('menu'), endEl = document.getElementById('end');
 let running = false;
 function start(f) {
-  clearRender(); clearFx();
+  clearRender(); clearFx(); clearAlert();
   newSim(f, (Date.now() & 0xffffff) + 1);
   resetUI(); resetHUD();
   menu.hidden = true; endEl.hidden = true; running = true;
@@ -54,7 +55,7 @@ function frame(now) {
     while (acc >= TICK && n < 4) { step(); acc -= TICK; n++; }
     if (acc > TICK) acc = 0;
   }
-  if (S) { handleEvents(S, bump); syncRender(S, Math.min(1, acc / TICK), dt, time); }
+  if (S) { noteAlerts(S); handleEvents(S, bump); syncRender(S, Math.min(1, acc / TICK), dt, time); }
   updateFx(dt);
   updateWorld(dt, S);
   if (S && S.over && running) {
@@ -73,7 +74,7 @@ function frame(now) {
   if (hudT <= 0) { hudT = 0.15; refreshHUD(); }
   applyCam(dt);
   followSun(CAM.tx, CAM.tz);
-  if (S && running) updateMinimap(dt);
+  if (S && running) { updateMinimap(dt); updateAlert(dt); }
   updatePlaceBar();
   renderer.render(scene, camera);
   requestAnimationFrame(frame);

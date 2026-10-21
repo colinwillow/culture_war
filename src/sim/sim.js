@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=27';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=27';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=27';
-import { mulberry32 } from '../util/math.js?v=27';
-import { aiStep } from './ai.js?v=27';
+} from '../config/factions.js?v=28';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=28';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=28';
+import { mulberry32 } from '../util/math.js?v=28';
+import { aiStep } from './ai.js?v=28';
 
 let S = null;
 export const getSim = () => S;
@@ -241,7 +241,7 @@ function attack(s, t) {
   else { total = ph * n; hitSquad(t, total, false, s); }
   if (!t.isBld && s.f === 'ac' && s.slot === 'ranged') t.debuff = 5;
   const p = pl(s.owner); p.meter = Math.min(100, p.meter + total / 15);
-  S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot });
+  S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot, to: t.owner });
 }
 function nearestEnemy(s, maxD) {
   let best = null, bd = maxD;

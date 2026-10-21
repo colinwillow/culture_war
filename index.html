@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
-<link rel="stylesheet" href="./src/ui/style.css?v=27">
+<link rel="stylesheet" href="./src/ui/style.css?v=28">
 <!-- No build step needed: GitHub Pages serves this file straight from main, so bare 'three' imports resolve here. -->
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.min.js", "three/examples/jsm/": "./vendor/three/jsm/" } }
@@ -20,6 +20,7 @@
   <div class="chip meter"><i id="meterFill"></i><span class="ic" data-i="star"></span></div>
 </div>
 <canvas id="mini"></canvas>
+<button type="button" id="alert" aria-label="Under attack" hidden></button>
 <div id="placeBar" hidden>
   <button type="button" class="btn noCost ok" id="placeOk" aria-label="Place building"><span class="ic" data-i="check"></span></button>
   <button type="button" class="btn noCost close" id="placeNo" aria-label="Cancel"><span class="ic" data-i="x"></span></button>
@@ -28,7 +29,7 @@
 <div id="dock"><div id="queue"></div><div id="panel"></div><div id="cmd"></div></div>
 <div id="box"></div>
 <div id="menu" class="overlay">
-  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B27</b></span></h1>
+  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B28</b></span></h1>
   <div class="picks">
     <button class="pick" data-f="bw" type="button"><span class="ic" data-i="truck"></span>Backwoods<small>FEWER · TOUGHER</small></button>
     <button class="pick" data-f="ac" type="button"><span class="ic" data-i="megaphone"></span>Activists<small>MORE · FASTER</small></button>
@@ -51,6 +52,6 @@
   setTimeout(function () { if (!window.__cwBooted) show('Game script did not start (old cached file? wait a few minutes and reload)'); }, 8000);
 })();
 </script>
-<script type="module" src="./src/main.js?v=27" onerror="__cwLoadFail()"></script>
+<script type="module" src="./src/main.js?v=28" onerror="__cwLoadFail()"></script>
 </body>
 </html>
