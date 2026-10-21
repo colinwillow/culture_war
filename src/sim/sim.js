@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=10';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=10';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=10';
-import { mulberry32 } from '../util/math.js?v=10';
-import { aiStep } from './ai.js?v=10';
+} from '../config/factions.js?v=11';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=11';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=11';
+import { mulberry32 } from '../util/math.js?v=11';
+import { aiStep } from './ai.js?v=11';
 
 let S = null;
 export const getSim = () => S;
@@ -62,7 +62,7 @@ const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.i
 
 function addBld(p, kind, x, z, done) {
   const d = BLD[kind];
-  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: d.hp, hp: done ? d.hp : d.hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false };
+  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: d.hp, hp: done ? d.hp : d.hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false, rally: null };
   S.blds.push(b);
   markCircle(x, z, d.r, 1);
   return b;
@@ -152,6 +152,7 @@ function applyCmd(c) {
     case 'upgrade': { const b = byId(c.id); if (b && b.owner === p.i) A.upgrade(p, b); break; }
     case 'train': { const b = byId(c.id); if (b && b.owner === p.i) A.train(p, b, c.slot); break; }
     case 'power': A.power(p, c.idx, c.x, c.z); break;
+    case 'rally': { const b = byId(c.id); if (b && b.owner === p.i && (b.kind === 'barracks' || b.kind === 'hq')) { const [rx, rz] = nearestFree(c.x, c.z); b.rally = { x: rx, z: rz }; } break; }
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -404,7 +405,11 @@ export function step() {
         const [sx, sz] = nearestFree(b.x + (S.rng() - 0.5) * 2, b.z - p.side * (b.r + 1.4));
         const s = spawnSquad(p, slot, sx, sz);
         if (slot === 'worker') s.task = { state: 'find' };
-        else { const [rx, rz] = rallyPoint(p); const [fx, fz] = nearestFree(rx + (S.rng() - 0.5) * 12, rz + (S.rng() - 0.5) * 6); setOrder(s, { type: 'move', x: fx, z: fz }); }
+        else {
+          // A building's own rally flag wins (tight cluster round it); otherwise the default muster in front of the HQ.
+          const rp = b.rally, [rx, rz] = rp ? [rp.x, rp.z] : rallyPoint(p), jx = rp ? 3 : 12, jz = rp ? 3 : 6;
+          const [fx, fz] = nearestFree(rx + (S.rng() - 0.5) * jx, rz + (S.rng() - 0.5) * jz); setOrder(s, { type: 'move', x: fx, z: fz });
+        }
         S.events.push({ k: 'spawn', x: sx, z: sz });
       }
     }

@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=10';
-import { walkH } from '../map/layout.js?v=10';
-import { getSim, command } from '../sim/sim.js?v=10';
-import { UI, select, selSquads } from '../ui/state.js?v=10';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=10';
-import { fxMarker } from '../fx/fx.js?v=10';
-import { ack } from '../render/sync.js?v=10';
+import { THREE, camera, canvas } from '../render/scene.js?v=11';
+import { walkH } from '../map/layout.js?v=11';
+import { getSim, command } from '../sim/sim.js?v=11';
+import { UI, select, selSquads } from '../ui/state.js?v=11';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=11';
+import { fxMarker } from '../fx/fx.js?v=11';
+import { ack } from '../render/sync.js?v=11';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -61,6 +61,9 @@ function onTap(cx, cy) {
   const ob = pickBld(S, g, 0);
   if (ob) { select({ type: 'bld', id: ob.id }); return; }
   if (sel.length) { command(0, { type: 'move', ids, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x9dff78); ack(ids); return; }
+  // A production building is selected and the ground was tapped: plant its rally flag there (selection stays).
+  const sb = UI.sel && UI.sel.type === 'bld' && S.blds.find((b) => b.id === UI.sel.id);
+  if (sb && sb.owner === 0 && (sb.kind === 'barracks' || sb.kind === 'hq')) { command(0, { type: 'rally', id: sb.id, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x7fd1ff); return; }
   select(null);
 }
 

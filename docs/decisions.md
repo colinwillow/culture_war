@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B11 (overnight loop): rally flags: select a barracks/HQ and tap the ground to plant its flag (waving cloth + dotted trail, shown while selected); new squads from it muster there in a tight cluster (workers still go to work)
 - B10 (overnight loop): building damage: dark smoke under 50% hp, flames + trembling under 25% (both scale with damage); a destroyed building sinks and keels over in a dust cloud, leaving a rubble heap that lingers ~20 s
 - B9 (overnight loop): heroes: eagle rebuilt with white head/tail, talons and pivoting wings - glides, beats hard when moving, swoops down talons-first on every strike; march leader raises his bullhorn arm to shout and his blasts roll pink rings onto the target
 - B8 (overnight loop): vehicles move: monster truck chassis rides visible shocks (bob/pitch/roll, rears up on a hit), wheels roll with ground speed (hub bars show the spin), dust trails behind truck + fireworks cart; bike collective pedals faster with speed

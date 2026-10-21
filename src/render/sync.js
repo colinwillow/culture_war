@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=10';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=10';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=10';
-import { emit } from '../fx/particles.js?v=10';
-import { TICK } from '../config/factions.js?v=10';
-import { walkH } from '../map/layout.js?v=10';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=10';
-import { Q, pl } from '../sim/sim.js?v=10';
-import { UI } from '../ui/state.js?v=10';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=10';
-import { lerpAngle } from '../util/math.js?v=10';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=11';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=11';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=11';
+import { emit } from '../fx/particles.js?v=11';
+import { TICK } from '../config/factions.js?v=11';
+import { walkH } from '../map/layout.js?v=11';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=11';
+import { Q, pl } from '../sim/sim.js?v=11';
+import { UI } from '../ui/state.js?v=11';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=11';
+import { lerpAngle } from '../util/math.js?v=11';
 
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
@@ -199,6 +199,24 @@ export function syncRender(S, alpha, dt, time) {
     setBar(o.bar, b.built < 1 ? b.built : b.hp / b.maxHp, b.built < 1 ? 0xf2c232 : 0);
     o.bar.g.visible = b.built < 1 || b.hp < b.maxHp || o.sel.visible;
     o.bar.g.quaternion.copy(camera.quaternion);
+    // Rally flag: shown while the building is selected, with a dotted trail from the door to the pole.
+    if (b.rally && o.sel.visible) {
+      if (!o.flag) {
+        const fl = new THREE.Group();
+        fl.add(box(0.1, 3, 0.1, 0xdddddd, 0, 1.5, 0));
+        const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.8, 6, 1), new THREE.MeshLambertMaterial({ color: 0x7fd1ff, side: THREE.DoubleSide }));
+        cloth.position.set(0.7, 2.55, 0); fl.add(cloth); fl.userData.cloth = cloth;
+        const dots = new THREE.Group(); for (let k = 0; k < 12; k++) dots.add(box(0.25, 0.06, 0.25, 0x7fd1ff)); 
+        scene.add(fl, dots); o.flag = fl; o.dots = dots;
+      }
+      const gy = walkH(b.rally.x, b.rally.z);
+      o.flag.visible = o.dots.visible = true;
+      o.flag.position.set(b.rally.x, gy, b.rally.z);
+      const pos = o.flag.userData.cloth.geometry.attributes.position; // ripple the cloth
+      for (let k = 0; k < pos.count; k++) { const px = pos.getX(k); pos.setZ(k, Math.sin(time * 6 - px * 4) * 0.15 * (px + 0.65)); }
+      pos.needsUpdate = true;
+      o.dots.children.forEach((d, k) => { const t = ((k + (time * 1.5) % 1) / 12); const dx = b.x + (b.rally.x - b.x) * t, dz = b.z + (b.rally.z - b.z) * t; d.position.set(dx, walkH(dx, dz) + 0.2, dz); });
+    } else if (o.flag) { o.flag.visible = o.dots.visible = false; }
     // Damage states: dark smoke below half health, flames on top of it below a quarter. More damage = more of both.
     const hpK = b.built < 1 ? 1 : b.hp / b.maxHp;
     if (hpK < 0.5) {
@@ -213,7 +231,7 @@ export function syncRender(S, alpha, dt, time) {
     o.mesh.position.x = hpK < 0.25 ? Math.sin(time * 40) * 0.03 : 0; // a burning building trembles
   }
   // Destroyed: the shell sinks and keels over into a dust cloud instead of vanishing (rubble pile is fx 'boom').
-  for (const [id, o] of R.bl) if (!seenB.has(id)) { R.bl.delete(id); o.bar.g.visible = false; o.sel.visible = false; dying.push({ root: o.root, mesh: o.mesh, h: o.h, t: 0, tilt: (Math.random() - 0.5) * 0.8 }); }
+  for (const [id, o] of R.bl) if (!seenB.has(id)) { if (o.flag) { disposeObj(o.flag); disposeObj(o.dots); } R.bl.delete(id); o.bar.g.visible = false; o.sel.visible = false; dying.push({ root: o.root, mesh: o.mesh, h: o.h, t: 0, tilt: (Math.random() - 0.5) * 0.8 }); }
   for (let i = dying.length - 1; i >= 0; i--) {
     const d = dying[i]; d.t += dt;
     const k = Math.min(1, d.t / 1.4);
@@ -277,7 +295,7 @@ export function syncRender(S, alpha, dt, time) {
 
 export function clearRender() {
   for (const o of R.sq.values()) disposeObj(o.root);
-  for (const o of R.bl.values()) disposeObj(o.root);
+  for (const o of R.bl.values()) { disposeObj(o.root); if (o.flag) { disposeObj(o.flag); disposeObj(o.dots); } }
   for (const o of R.nodes.values()) disposeObj(o.g);
   for (const m of R.zones.values()) disposeObj(m);
   for (const m of R.pend.values()) disposeObj(m);
