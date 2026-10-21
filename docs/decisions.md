@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B107 (overnight loop): Perf: each placeholder building's plain static boxes are merged into one mesh per material at spawn (animated parts named in userData, parts with children and transparent parts stay separate). Headless mid-match measure (4 min AI vs AI, rain/pedestrians on): ~213-236 draw calls -> ~161-191, ~790k tris (tris are mostly the real characters + shadow pass; next lever if phones struggle)
 - B106 (overnight loop): Docs: overnight summary at the top of docs/decisions.md (what was built, what to check first on the phone) and CLAUDE.md current state brought to B106 (Resource Race, hero abilities, intro/rain/pedestrians/victory dance, pause quit, rematch)
 - B105 (overnight loop): Victory dance: when the match is decided, every surviving real character on the winning side dances on loop (moussa's three hip-hop clips, mixed per member) while the camera swoops; the losing side's survivors slump to the ground
 - B104 (overnight loop): Worker kit for the new factions: Street Crew Hustlers carry an orange sneaker box under the arm with cash poking out of the lid; Nerds' Tech Support wear a laptop messenger bag on the hip that bulges with cash (previously both pushed the Backwoods wheelbarrow)

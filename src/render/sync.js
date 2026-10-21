@@ -1,18 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=106';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=106';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=106';
-import { emit } from '../fx/particles.js?v=106';
-import { bark } from '../fx/sfx.js?v=106';
-import { TICK } from '../config/factions.js?v=106';
-import { walkH } from '../map/layout.js?v=106';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=106';
-import { CAM } from '../camera/camera.js?v=106';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=107';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=107';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=107';
+import { emit } from '../fx/particles.js?v=107';
+import { bark } from '../fx/sfx.js?v=107';
+import { TICK } from '../config/factions.js?v=107';
+import { walkH } from '../map/layout.js?v=107';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=107';
+import { CAM } from '../camera/camera.js?v=107';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=106';
-import { UI } from '../ui/state.js?v=106';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=106';
-import { lerpAngle } from '../util/math.js?v=106';
+import { Q, pl, getSim } from '../sim/sim.js?v=107';
+import { UI } from '../ui/state.js?v=107';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=107';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { lerpAngle } from '../util/math.js?v=107';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -61,7 +62,7 @@ function makeSquadObj(s) {
   return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, vet, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
 }
 function makeBldObj(b) {
-  const root = new THREE.Group(), mesh = casts(bldMesh(b.kind, b.f)); root.add(mesh);
+  const root = new THREE.Group(), mesh = casts(mergeStatic(bldMesh(b.kind, b.f))); root.add(mesh);
   const pips = new THREE.Group(); pips.position.set(0, b.kind === 'barracks' ? 3 : 0, 0);
   if (b.kind === 'barracks') for (let i = 0; i < 3; i++) pips.add(box(0.4, 0.4, 0.4, 0xf5b83a, (i - 1) * 0.6, 0, 0));
   root.add(pips);
@@ -153,6 +154,30 @@ function updateRallyLines(S, time) {
   rallyLines.material.opacity = 0.45 + 0.35 * Math.abs(Math.sin(time * 3));
 }
 /** Squads answer an order with a little hop, so a command visibly lands. */
+// Perf: a placeholder building is 10-40 separate boxes. Merge its plain static ones into one mesh per material, so a
+// base costs a handful of draws. Anything sync.js animates (named in userData: coin, disc, speakers, leds, jib...),
+// anything with children, and anything transparent stays a separate object.
+function mergeStatic(g) {
+  const keep = new Set(), mark = (v) => { if (v && v.isObject3D) keep.add(v); else if (Array.isArray(v)) v.forEach(mark); };
+  Object.values(g.userData).forEach(mark);
+  const groups = new Map();
+  g.updateMatrix(); g.updateMatrixWorld(true);
+  for (const c of g.children) {
+    if (!c.isMesh || keep.has(c) || c.children.length || c.material.transparent || Array.isArray(c.material)) continue;
+    if (!groups.has(c.material)) groups.set(c.material, []);
+    groups.get(c.material).push(c);
+  }
+  for (const [m, list] of groups) {
+    if (list.length < 2) continue;
+    const geos = list.map((c) => { c.updateMatrix(); const ge = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone(); ge.applyMatrix4(c.matrix); for (const k of Object.keys(ge.attributes)) if (!['position', 'normal', 'uv'].includes(k)) ge.deleteAttribute(k); return ge; });
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((ge) => ge.dispose());
+    if (!merged) continue;
+    list.forEach((c) => g.remove(c));
+    g.add(new THREE.Mesh(merged, m));
+  }
+  return g;
+}
 export function ack(ids, attack) {
   for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; }
   const s = getSim() && getSim().squads.find((q) => q.id === ids[0]); // one voice answers for the whole selection
