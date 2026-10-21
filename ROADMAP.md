@@ -136,3 +136,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B111) UI: minimap shows the hill / capture flags as rings in their holder's colour
 - [x] (B112) Docs: CLAUDE.md + docs/design.md for Capture and Hold, Resource Race, graphics toggle and the perf numbers
 - [x] (B113) Logic: Hero vs Hero mode — each side starts with its hero beside the HQ and nothing else to train but workers; a hero falling ends the match
+
+## Batch 15 (added 14:08 UTC by the loop, same rules)
+- [ ] Logic: hero duel balance — round robin all 6 heroes in Hero vs Hero (AI vs AI, several seeds); nudge outliers
+- [ ] UI: end screen shows both factions' icons (yours vs theirs, the winner's bigger) above the stats
