@@ -22,6 +22,8 @@ export const ICON = {
   pie: '<path d="M3 13h18"/><path d="M5 13a7 7 0 0 1 14 0"/><path d="M4 13l2 6h12l2-6"/><path d="M9 9.5l1 1M13 8.5l1 1"/>',
   flag: '<path d="M5 21V3"/><path d="M5 4h12l-3 4 3 4H5"/>',
   megaphone: '<path d="M3 10v4h3l8 5V5L6 10z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
+  hold: '<path d="M6 21V4"/><path d="M6 4h11l-3 4 3 4H6"/><path d="M3 21h8"/>',
+  charge: '<path d="M4 20l9-9"/><path d="M13 11l5-7 2 2-7 5"/><path d="M6 14l4 4"/><path d="M14 14l6 6M20 14l-6 6"/>',
   shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
   hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
   eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',

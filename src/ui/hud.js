@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=25';
-import { UI, select, selSquads } from './state.js?v=25';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=25';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=25';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=25';
-import { camera } from '../render/scene.js?v=25';
-import { walkH } from '../map/layout.js?v=25';
-import { THREE } from '../render/scene.js?v=25';
-import { showHint } from './hint.js?v=25';
+import { svg } from './icons.js?v=26';
+import { UI, select, selSquads } from './state.js?v=26';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=26';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=26';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=26';
+import { camera } from '../render/scene.js?v=26';
+import { walkH } from '../map/layout.js?v=26';
+import { THREE } from '../render/scene.js?v=26';
+import { showHint } from './hint.js?v=26';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -75,6 +75,9 @@ function panelSpec() {
       out.push({ id: 'sq-' + q.id, name: F.units[q.slot].name, icon: q.slot, noCost: true, cls: 'card', pips: q.members.length > 1 ? q.members.length : 0, pipsOn: alive, hp: hp / (q.members.length * q.mhp),
         badge: q.rank ? '\u2605'.repeat(Math.min(q.rank, 5)) : '', tap: () => { select({ type: 'sq', ids: [q.id] }); focus(q.x, q.z); } });
     }
+    // Stance: one big toggle for the whole selection - a planted flag (hold ground) or crossed blades (charge in).
+    const fighters = sq.filter((s) => s.slot !== 'worker');
+    if (fighters.length) { const allHold = fighters.every((s) => s.hold); out.push({ id: 'stance', name: allHold ? 'Hold ground' : 'Aggressive', icon: allHold ? 'hold' : 'charge', noCost: true, on: allHold, tap: () => command(0, { type: 'stance', ids: fighters.map((s) => s.id), hold: !allHold }) }); }
     const sitters = sq.filter((s) => s.f === 'ac' && s.slot === 'melee');
     if (sitters.length) { const allSit = sitters.every((s) => s.sit); out.push({ id: 'sit', name: 'Sit In', icon: 'shield', noCost: true, on: allSit, tap: () => command(0, { type: 'sit', ids: sitters.map((s) => s.id), on: !allSit }) }); }
   }

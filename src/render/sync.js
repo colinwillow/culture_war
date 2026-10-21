@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=25';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=25';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=25';
-import { emit } from '../fx/particles.js?v=25';
-import { TICK } from '../config/factions.js?v=25';
-import { walkH } from '../map/layout.js?v=25';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=25';
-import { Q, pl } from '../sim/sim.js?v=25';
-import { UI } from '../ui/state.js?v=25';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=25';
-import { lerpAngle } from '../util/math.js?v=25';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=26';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=26';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=26';
+import { emit } from '../fx/particles.js?v=26';
+import { TICK } from '../config/factions.js?v=26';
+import { walkH } from '../map/layout.js?v=26';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=26';
+import { Q, pl } from '../sim/sim.js?v=26';
+import { UI } from '../ui/state.js?v=26';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=26';
+import { lerpAngle } from '../util/math.js?v=26';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -244,6 +244,9 @@ export function syncRender(S, alpha, dt, time) {
     o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; o.carry.visible = s.carry > 0;
     o.rank.children.forEach((c, i) => (c.visible = i < s.rank)); o.rank.quaternion.copy(camera.quaternion);
     o.vet.visible = s.rank > 0;
+    // Hold-ground squads show a small planted flag beside their bar.
+    if (s.hold && !o.holdFlag) { const f = new THREE.Group(); f.add(box(0.06, 0.9, 0.06, 0xdddddd, 0, 0.45, 0), box(0.45, 0.28, 0.04, 0x7fd1ff, 0.24, 0.75, 0)); f.position.set(s.r + 0.6, 0, 0); o.root.add(f); o.holdFlag = f; }
+    if (o.holdFlag) o.holdFlag.visible = !!s.hold;
     if (s.rank > 0) {
       const hero = s.slot === 'hero', top = hero ? s.rank >= 3 : s.rank >= 2;
       o.vet.material.color.setHex(top ? 0xf5b83a : 0xd8dde3);

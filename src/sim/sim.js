@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=25';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=25';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=25';
-import { mulberry32 } from '../util/math.js?v=25';
-import { aiStep } from './ai.js?v=25';
+} from '../config/factions.js?v=26';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=26';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=26';
+import { mulberry32 } from '../util/math.js?v=26';
+import { aiStep } from './ai.js?v=26';
 
 let S = null;
 export const getSim = () => S;
@@ -153,6 +153,7 @@ function applyCmd(c) {
     case 'train': { const b = byId(c.id); if (b && b.owner === p.i) A.train(p, b, c.slot); break; }
     case 'power': A.power(p, c.idx, c.x, c.z); break;
     case 'rally': { const b = byId(c.id); if (b && b.owner === p.i && (b.kind === 'barracks' || b.kind === 'hq')) { const [rx, rz] = nearestFree(c.x, c.z); b.rally = { x: rx, z: rz }; } break; }
+    case 'stance': ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') { s.hold = !!c.hold; if (s.hold && s.order.type === 'idle') s.post = { x: s.x, z: s.z }; } }); break;
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -351,6 +352,12 @@ function updateSquad(s, dt) {
     if (!t) { if (moveTo(s, s.post.x, s.post.z, dt)) setOrder(s, { type: 'idle' }); return; }
   }
   // Idle squads guard their post: they pick fights that come within AGGRO, but break off past LEASH and go back.
+  // Hold ground: an idle squad on hold only fights what is already in its weapon range and never steps off its spot.
+  if (!t && s.hold && o.type === 'idle') {
+    t = nearestEnemy(s, s.def.range + 0.3);
+    if (t) { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1; attack(s, t); } }
+    return;
+  }
   if (!t) {
     t = nearestEnemy(s, Math.max(s.def.range + 4, AGGRO));
     const away = Math.hypot(s.x - s.post.x, s.z - s.post.z);
