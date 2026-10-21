@@ -69,22 +69,27 @@ Rules that keep this multiplayer-ready (lockstep):
   Commands apply at the start of the next tick.
 - New mechanic = sim change + `S.events.push({k: '...'})` + a case in `fx/handleEvents`.
 
-## Current state (greybox 04, build B66+ — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
-- **4 playable factions** (menu 2x2): Backwoods, Activists, **Hard Hats** (builder: 2x build speed, +30% building hp,
-  self-repair, Foreman Overtime whistle), **Old Money** (elite squads of 3; Hostile Takeover converts a squad, Private Jet
-  drops bodyguards). Opponent is picked at random from the other three. Difficulty 1/2/3 stars (AI income + wave size).
-- One city map, Versus vs computer. Win by destroying the enemy HQ. End screen: animated stats (kills/cash/built/razed).
+## Current state (greybox 04, build B91 — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
+- **6 playable factions** (menu: 2 columns portrait, one row landscape): Backwoods, Activists, Hard Hats (builder),
+  Old Money (elite squads of 3, Trust Fund), Street Crew (rush, Hype meter, breakdancers attack by dancing), Nerds
+  (tech: +30% towers, Wi-Fi Outage / Patch Notes). Opponent is random from the other five. Difficulty 1/2/3 stars.
+  Per-faction traits live in `FACTIONS[f].traits`; `docs/design.md` has the table.
+- **Modes**: Versus (destroy the HQ) and King of the Hill (`S.hill`: middle overpass, 90 s held alone wins; ring + flag
+  + HUD bars). Toggle beside the stars, remembered in localStorage (`cw-mode`, `cw-diff`).
 - Economy: workers auto-work food trucks (trucks tint to who works them); workers can be ordered to **repair** buildings.
-- Buildings: HQ, Depot, Barracks (3 levels), Tower (can be **garrisoned** by one squad: +range/+dmg). Rally flags per
-  production building. Production queue strip with tap-to-cancel refunds. Build-zone preview while placing.
-- Squads: counter loop, ranks (+hero levels 1-5), guard/leash aggro, stance toggle (aggressive / hold ground),
-  heal at own HQ/depot, power meter + 2 powers per faction. AI expands, escorts, retreats wounded, garrisons nothing yet.
-- Input: one-finger pan, hold-then-drag box select, **hold still = select army on screen**, pinch zoom/twist, minimap
-  tap/drag, under-attack edge arrow, hero button, pause (auto-pause on tab switch), command cards per selected squad.
-- Render/FX: pooled particles (`src/fx/particles.js`), soft shadows (one sun following the camera), city life (traffic
-  with lights, pigeons, birds, steam, clouds), construction/damage/collapse states, per-faction projectiles and powers.
-- Audio: WebAudio synth SFX only (`src/fx/sfx.js`), mute toggle on menu/pause.
-- Sim test harness used by the loop: fast-forward with `import('./src/sim/sim.js?v=N')` + `step()` in a headless page.
+- Buildings: HQ, Depot, Barracks (3 levels), Tower (can be **garrisoned** by one squad: +range/+dmg; the AI does it
+  too). Rally flags per production building. Production queue with tap-to-cancel refunds. Build-zone preview.
+- Squads: counter loop, ranks (+hero levels 1-5), guard/leash aggro, stance toggle, heal at own HQ/depot, power meter +
+  2 powers per faction, hero abilities (eagle screech, bullhorn, overtime whistle, DJ drop the beat).
+- AI (`src/sim/ai.js`, `aiStep(S, dt, pi)`): expands, escorts, retreats wounded, garrisons towers, plays the hill.
+- Input: one-finger pan, hold-then-drag box select, hold still = select army on screen, pinch zoom/twist, minimap,
+  under-attack edge arrow, hero button, pause (auto on tab switch), command cards. Orders get a voice bark.
+- Render/FX: pooled particles (`src/fx/particles.js`), one shadow sun following the camera, time of day
+  (`setTimeOfDay`/`setDusk`), city life, construction/damage/collapse, per-faction projectiles/powers/buildings,
+  end-of-match camera swoop onto the fallen HQ (or the hill), hero entrance spotlight, faction-coloured HUD (`--fc`).
+- Audio: WebAudio synth SFX + voice barks only (`src/fx/sfx.js`), mute toggle on menu/pause.
+- Test harness used by the loop: fast-forward with `import('./src/sim/sim.js?v=N')` + `step()` in a headless page;
+  balance: `node tools/balance.cjs [seeds]` (AI vs AI round robin).
 
 ## Real characters (greybox 04)
 - GLBs live in `models/characters/` (copied from the weirdport repo), Draco decoder in `draco/` (both repo root).
@@ -99,7 +104,7 @@ Rules that keep this multiplayer-ready (lockstep):
 ## Next steps Colin has asked about
 - More passes on UI (generated button art), map feel, unit visuals/animation, attack effects (mostly code-driven particles).
 - More real models: vehicles (monster truck, bikes), heroes, buildings; other factions from the weirdport cast.
-- Fill out the other launch factions: Nerds, Old Money, Street Crew, Hard Hats (template = Backwoods).
+- All six launch factions exist; next is real art for their vehicles/heroes/buildings and more modes.
 - Game modes (Versus, Capture and Hold, King of the Hill, Resource Race, Hero vs Hero). Multiplayer later.
 - Possible later: possess a unit in first/third person. Alien-races edition on the same engine.
 
