@@ -1,10 +1,10 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=9';
-import { walkH } from '../map/layout.js?v=9';
-import { FC } from '../render/models.js?v=9';
-import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=9';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=10';
+import { walkH } from '../map/layout.js?v=10';
+import { FC } from '../render/models.js?v=10';
+import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=10';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -80,6 +80,18 @@ function fxFireworks(x, z, r) {
   for (let i = 0; i < 34; i++) { const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 7; fxSpark(x, 3, z, CONF[i % CONF.length], new THREE.Vector3(Math.cos(a) * s, 4 + Math.random() * 5, Math.sin(a) * s), 1.1); }
 }
 /** Order marker: ring closes in, four chevrons slide onto the spot, an arrow bounces down onto it. */
+/** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
+function fxRubble(x, z, r) {
+  const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
+  for (let i = 0; i < 9 + r * 4; i++) {
+    const s = 0.4 + Math.random() * r * 0.45, a = Math.random() * 6.28, d = Math.random() * r * 0.9;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(s, s * (0.4 + Math.random() * 0.6), s * (0.6 + Math.random() * 0.6)), mat(cols[i % 4]));
+    m.position.set(Math.cos(a) * d, s * 0.25 + (r - d) * 0.25, Math.sin(a) * d); m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+    g.add(m);
+  }
+  g.position.set(x, g0 - 0.6, z);
+  addFx(g, 24, (o, k) => { o.position.y = g0 - (k < 0.06 ? 0.6 * (1 - k / 0.06) : k > 0.85 ? (k - 0.85) / 0.15 * 1.5 : 0); });
+}
 export function fxMarker(x, z, c) {
   fxRing(x, z, 2.2, 0.4, c, 0.45, 0.14);
   const g0 = gy(x, z, 0.15), m = basic(c, 1);
@@ -117,7 +129,7 @@ export function handleEvents(S, bump) {
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
         else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
         bump(ev.id); break;
-      case 'boom': fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); break;
+      case 'boom': fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
       case 'scrap': fxBits(ev.x, ev.z, 0x9a9a9a, 6, 1, 5); fxCoin(ev.x, 2, ev.z); break;
       case 'income': if (ev.owner === 0) for (const b of S.blds) if (b.owner === 0 && b.kind === 'depot' && b.built >= 1) fxCoin(b.x, 3.2, b.z); break;

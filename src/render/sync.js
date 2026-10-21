@@ -1,16 +1,17 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=9';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=9';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=9';
-import { emit } from '../fx/particles.js?v=9';
-import { TICK } from '../config/factions.js?v=9';
-import { walkH } from '../map/layout.js?v=9';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=9';
-import { Q, pl } from '../sim/sim.js?v=9';
-import { UI } from '../ui/state.js?v=9';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=9';
-import { lerpAngle } from '../util/math.js?v=9';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=10';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=10';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=10';
+import { emit } from '../fx/particles.js?v=10';
+import { TICK } from '../config/factions.js?v=10';
+import { walkH } from '../map/layout.js?v=10';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=10';
+import { Q, pl } from '../sim/sim.js?v=10';
+import { UI } from '../ui/state.js?v=10';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=10';
+import { lerpAngle } from '../util/math.js?v=10';
 
+const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
 function makeBar(w) {
@@ -65,7 +66,7 @@ function makeBldObj(b) {
   root.position.set(b.x, walkH(b.x, b.z), b.z);
   if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
   scene.add(root);
-  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar };
+  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar, h, r: b.r, smokeT: 0 };
 }
 function makeNodeObj(n) {
   const g = nodeMesh();
@@ -198,8 +199,29 @@ export function syncRender(S, alpha, dt, time) {
     setBar(o.bar, b.built < 1 ? b.built : b.hp / b.maxHp, b.built < 1 ? 0xf2c232 : 0);
     o.bar.g.visible = b.built < 1 || b.hp < b.maxHp || o.sel.visible;
     o.bar.g.quaternion.copy(camera.quaternion);
+    // Damage states: dark smoke below half health, flames on top of it below a quarter. More damage = more of both.
+    const hpK = b.built < 1 ? 1 : b.hp / b.maxHp;
+    if (hpK < 0.5) {
+      o.smokeT -= dt;
+      if (o.smokeT <= 0) {
+        o.smokeT = 0.08 + hpK * 0.4;
+        const gx = b.x + (Math.random() - 0.5) * b.r, gz = b.z + (Math.random() - 0.5) * b.r, top = o.root.position.y + o.h * 0.8;
+        emit({ x: gx, y: top, z: gz, vx: (Math.random() - 0.5) * 0.6 + 0.5, vy: 1.6 + Math.random(), vz: (Math.random() - 0.5) * 0.6, c: Math.random() < 0.5 ? 0x3b3b3b : 0x5a5a5a, s: 0.6, life: 2.2, g: -0.4, drag: 0.8, grow: 3.2 });
+        if (hpK < 0.25) for (let k = 0; k < 2; k++) emit({ x: gx + (Math.random() - 0.5) * 0.6, y: top - 0.3, z: gz + (Math.random() - 0.5) * 0.6, vx: (Math.random() - 0.5) * 0.8, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 0.8, c: [0xff4a1c, 0xff8a1c, 0xffd23a][k + (Math.random() < 0.5 ? 1 : 0)], s: 0.45, life: 0.55, g: -1, drag: 1.5 });
+      }
+    }
+    o.mesh.position.x = hpK < 0.25 ? Math.sin(time * 40) * 0.03 : 0; // a burning building trembles
   }
-  for (const [id, o] of R.bl) if (!seenB.has(id)) { disposeObj(o.root); R.bl.delete(id); }
+  // Destroyed: the shell sinks and keels over into a dust cloud instead of vanishing (rubble pile is fx 'boom').
+  for (const [id, o] of R.bl) if (!seenB.has(id)) { R.bl.delete(id); o.bar.g.visible = false; o.sel.visible = false; dying.push({ root: o.root, mesh: o.mesh, h: o.h, t: 0, tilt: (Math.random() - 0.5) * 0.8 }); }
+  for (let i = dying.length - 1; i >= 0; i--) {
+    const d = dying[i]; d.t += dt;
+    const k = Math.min(1, d.t / 1.4);
+    d.mesh.position.y = -d.h * k * k * 0.9; d.mesh.rotation.z = d.tilt * k; d.mesh.rotation.x = d.tilt * 0.5 * k;
+    d.mesh.position.x = Math.sin(d.t * 50) * 0.08 * (1 - k);
+    if (Math.random() < dt * 30 * (1 - k)) { const p = d.root.position; emit({ x: p.x + (Math.random() - 0.5) * 5, y: p.y + 0.4, z: p.z + (Math.random() - 0.5) * 5, vx: (Math.random() - 0.5) * 3, vy: 1 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: 0xb3a58a, s: 0.8, life: 1.4, g: -0.2, drag: 1.5, grow: 2.5 }); }
+    if (k >= 1) { disposeObj(d.root); dying.splice(i, 1); }
+  }
 
   for (const n of S.nodes) {
     let o = R.nodes.get(n.id);
@@ -261,5 +283,6 @@ export function clearRender() {
   for (const m of R.pend.values()) disposeObj(m);
   if (R.ghost) disposeObj(R.ghost.g);
   R.ghost = null;
+  for (const d of dying) disposeObj(d.root); dying.length = 0;
   R.sq.clear(); R.bl.clear(); R.nodes.clear(); R.zones.clear(); R.pend.clear();
 }

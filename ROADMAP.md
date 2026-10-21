@@ -17,7 +17,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B7) UI: train queue shown as icons with progress rings on the barracks/HQ panel; tap to cancel (refund)
 - [x] (B8) Placeholder vehicles: monster truck bounces on suspension, wheels spin, dust trail; bike collective pedal anim
 - [x] (B9) Placeholder heroes: bald eagle wing flap + dive attack; march leader with bullhorn shockwave rings
-- [ ] FX: building damage states (smoke at <50%, fire at <25%), collapse into rubble pile on death
+- [x] (B10) FX: building damage states (smoke at <50%, fire at <25%), collapse into rubble pile on death
 - [ ] Logic: rally point per production building (tap ground after selecting building), shown as a flag
 - [ ] UI: minimap in a corner (tap to jump camera), shows squads, buildings, businesses, fog-free
 - [ ] Map: capture-flag business ownership ring colour + team awning tint so contested trucks read at a glance
