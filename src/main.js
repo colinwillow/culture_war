@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=95';
-import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=95';
-import { syncRender, clearRender, bump } from './render/sync.js?v=95';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=95';
-import { newSim, getSim, step } from './sim/sim.js?v=95';
-import { TICK } from './config/factions.js?v=95';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=95';
-import { initInput, lockPageZoom } from './input/input.js?v=95';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=95';
-import { resetUI } from './ui/state.js?v=95';
-import { fillIcons, svg } from './ui/icons.js?v=95';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=95';
-import { updateMinimap } from './ui/minimap.js?v=95';
-import { isMuted, setMuted } from './fx/sfx.js?v=95';
-import { loadChars } from './render/chars.js?v=95';
-import { FC } from './render/models.js?v=95';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=96';
+import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=96';
+import { syncRender, clearRender, bump } from './render/sync.js?v=96';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=96';
+import { newSim, getSim, step } from './sim/sim.js?v=96';
+import { TICK } from './config/factions.js?v=96';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=96';
+import { initInput, lockPageZoom } from './input/input.js?v=96';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=96';
+import { resetUI } from './ui/state.js?v=96';
+import { fillIcons, svg } from './ui/icons.js?v=96';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=96';
+import { updateMinimap } from './ui/minimap.js?v=96';
+import { isMuted, setMuted } from './fx/sfx.js?v=96';
+import { loadChars } from './render/chars.js?v=96';
+import { FC } from './render/models.js?v=96';
 
-export const BUILD = 95; // written by `npm run bump`
+export const BUILD = 96; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -47,6 +47,10 @@ function start(f) {
   resetUI(); resetHUD();
   menu.hidden = true; endEl.hidden = true; running = true; setPause(false);
   cin = null; resetCam(); refreshHUD();
+  // Intro: start over the enemy HQ and fly home in ~2.5 s (a tap anywhere skips it).
+  const en = getSim().players[1];
+  intro = { t: 0, x0: en.hqx, z0: en.hqz, d0: 46, yaw0: Math.PI * 0.35, x: CAM.tx, z: CAM.tz, d: CAM.dist, yaw: CAM.yaw };
+  CAM.tx = en.hqx; CAM.tz = en.hqz; CAM.dist = CAM.distT = 46; CAM.yaw = intro.yaw0;
 }
 // Difficulty: 1-3 stars on the menu, remembered on this phone.
 let diff = 1;
@@ -97,7 +101,16 @@ function devTick(dt, S) {
 }
 let last = performance.now(), acc = 0, hudT = 0;
 // End-of-match cinematic: the camera swoops down onto the fallen HQ and slowly circles the rubble; stats follow.
-let cin = null;
+let cin = null, intro = null;
+function introCam(dt) {
+  if (!intro) return;
+  intro.t += dt;
+  const k = Math.min(1, intro.t / 2.5), e = k * k * (3 - 2 * k), lift = Math.sin(k * Math.PI) * 25; // arcs up and over the city
+  CAM.tx = intro.x0 + (intro.x - intro.x0) * e; CAM.tz = intro.z0 + (intro.z - intro.z0) * e;
+  CAM.dist = CAM.distT = intro.d0 + (intro.d - intro.d0) * e + lift; CAM.yaw = intro.yaw0 + (intro.yaw - intro.yaw0) * e;
+  if (k >= 1) intro = null;
+}
+window.addEventListener('pointerdown', () => { if (intro && intro.t > 0.2) { intro.t = 2.5; introCam(0); } }, { capture: true });
 function cinema(dt) {
   if (!cin) return;
   cin.t += dt;
@@ -136,6 +149,7 @@ function frame(now) {
   hudT -= dt;
   if (hudT <= 0) { hudT = 0.15; refreshHUD(); }
   cinema(dt);
+  introCam(dt);
   // The day wears on: morning at the start, golden hour by ~11 minutes in; lamps and windows come on in the last half.
   if (S && running) { const k = Math.min(1, Math.max(0, (S.t - 60) / 600)); if (Math.abs(k - (frame.tod ?? -1)) > 0.002) { frame.tod = k; setTimeOfDay(k); setDusk(Math.max(0, k * 2 - 1)); } }
   else if (!S && frame.tod) { frame.tod = 0; setTimeOfDay(0); setDusk(0); }

@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B96 (overnight loop): Match intro: each match opens over the enemy HQ and the camera arcs up over the city and down onto your base in ~2.5 s (eased, turning to your usual heading); any tap skips straight home. The sim runs underneath
 - B95 (overnight loop): Weather: about one match in four (seed % 4) is rainy - 500 thin streaks in one instanced draw following the camera, tiny splashes where they land, sky + fog greyed and the sun dimmed 45% on top of the time of day (setOvercast). Render only, sim untouched
 - B94 (overnight loop): Nerds base dressing round the Game Shop: a cosplay photo-op cutout with a face hole, a red vending machine with blinking lights, a spaghetti of coloured cables across the lot and a folding table with three dice
 - B93 (overnight loop): Power aiming preview: while a targeted power is armed, a pulsing ring + soft fill of its real radius (mud 8, cones 7, wreck 5, takeover 7, jet 3, fireworks 7, mixtape 7, wifi 8) sits at the screen centre and then follows the finger, in your faction colour; gone when the power fires or is cancelled

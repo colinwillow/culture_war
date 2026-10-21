@@ -112,4 +112,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B93) UI: power aiming preview — while aiming a targeted power, a ring of its real radius follows the finger in the faction colour
 - [x] (B94) Map: Nerds base dressing — a cosplay photo-op cutout, a vending machine, cable spaghetti and a folding table with dice
 - [x] (B95) FX: weather — some matches roll light rain (streaks, ground ripples, slightly darker sky); decided by the match seed
-- [ ] UI: match intro — the camera flies from the enemy HQ to yours in ~2.5 s at the start (tap to skip)
+- [x] (B96) UI: match intro — the camera flies from the enemy HQ to yours in ~2.5 s at the start (tap to skip)
