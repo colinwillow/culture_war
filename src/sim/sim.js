@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=96';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=96';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=96';
-import { mulberry32 } from '../util/math.js?v=96';
-import { aiStep } from './ai.js?v=96';
+} from '../config/factions.js?v=97';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=97';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=97';
+import { mulberry32 } from '../util/math.js?v=97';
+import { aiStep } from './ai.js?v=97';
 
 let S = null;
 export const getSim = () => S;
@@ -329,6 +329,11 @@ function heroAbility(s) {
       blds.forEach((b) => (b.ot = 10));
       s.abil = 22; S.events.push({ k: 'overtime', x: s.x, z: s.z });
     }
+  } else if (s.f === 'om') {
+    // The Tycoon's Hush Money: the nearest enemy squad within 6 m (not a hero) pockets a briefcase and stands down 3 s.
+    let t = null, bd = 6;
+    for (const o of S.squads) { if (o.owner === s.owner || o.slot === 'hero' || o.slot === 'worker' || o.gar) continue; const d = Math.hypot(o.x - s.x, o.z - s.z) - o.r; if (d < bd) { bd = d; t = o; } }
+    if (t) { t.stun = Math.max(t.stun, 3); s.abil = 14; S.events.push({ k: 'hush', x: s.x, z: s.z, tx: t.x, tz: t.z }); }
   } else if (s.f === 'nd') {
     // The Streamer goes live: every enemy within 6 m stops to stare at the phone for 2 s.
     const near = S.squads.filter((o) => o.owner !== s.owner && !o.def.vehicle && Math.hypot(o.x - s.x, o.z - s.z) < 6 + o.r);
