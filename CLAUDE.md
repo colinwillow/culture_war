@@ -69,16 +69,22 @@ Rules that keep this multiplayer-ready (lockstep):
   Commands apply at the start of the next tick.
 - New mechanic = sim change + `S.events.push({k: '...'})` + a case in `fx/handleEvents`.
 
-## Current state (greybox 04)
-- Backwoods vs Activists, one city map, Versus vs computer. Win by destroying the enemy HQ.
-- City map: 120 x 200 m, rotationally symmetric. Sunken freeway across the middle, crossable only at 3 overpasses.
-  Each base sits behind a wall of buildings with 2 openings (one avenue is a dead end). Parks and a parking lot are
-  the open fighting areas. 10 businesses (food trucks): 2 safe per side, 3 contested per side.
-- Workers ("Odd-Jobbers" / "Gig Workers") auto-work shifts at businesses and carry cash home.
-- Free building placement (ghost + floating confirm/cancel next to it), build radius from owned buildings.
-- Buildings: HQ (trains workers + hero), Depot (income + army cap + drop-off), Barracks (3 levels), Tower.
-- Squads, counter loop, ranks, power meter, faction powers (Mud Bog, Fourth of July, Parade, Pie in the Face).
-- One-finger drag pans; hold-then-drag box selects; pinch zoom + twist rotate; eye button = ghost cam.
+## Current state (greybox 04, build B66+ — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
+- **4 playable factions** (menu 2x2): Backwoods, Activists, **Hard Hats** (builder: 2x build speed, +30% building hp,
+  self-repair, Foreman Overtime whistle), **Old Money** (elite squads of 3; Hostile Takeover converts a squad, Private Jet
+  drops bodyguards). Opponent is picked at random from the other three. Difficulty 1/2/3 stars (AI income + wave size).
+- One city map, Versus vs computer. Win by destroying the enemy HQ. End screen: animated stats (kills/cash/built/razed).
+- Economy: workers auto-work food trucks (trucks tint to who works them); workers can be ordered to **repair** buildings.
+- Buildings: HQ, Depot, Barracks (3 levels), Tower (can be **garrisoned** by one squad: +range/+dmg). Rally flags per
+  production building. Production queue strip with tap-to-cancel refunds. Build-zone preview while placing.
+- Squads: counter loop, ranks (+hero levels 1-5), guard/leash aggro, stance toggle (aggressive / hold ground),
+  heal at own HQ/depot, power meter + 2 powers per faction. AI expands, escorts, retreats wounded, garrisons nothing yet.
+- Input: one-finger pan, hold-then-drag box select, **hold still = select army on screen**, pinch zoom/twist, minimap
+  tap/drag, under-attack edge arrow, hero button, pause (auto-pause on tab switch), command cards per selected squad.
+- Render/FX: pooled particles (`src/fx/particles.js`), soft shadows (one sun following the camera), city life (traffic
+  with lights, pigeons, birds, steam, clouds), construction/damage/collapse states, per-faction projectiles and powers.
+- Audio: WebAudio synth SFX only (`src/fx/sfx.js`), mute toggle on menu/pause.
+- Sim test harness used by the loop: fast-forward with `import('./src/sim/sim.js?v=N')` + `step()` in a headless page.
 
 ## Real characters (greybox 04)
 - GLBs live in `models/characters/` (copied from the weirdport repo), Draco decoder in `draco/` (both repo root).

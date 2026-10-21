@@ -80,7 +80,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B66) Map: Old Money buildings (mansion HQ, bank-vault depot, country club barracks, guard booth tower) + menu pick + power visuals (money rain, jet flyover)
 
 ## Batch 7 (added 11:57 UTC by the loop, same rules)
-- [ ] Docs: refresh CLAUDE.md "Current state" + docs/design.md with what is actually built now (4 factions, systems added overnight) so future sessions start from the truth
+- [x] (B66 docs) Docs: refresh CLAUDE.md "Current state" + docs/design.md with what is actually built now (4 factions, systems added overnight) so future sessions start from the truth
 - [ ] Logic: AI-vs-AI balance pass — fast-forward round-robin matches between all 4 factions (sim has no player input needed if both sides run the AI), nudge numbers where one faction always wins
 - [ ] UI: dev readout — tap the B# on the menu title to toggle a tiny FPS + unit-count line in the corner (helps judge phone performance)
 - [ ] Logic: STREET CREW (Rush) data — sneakerhead runners, breakdancers, boombox crew (sound-wave ranged), lowrider cav, graffiti tagger siege, DJ hero; powers Block Party (army buff) + Mixtape Drop (shockwave stun)

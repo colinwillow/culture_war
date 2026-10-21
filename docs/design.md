@@ -130,6 +130,17 @@ Junkyard: destroyed vehicles refund 50%. Screech: stuns nearby enemies 2 s. Powe
 
 Rally: +5% damage per nearby friendly squad (max +25%). Sit In: unmovable wall, half damage, can't attack. Megaphone hits: target deals 20% less for 5 s. Bullhorn: nearby squads +25% speed and damage for 10 s. Powers: Pie in the Face (enemy hero blind 15 s), Parade (army +30% speed 15 s).
 
+## Built so far (Oct 21 2026, greybox 04 / B66)
+| Faction | Archetype | Status | Real model | Powers built |
+| --- | --- | --- | --- | --- |
+| Backwoods | Brute | playable | hick, fat bikers | Mud Bog, Fourth of July |
+| Activists | Swarm | playable | fat activist, hippie, hipster | Parade, Pie in the Face |
+| Hard Hats | Turtle / builder | playable | construction worker | Road Closed (cones), Wrecking Ball |
+| Old Money | Elite | playable | secret service | Hostile Takeover, Private Jet |
+| Street Crew | Rush | next (roadmap batch 7) | moussa (hip-hop clips) | Block Party, Mixtape Drop |
+| Nerds | Summoner | not started | — | — |
+Hard Hats numbers and Old Money numbers are first guesses like the vertical slice; see `src/config/factions.js`.
+
 ## Open questions
 - [ ] Second faction-flavored resource (scrap, hype, followers) later, or cash only?
 - [ ] Faction home maps vs shared neutral maps (current: shared city map).
