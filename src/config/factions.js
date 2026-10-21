@@ -80,4 +80,22 @@ export const FACTIONS = {
       { id: 'wreck', name: 'Wrecking Ball', cost: 100, target: true, icon: 'ball' },
     ],
   },
+  // Old Money (Elite): tiny squads of 3, expensive, each member worth two of anyone else's.
+  om: {
+    name: 'Old Money',
+    bldNames: { hq: 'The Mansion', depot: 'Bank Vault', barracks: 'Country Club', tower: 'Guard Booth' },
+    units: {
+      worker: { name: 'Butler', n: 1, hp: 70, dmg: 3, range: 1, speed: 4.5, cost: 70, build: 8, cp: 1 },
+      pike: { name: 'Polo Team', n: 3, hp: 130, dmg: 16, range: 1.4, speed: 3.2, cost: 200, build: 14, cp: 5 },
+      melee: { name: 'Security Detail', n: 3, hp: 160, dmg: 18, range: 1.2, speed: 3.2, cost: 230, build: 15, cp: 5 },
+      ranged: { name: 'Skeet Shooters', n: 3, hp: 90, dmg: 24, range: 9, speed: 3.2, cost: 250, build: 16, cp: 5 },
+      cav: { name: 'Golf Cart', n: 1, hp: 420, dmg: 26, range: 1.4, speed: 7.5, cost: 320, build: 22, cp: 10, area: true, vehicle: true },
+      siege: { name: 'Armoured Limo', n: 1, hp: 550, dmg: 50, range: 2.5, speed: 2.4, cost: 380, build: 28, cp: 10, area: true, vehicle: true },
+      hero: { name: 'The Tycoon', n: 1, hp: 520, dmg: 22, range: 1.4, speed: 5, cost: 850, build: 45, cp: 15 },
+    },
+    powers: [
+      { id: 'takeover', name: 'Hostile Takeover', cost: 70, target: true, icon: 'coin' },
+      { id: 'jet', name: 'Private Jet', cost: 110, target: true, icon: 'plane' },
+    ],
+  },
 };

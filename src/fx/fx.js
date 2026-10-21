@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=63';
-import { walkH } from '../map/layout.js?v=63';
-import { sfx } from './sfx.js?v=63';
-import { shake, CAM } from '../camera/camera.js?v=63';
-import { FC } from '../render/models.js?v=63';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=63';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=64';
+import { walkH } from '../map/layout.js?v=64';
+import { sfx } from './sfx.js?v=64';
+import { shake, CAM } from '../camera/camera.js?v=64';
+import { FC } from '../render/models.js?v=64';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=64';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -216,7 +216,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -274,6 +274,9 @@ export function handleEvents(S, bump) {
         for (let i = 0; i < 16; i++) { const a = (i / 16) * 6.28; emit({ x: ev.x + Math.cos(a) * 2, y: gy(ev.x, ev.z, 0.4), z: ev.z + Math.sin(a) * 2, vx: Math.cos(a) * 3, vy: 3, vz: Math.sin(a) * 3, c: i % 2 ? 0xf2c232 : 0xf28c28, s: 0.22, life: 0.9, g: 5 }); }
         break;
       }
+      case 'takeover': { const g0 = gy(ev.x, ev.z); for (let i = 0; i < 30; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: g0 + 8 + Math.random() * 4, z: ev.z + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5), vy: -4, vz: (Math.random() - 0.5), c: i % 3 ? 0x7cc46a : 0xf5b83a, s: 0.3, life: 2, g: 2, drag: 1, floor: g0 + 0.1 }); fxRing(ev.x, ev.z, 0.5, 4, 0xd9b44a, 0.6); break; }
+      case 'jetfly': fxRing(ev.x, ev.z, 3, 0.5, 0xd9b44a, 1.6, 0.15); break;
+      case 'jetdrop': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5); fxBits(ev.x, ev.z, 0xd9b44a, 8, 1, 5); break;
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;

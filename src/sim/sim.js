@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=63';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=63';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=63';
-import { mulberry32 } from '../util/math.js?v=63';
-import { aiStep } from './ai.js?v=63';
+} from '../config/factions.js?v=64';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=64';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=64';
+import { mulberry32 } from '../util/math.js?v=64';
+import { aiStep } from './ai.js?v=64';
 
 let S = null;
 export const getSim = () => S;
@@ -131,6 +131,14 @@ export const A = {
     else if (pw.id === 'mud') { S.zones.push({ id: S.nid++, kind: 'mud', owner: p.i, x, z, r: 8, t: 10 }); S.events.push({ k: 'mud', x, z }); }
     else if (pw.id === 'cones') { S.zones.push({ id: S.nid++, kind: 'cones', owner: p.i, x, z, r: 7, t: 12 }); S.events.push({ k: 'cones', x, z, r: 7 }); }
     else if (pw.id === 'wreck') { S.pending.push({ id: S.nid++, kind: 'wreck', owner: p.i, x, z, r: 5, t: 1.4 }); S.events.push({ k: 'wrecklaunch', x, z, owner: p.i }); }
+    else if (pw.id === 'takeover') { // money rains on the nearest enemy squad (not a hero) - they pocket it and change sides
+      let t = null, bd = 7;
+      for (const o of S.squads) { if (o.owner === p.i || o.slot === 'hero' || o.gar) continue; const d = Math.hypot(o.x - x, o.z - z); if (d < bd) { bd = d; t = o; } }
+      if (!t) return false;
+      t.owner = p.i; setOrder(t, { type: 'idle' }); t.post = { x: t.x, z: t.z }; t.hold = false;
+      S.events.push({ k: 'takeover', x: t.x, z: t.z, id: t.id, owner: p.i });
+    }
+    else if (pw.id === 'jet') { S.pending.push({ id: S.nid++, kind: 'jet', owner: p.i, x, z, r: 3, t: 1.6 }); S.events.push({ k: 'jetfly', x, z, owner: p.i }); }
     else if (pw.id === 'fireworks') { S.pending.push({ id: S.nid++, kind: 'fireworks', owner: p.i, x, z, r: 7, t: 1.8 }); S.events.push({ k: 'fwlaunch', x, z, owner: p.i }); }
     p.meter -= pw.cost; return true;
   },
@@ -440,6 +448,9 @@ function resolvePending(pd) {
     for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) hitSquad(o, 60, true, null, 99);
     for (const b of [...S.blds]) if (b.owner !== pd.owner && Math.hypot(b.x - pd.x, b.z - pd.z) < pd.r + b.r) hitBld(b, 300);
     S.events.push({ k: 'fwboom', x: pd.x, z: pd.z, r: pd.r });
+  } else if (pd.kind === 'jet') {
+    const [x, z] = nearestFree(pd.x, pd.z), q = spawnSquad(pl(pd.owner), 'melee', x, z);
+    q.post = { x, z }; S.events.push({ k: 'jetdrop', x, z });
   } else if (pd.kind === 'wreck') {
     for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) { hitSquad(o, 80, true, null, 99); o.stun = Math.max(o.stun, 1.5); }
     for (const b of [...S.blds]) if (b.owner !== pd.owner && Math.hypot(b.x - pd.x, b.z - pd.z) < pd.r + b.r) hitBld(b, 450);

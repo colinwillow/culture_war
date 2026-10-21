@@ -75,6 +75,6 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 ## Batch 6 (added 11:42 UTC by the loop, same rules)
 - [x] (B62) Audio: tiny WebAudio synth SFX (punch thud, gun pop, coin ding, explosion boom, power stingers) — no files, unlocked on first tap; mute toggle (speaker icon) on the menu + pause screen
 - [x] (B63) Logic: The Foreman's own ability — Overtime whistle: nearby squads +20% speed and nearby own buildings train/build 2x for 10 s (hard-hat sparkle rings)
-- [ ] Logic: 4th launch faction OLD MONEY (Elite) data — few, expensive, strong units; buy instantly is too big, so: Hostile Takeover (enemy squad near the tycoon switches sides) + Private Jet drop (a squad of bodyguards lands)
+- [x] (B64) Logic: 4th launch faction OLD MONEY (Elite) data — few, expensive, strong units; buy instantly is too big, so: Hostile Takeover (enemy squad near the tycoon switches sides) + Private Jet drop (a squad of bodyguards lands)
 - [ ] Units: Old Money cast with Colin's fat_secret_service GLB (bodyguards, sunglasses vibe) + placeholders (golf cart cav, armoured limo siege, monocled tycoon hero)
 - [ ] Map: Old Money buildings (mansion HQ, bank-vault depot, country club barracks, guard booth tower) + menu pick + power visuals (money rain, jet flyover)

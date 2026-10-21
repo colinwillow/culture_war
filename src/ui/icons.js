@@ -31,6 +31,7 @@ export const ICON = {
   ball: '<path d="M12 2v7"/><circle cx="12" cy="15" r="6"/><path d="M9 13a3 3 0 0 1 3-2"/>',
   sound: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
   mute: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6"/>',
+  plane: '<path d="M2 13l20-7-6 13-4-5z"/><path d="M12 14l-2 6"/>',
   shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
   hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
   eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
