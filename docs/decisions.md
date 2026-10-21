@@ -2,12 +2,14 @@
 
 Newest first. Colin's feedback in his words where it matters.
 
-## Overnight loop summary (Oct 21 2026, ~08:30-14:55 UTC, B2 -> B106)
+## Overnight loop summary (Oct 21 2026, ~08:30-14:55 UTC, B2 -> B121)
 Colin asked: "keep developing it, UI, game logic, particle effects, map, placeholder 3D animated objects - on a loop until
 8 am". Every build below shipped to main UNVERIFIED on a phone (headless boot check + sim fast-forwards only).
 - Factions: 2 -> 6 playable (Hard Hats, Old Money, Street Crew, Nerds added), each with traits, two powers, its own hero
   ability, placeholder vehicles/hero/buildings and base dressing; balanced AI-vs-AI to 22-28/50 each (tools/balance.cjs).
-- Modes: Versus, King of the Hill (middle overpass), Resource Race (first to earn 2500); 3 difficulties.
+- Modes: Versus, King of the Hill, Resource Race, Capture and Hold, Hero vs Hero (all vs computer); 3 difficulties.
+- Late additions (B107-B120): building draw-call merge, LOW graphics toggle, minimap objectives, hero duel balance,
+  end-screen matchup badges, clearer rain, first-match nudges, menu orbit, menu long-press names.
 - Feel: particles everywhere, synth audio + voice barks, time of day, rain, match intro fly-over, end swoop + victory
   dance, hero entrance, death flourishes, pedestrians, city traffic/pigeons/clouds.
 - UI: minimap, command cards, queue, rally flags, under-attack arrow, hold-to-select-army, power aim ring, faction HUD
@@ -16,6 +18,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B121 (overnight loop): Docs: final overnight touch-up - CLAUDE.md current state at B121 (Hero vs Hero, first-match nudges, menu orbit + long-press names, end badges) and the overnight summary in docs/decisions.md extended to B121
 - B120 (overnight loop): Menu long-press names (dev aid): holding any menu button (faction cards, difficulty stars, mode buttons, sound, graphics) for ~0.45 s shows its name in the tooltip bubble, and that press then does nothing (a normal tap still acts)
 - B119 (overnight loop): Menu backdrop: while the menu is up (on load and after quitting/finishing a match), the camera eases to the city centre, pulls out and slowly circles it, so the live city turns behind the faction cards
 - B118 (overnight loop): First-match train nudge: with a finished barracks selected, its first trainable unit button pulses (same gold pulse as the hammer) until a squad is trained once; remembered (cw-trained)

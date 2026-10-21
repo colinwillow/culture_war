@@ -151,4 +151,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 18 (added 14:24 UTC by the loop, same rules)
 - [x] (B120) UI: menu buttons (factions, difficulty, modes, sound, graphics) show their name on long-press, like the HUD buttons (dev aid)
-- [ ] Docs: final overnight touch-up — CLAUDE.md current state for Hero vs Hero, first-match nudges, menu backdrop; summary line in docs/decisions.md
+- [x] (B121) Docs: final overnight touch-up — CLAUDE.md current state for Hero vs Hero, first-match nudges, menu backdrop; summary line in docs/decisions.md
