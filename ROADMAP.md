@@ -147,4 +147,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 17 (added 14:19 UTC by the loop, same rules)
 - [x] (B118) UI: first match ever — once a barracks stands, its first train button pulses until a squad is trained (remembered)
-- [ ] FX: menu backdrop — while the menu is up, the camera slowly orbits the city centre
+- [x] (B119) FX: menu backdrop — while the menu is up, the camera slowly orbits the city centre
