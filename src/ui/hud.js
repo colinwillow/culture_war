@@ -1,19 +1,22 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=116';
-import { UI, select, selSquads } from './state.js?v=116';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=116';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=116';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=116';
-import { camera } from '../render/scene.js?v=116';
-import { walkH } from '../map/layout.js?v=116';
-import { THREE } from '../render/scene.js?v=116';
-import { showHint } from './hint.js?v=116';
+import { svg } from './icons.js?v=117';
+import { UI, select, selSquads } from './state.js?v=117';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=117';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=117';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=117';
+import { camera } from '../render/scene.js?v=117';
+import { walkH } from '../map/layout.js?v=117';
+import { THREE } from '../render/scene.js?v=117';
+import { showHint } from './hint.js?v=117';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
 const specs = new Map();
+// First match ever on this phone: the build (hammer) button pulses until it is first tapped. No words.
+let builtOnce = false;
+try { builtOnce = localStorage.getItem('cw-built') === '1'; } catch (e) {}
 
 function btnHTML(b) {
   return `<button type="button" class="btn${b.noCost ? ' noCost' : ''}${b.cls ? ' ' + b.cls : ''}" data-id="${b.id}" aria-label="${b.name || b.id}"><span class="gauge"></span><span class="pips"></span><span class="ic">${svg(b.icon)}</span>${b.noCost ? '' : '<span class="cost"></span>'}<span class="badge"></span><span class="prog"></span></button>`;
@@ -21,6 +24,7 @@ function btnHTML(b) {
 function applyBtn(el, b) {
   for (const k of ['dis', 'poor', 'ready', 'armed', 'on']) el.classList.toggle(k, !!b[k]);
   el.classList.toggle('cpblock', !!b.cp);
+  el.classList.toggle('nudge', !!b.nudge);
   const c = el.querySelector('.cost'); if (c && c.textContent !== String(b.cost)) c.textContent = b.cost;
   const bd = el.querySelector('.badge'), bt = b.badge ? String(b.badge) : ''; if (bd.textContent !== bt) bd.textContent = bt;
   el.querySelector('.prog').style.width = (b.prog != null ? Math.round(b.prog * 100) : 0) + '%';
@@ -100,7 +104,7 @@ function cmdSpec() {
   const S = getSim(), p = pl(0), F = fac(p);
   const out = [
     { id: 'view', name: 'Ghost cam', icon: 'eye', noCost: true, cls: 'sm view', on: CAM.view === 'low', tap: () => toggleView(selSquads()[0]) },
-    { id: 'build', name: 'Build', icon: 'hammer', noCost: true, cls: 'sm build', on: UI.buildMenu, tap: () => { UI.sel = null; UI.place = null; UI.buildMenu = !UI.buildMenu; } },
+    { id: 'build', name: 'Build', icon: 'hammer', noCost: true, cls: 'sm build', on: UI.buildMenu, nudge: !builtOnce, tap: () => { UI.sel = null; UI.place = null; UI.buildMenu = !UI.buildMenu; if (!builtOnce) { builtOnce = true; try { localStorage.setItem('cw-built', '1'); } catch (e) {} } } },
     { id: 'army', name: 'Select army', icon: 'people', noCost: true, cls: 'sm army', tap: () => { const army = S.squads.filter((s) => s.owner === 0 && s.slot !== 'worker'); if (!army.length) return false; select({ type: 'sq', ids: army.map((s) => s.id) }); focus(army[0].x, army[0].z); } },
     { id: 'home', name: 'Go home', icon: 'home', noCost: true, cls: 'sm', tap: () => { const hq = hqOf(p); if (!hq) return false; focus(hq.x, hq.z - 10); select({ type: 'bld', id: hq.id }); } },
   ];

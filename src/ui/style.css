@@ -187,3 +187,5 @@ body.show-mute #gfxBtn { display: grid; }
 #vsRow .fb.win { transform: scale(1.35); }
 #vsRow .fb.lose { filter: grayscale(.8) brightness(.7); }
 #vsRow .vs { width: 26px; height: 3px; background: var(--muted); border-radius: 2px; }
+.btn.nudge { animation: nudge 1.1s ease-in-out infinite; }
+@keyframes nudge { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 184, 58, .7); } 50% { transform: scale(1.12); box-shadow: 0 0 0 10px rgba(245, 184, 58, 0); } }

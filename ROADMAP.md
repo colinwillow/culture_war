@@ -143,4 +143,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 16 (added 14:14 UTC by the loop, same rules)
 - [x] (B116) FX: rain reads better — longer, brighter streaks and little ripple rings on the ground where drops land
-- [ ] UI: first match ever — the build (hammer) button pulses gently until it is first used (show, don't label), remembered on the phone
+- [x] (B117) UI: first match ever — the build (hammer) button pulses gently until it is first used (show, don't label), remembered on the phone
