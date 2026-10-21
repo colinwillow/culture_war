@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=112';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=112';
-import { syncRender, clearRender, bump } from './render/sync.js?v=112';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=112';
-import { newSim, getSim, step } from './sim/sim.js?v=112';
-import { TICK } from './config/factions.js?v=112';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=112';
-import { initInput, lockPageZoom } from './input/input.js?v=112';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=112';
-import { resetUI } from './ui/state.js?v=112';
-import { fillIcons, svg } from './ui/icons.js?v=112';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=112';
-import { updateMinimap } from './ui/minimap.js?v=112';
-import { isMuted, setMuted } from './fx/sfx.js?v=112';
-import { loadChars } from './render/chars.js?v=112';
-import { FC } from './render/models.js?v=112';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=113';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=113';
+import { syncRender, clearRender, bump } from './render/sync.js?v=113';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=113';
+import { newSim, getSim, step } from './sim/sim.js?v=113';
+import { TICK } from './config/factions.js?v=113';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=113';
+import { initInput, lockPageZoom } from './input/input.js?v=113';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=113';
+import { resetUI } from './ui/state.js?v=113';
+import { fillIcons, svg } from './ui/icons.js?v=113';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=113';
+import { updateMinimap } from './ui/minimap.js?v=113';
+import { isMuted, setMuted } from './fx/sfx.js?v=113';
+import { loadChars } from './render/chars.js?v=113';
+import { FC } from './render/models.js?v=113';
 
-export const BUILD = 112; // written by `npm run bump`
+export const BUILD = 113; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -162,7 +162,8 @@ function frame(now) {
       return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;
     }).join('');
     const lost = S.players[1 - S.over.winner];
-    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: S.over.hill ? S.hill.x : lost.hqx, z: S.over.hill ? S.hill.z : lost.hqz }; // a hill win swoops onto the hill
+    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: S.over.hill ? S.hill.x : lost.hqx, z: S.over.hill ? S.hill.z : lost.hqz };
+    if (S.over.duel) { const w = S.squads.find((q) => q.owner === S.over.winner && q.slot === 'hero'); if (w) { cin.x = w.x; cin.z = w.z; } } // a duel swoops onto the winning hero // a hill win swoops onto the hill
     setTimeout(() => (endEl.hidden = false), 2600);
   }
   hudT -= dt;

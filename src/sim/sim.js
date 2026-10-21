@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=112';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=112';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=112';
-import { mulberry32 } from '../util/math.js?v=112';
-import { aiStep } from './ai.js?v=112';
+} from '../config/factions.js?v=113';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=113';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=113';
+import { mulberry32 } from '../util/math.js?v=113';
+import { aiStep } from './ai.js?v=113';
 
 let S = null;
 export const getSim = () => S;
@@ -48,8 +48,10 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
   for (const p of S.players) {
     addBld(p, 'hq', p.hqx, p.hqz, true);
     for (let i = 0; i < 2; i++) { const w = spawnSquad(p, 'worker', p.hqx + (i ? 5 : -5), p.hqz - p.side * 6); w.task = { state: 'find' }; }
-    spawnSquad(p, 'melee', p.hqx, p.hqz - p.side * 12);
+    if (mode === 'hero') { const h = spawnSquad(p, 'hero', p.hqx, p.hqz - p.side * 12); h.post = { x: h.x, z: h.z }; } // Hero vs Hero: just the hero
+    else spawnSquad(p, 'melee', p.hqx, p.hqz - p.side * 12);
   }
+  if (mode === 'hero') S.duel = true;
   return S;
 }
 
@@ -101,6 +103,7 @@ export const Q = {
   /** null if OK, else 'lock' | 'busy' | 'cash' | 'cp' */
   canTrain(p, b, slot) {
     const def = fac(p).units[slot];
+    if (S.duel && slot !== 'worker') return 'lock'; // Hero vs Hero: workers only
     if (slot === 'hero') { if (b.kind !== 'hq' || heroBusy(p)) return 'lock'; }
     else if (slot === 'worker') { if (b.kind !== 'hq' || workersOf(p).length + b.queue.filter((q) => q === 'worker').length >= MAX_WORKERS) return 'lock'; }
     else { if (b.kind !== 'barracks' || b.level < REQ[slot]) return 'lock'; if (b.queue.length >= 5) return 'busy'; }
@@ -546,6 +549,7 @@ export function step() {
   }
   if (S.hill && !S.over) stepHill(dt);
   if (S.cap && !S.over) stepCap(dt);
+  if (S.duel && !S.over) for (const p of S.players) if (!S.squads.some((q) => q.owner === p.i && q.slot === 'hero' && aliveN(q) > 0)) { S.over = { winner: 1 - p.i, duel: true }; break; }
   if (S.race && !S.over) for (const p of S.players) if (p.st.earned >= S.race.goal) { S.over = { winner: p.i, race: true }; break; }
   for (const b of [...S.blds]) {
     if (b.dead) continue;
