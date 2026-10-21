@@ -45,7 +45,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B33) Placeholder: parade puppet sways its arms + bobs its head as it walks; fireworks cart tubes smoke after each shot
 - [x] (B34) UI: pause button (big icon, top-right) — freezes the sim, dims the screen; tap anywhere on the dim to resume
 - [x] (B35) UI: difficulty picker on the menu — three big icons (easy / normal / hard) that change AI wave size + income
-- [ ] Map: food trucks come alive — grill steam, a vendor box-person behind the hatch, the awning flaps
+- [x] (B37) Map: food trucks come alive — grill steam, a vendor box-person behind the hatch, the awning flaps
 - [ ] FX: Backwoods Junkyard — destroyed Backwoods vehicles leave a smoking wreck husk for a while (the scrap refund made visible)
 - [ ] FX: Activists Rally — thin pulsing lines link nearby Activist squads while the rally bonus is active
 - [ ] UI: build-radius preview — while placing, a soft ring around each of your buildings shows where you are allowed to build

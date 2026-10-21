@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=35';
+import { THREE, box, cyl, mat } from './scene.js?v=37';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -125,7 +125,11 @@ export function nodeMesh() {
   flag.position.set(0.5, 3.4, 0); sign.add(flag);
   awning.material = new THREE.MeshLambertMaterial({ color: 0xf2b632 });
   g.add(truck, sign, awning, box(0.8, 0.9, 0.8, 0x8a6a3e, -1.7, 0.45, -1.2));
-  g.userData.coin = coin; g.userData.flag = flag; g.userData.awning = awning;
+  // Vendor in the serving hatch: torso, head, paper hat; sync.js bobs and turns them while the truck has stock.
+  const vendor = new THREE.Group(); vendor.position.set(1.15, 1.25, -0.3); // leaning out of the side hatch
+  vendor.add(box(0.36, 0.45, 0.3, 0xf4f1de, 0, 0, 0), box(0.26, 0.26, 0.26, 0xe8b892, 0, 0.36, 0), box(0.24, 0.16, 0.24, 0xffffff, 0, 0.56, 0));
+  truck.add(vendor);
+  g.userData.coin = coin; g.userData.flag = flag; g.userData.awning = awning; g.userData.vendor = vendor; g.userData.awnRot = awning.rotation.z;
   return g;
 }
 

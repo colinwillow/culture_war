@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=35';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=35';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=35';
-import { emit } from '../fx/particles.js?v=35';
-import { TICK } from '../config/factions.js?v=35';
-import { walkH } from '../map/layout.js?v=35';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=35';
-import { Q, pl } from '../sim/sim.js?v=35';
-import { UI } from '../ui/state.js?v=35';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=35';
-import { lerpAngle } from '../util/math.js?v=35';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=37';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=37';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=37';
+import { emit } from '../fx/particles.js?v=37';
+import { TICK } from '../config/factions.js?v=37';
+import { walkH } from '../map/layout.js?v=37';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=37';
+import { Q, pl } from '../sim/sim.js?v=37';
+import { UI } from '../ui/state.js?v=37';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=37';
+import { lerpAngle } from '../util/math.js?v=37';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -82,7 +82,7 @@ function makeNodeObj(n) {
   g.rotation.y = (n.x * 7 + n.z) % 6;
   ring.rotation.z = 0;
   scene.add(g);
-  return { g, ring, coin: g.userData.coin, flag: g.userData.flag, awning: g.userData.awning };
+  return { g, ring, coin: g.userData.coin, flag: g.userData.flag, awning: g.userData.awning, vendor: g.userData.vendor, awnRot: g.userData.awnRot, steamT: Math.random() };
 }
 
 export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; o.lastAtk = 0; } }
@@ -394,6 +394,16 @@ export function syncRender(S, alpha, dt, time) {
     o.ring.material.opacity = own === 'both' ? 0.75 : own === null ? 0.3 + 0.2 * Math.sin(time * 2) : 0.6;
     o.flag.material.color.setHex(own === null ? 0xf2b632 : col);
     o.awning.material.color.setHex(own === 0 ? 0x4aa8d8 : own === 1 ? 0xd8483f : own === 'both' ? col : 0xf2b632);
+    // Open for business: the vendor bobs and turns, the awning flaps, the grill steams. A sold-out truck goes still.
+    if (k > 0) {
+      o.vendor.position.y = 1.25 + Math.abs(Math.sin(time * 3 + n.id)) * 0.06; o.vendor.rotation.y = Math.PI / 2 + Math.sin(time * 0.8 + n.id) * 0.7;
+      o.awning.rotation.z = o.awnRot + Math.sin(time * 2.4 + n.id) * 0.06;
+      if ((o.steamT -= dt) <= 0) {
+        o.steamT = 0.35 + Math.random() * 0.4;
+        o.g.updateMatrixWorld(); _wp.set(0.2, 2.5, 0.6).applyMatrix4(o.g.matrixWorld);
+        emit({ x: _wp.x, y: _wp.y, z: _wp.z, vx: (Math.random() - 0.5) * 0.4, vy: 0.9 + Math.random() * 0.5, vz: (Math.random() - 0.5) * 0.4, c: 0xf2f2f2, s: 0.35, life: 1.6, g: -0.2, drag: 0.8, grow: 2.8 });
+      }
+    }
     const fp = o.flag.geometry.attributes.position; // flag ripples
     for (let k = 0; k < fp.count; k++) { const fx = fp.getX(k); fp.setZ(k, Math.sin(time * 7 - fx * 5 + n.id) * 0.1 * (fx + 0.45)); }
     fp.needsUpdate = true;

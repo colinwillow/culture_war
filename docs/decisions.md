@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B37 (overnight loop): food trucks open for business: a box vendor in a paper hat leans out of the side hatch, bobbing and looking around; the awning flaps; the grill puffs steam - all of it stops once the truck sells out
 - B35 (overnight loop): difficulty: 1/2/3-star picker above the team buttons (remembered on the phone). Easy: computer earns 70%, first wave at 30 cp, caps at 32. Normal: as before. Hard: 135% income, first wave at 14 cp, waves grow to 60
 - B34 (overnight loop): pause: round pause button top-right freezes the sim and every animation and dims the screen behind a big play icon; tap anywhere on the dim to resume; the game also auto-pauses when you switch away from the tab
 - B33 (overnight loop): parade puppet rebuilt with a separate head (eyes + red mouth) and floppy arms on shoulder pivots - arms swing out of phase, head bobs/tilts/looks around (bigger while walking), both arms flop down onto the target on a hit; fireworks cart leaves a lingering grey smoke cloud after each launch
