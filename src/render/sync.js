@@ -1,18 +1,18 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=100';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=100';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=100';
-import { emit } from '../fx/particles.js?v=100';
-import { bark } from '../fx/sfx.js?v=100';
-import { TICK } from '../config/factions.js?v=100';
-import { walkH } from '../map/layout.js?v=100';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=100';
-import { CAM } from '../camera/camera.js?v=100';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=101';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=101';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=101';
+import { emit } from '../fx/particles.js?v=101';
+import { bark } from '../fx/sfx.js?v=101';
+import { TICK } from '../config/factions.js?v=101';
+import { walkH } from '../map/layout.js?v=101';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=101';
+import { CAM } from '../camera/camera.js?v=101';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=100';
-import { UI } from '../ui/state.js?v=100';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=100';
-import { lerpAngle } from '../util/math.js?v=100';
+import { Q, pl, getSim } from '../sim/sim.js?v=101';
+import { UI } from '../ui/state.js?v=101';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=101';
+import { lerpAngle } from '../util/math.js?v=101';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 

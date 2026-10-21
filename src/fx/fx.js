@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=100';
-import { walkH } from '../map/layout.js?v=100';
-import { sfx } from './sfx.js?v=100';
-import { shake, CAM } from '../camera/camera.js?v=100';
-import { FC } from '../render/models.js?v=100';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=100';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=101';
+import { walkH } from '../map/layout.js?v=101';
+import { sfx } from './sfx.js?v=101';
+import { shake, CAM } from '../camera/camera.js?v=101';
+import { FC } from '../render/models.js?v=101';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=101';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -258,7 +258,30 @@ export function fxMarker(x, z, c) {
     m.opacity = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
   });
 }
-export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
+// Each fallen fighter loses one on-trope item: it pops up, tumbles, bounces once and lies there a few seconds.
+// (Old Money sheds bills instead - they flutter down as particles.)
+const DROP = {
+  bw: () => [new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.34), mat(0xc62f2f))], // trucker cap
+  ac: () => [new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.36, 0.04), mat(0xf4f1de)), new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.6, 0.04), mat(0x8a6a3e))], // placard
+  hh: () => [new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xf2c232))], // hard hat
+  sc: () => [new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.32), mat(0xffffff)), new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.33), mat(0x7a3fd1))], // sneaker
+  nd: () => [new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 4, 10), mat(0x111111)), new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 4, 10), mat(0x111111))], // glasses
+};
+export function fxDeath(x, z, f) {
+  fxBits(x, z, FC[f].main, 3);
+  const g0 = gy(x, z);
+  if (f === 'om') { for (let i = 0; i < 6; i++) emit({ x, y: g0 + 1.2, z, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: i % 2 ? 0x7cc46a : 0x5aa05a, s: 0.18, life: 2.2, g: 2.5, drag: 2.5, floor: g0 + 0.05 }); return; }
+  if (!DROP[f]) return;
+  const o = new THREE.Group(), parts = DROP[f]();
+  parts.forEach((m, i) => { o.add(m); if (f === 'ac' && i === 1) m.position.y = -0.3; if (f === 'nd') m.position.x = i ? 0.09 : -0.09; if (f === 'sc' && i === 1) m.position.y = -0.07; });
+  const vx = (Math.random() - 0.5) * 3, vz = (Math.random() - 0.5) * 3, spin = (Math.random() - 0.5) * 14;
+  let y = g0 + 1.3, vy = 4 + Math.random() * 1.5, px = x, pz = z, bounced = false;
+  addFx(o, 4, (ob, k, dt) => {
+    if (y > g0 + 0.08 || vy > 0) { vy -= 14 * dt; y += vy * dt; px += vx * dt; pz += vz * dt; ob.rotation.x += spin * dt; ob.rotation.z += spin * 0.6 * dt; }
+    if (y < g0 + 0.08 && vy < 0) { y = g0 + 0.08; if (!bounced) { bounced = true; vy = 2; } else { vy = 0; ob.rotation.x *= 0.9; } }
+    ob.position.set(px, y - (k > 0.85 ? (k - 0.85) * 2 : 0), pz);
+  });
+}
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
