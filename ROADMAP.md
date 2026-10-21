@@ -167,6 +167,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B133) City look: storefronts in different shapes (setback towers, gables, domes, water towers, spires, L-plans) so blocks are easy to tell apart (Colin)
 - [x] (B137) Step 3: drifters - neutral street people; cash/jobs turn them into rebuild workers, neglect or wreckage turns them into wreckers
 - [x] (B141) Step 4a: tags, shops, looting
-- [ ] Step 4b: City Hall (builders) / Hideout (wreckers) - each side upgrades its HQ for side-specific perks
+- [x] (B143) Step 4b: City Hall (builders) / Hideout (wreckers) - each side upgrades its HQ for side-specific perks
+- [ ] Downtown balance: AI-vs-AI has wreckers winning ~2/3 - tune after Colin plays both sides (computer builders may just play worse)
 - [ ] Step 5: Colin's building kit pieces (weirdport models/building_kit) replace the floor slabs
 - [ ] Later: hex city layout (Catan-like blocks, bending streets, real chokepoints)

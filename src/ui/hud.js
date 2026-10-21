@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=141';
-import { UI, select, selSquads } from './state.js?v=141';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=141';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=141';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=141';
-import { camera } from '../render/scene.js?v=141';
-import { walkH } from '../map/layout.js?v=141';
-import { THREE } from '../render/scene.js?v=141';
-import { showHint } from './hint.js?v=141';
-import { sfx } from '../fx/sfx.js?v=141';
+import { svg } from './icons.js?v=143';
+import { UI, select, selSquads } from './state.js?v=143';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=143';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=143';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=143';
+import { camera } from '../render/scene.js?v=143';
+import { walkH } from '../map/layout.js?v=143';
+import { THREE } from '../render/scene.js?v=143';
+import { showHint } from './hint.js?v=143';
+import { sfx } from '../fx/sfx.js?v=143';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -85,6 +85,10 @@ function panelSpec() {
     } else if (b.kind === 'hq') {
       const w = F.units.worker, ww = Q.canTrain(p, b, 'worker'), wq = b.queue.filter((x) => x === 'worker').length;
       out.push({ id: 't-worker', name: w.name, icon: 'worker', cost: w.cost, dis: ww === 'lock' || b.built < 1, poor: ww === 'cash', cp: ww === 'cp', badge: wq || '', prog: b.queue[0] === 'worker' ? b.prodT / w.build : null, tap: () => (ww ? false : command(0, { type: 'train', id: b.id, slot: 'worker' })) });
+      if (S.down && p.hqLvl < 3) { // Downtown: grow City Hall (builders) / the Hideout (wreckers)
+        const cost = HQ_UP[p.hqLvl - 1], build = S.down.role[0] === 'b';
+        out.push({ id: 'hqup', name: (build ? 'City Hall' : 'Hideout') + ' level ' + (p.hqLvl + 1), short: build ? 'Hall' : 'Hideout', icon: 'up', cost, poor: p.cash < cost, pips: p.hqLvl + 1, tap: () => command(0, { type: 'hqup' }) });
+      }
       const def = F.units.hero, why = Q.canTrain(p, b, 'hero');
       out.push({ id: 't-hero', name: def.name, icon: 'hero', cost: def.cost, dis: why === 'lock' && !b.queue.includes('hero'), poor: why === 'cash', cp: why === 'cp', prog: b.queue[0] === 'hero' ? b.prodT / def.build : null, tap: () => (why ? false : command(0, { type: 'train', id: b.id, slot: 'hero' })) });
     }

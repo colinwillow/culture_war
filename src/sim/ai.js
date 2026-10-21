@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=141';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command } from './sim.js?v=141';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=143';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command, HQ_UP } from './sim.js?v=143';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -102,6 +102,7 @@ export function aiStep(S, dt, pi = 1) {
   // and keep it there; full waves still go for the HQ.
   if (S.down) { // Downtown
     const role = S.down.role[pi];
+    if (p.hqLvl < 3 && S.t > 90 && p.cash > HQ_UP[p.hqLvl - 1] + 120) command(pi, { type: 'hqup' }); // grow City Hall / the Hideout
     // Both sides recruit the nearest drifter when they have the cash to spare.
     if (S.drift && S.drift.length && p.cash > (role === 'b' ? 160 : 110)) {
       const d = S.drift.slice().sort((a, b) => Math.hypot(a.x - p.hqx, a.z - p.hqz) - Math.hypot(b.x - p.hqx, b.z - p.hqz))[0];

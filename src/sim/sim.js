@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=141';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=141';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=141';
-import { mulberry32 } from '../util/math.js?v=141';
-import { aiStep } from './ai.js?v=141';
+} from '../config/factions.js?v=143';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=143';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=143';
+import { mulberry32 } from '../util/math.js?v=143';
+import { aiStep } from './ai.js?v=143';
 
 let S = null;
 export const getSim = () => S;
@@ -21,7 +21,7 @@ export const pl = (i) => S.players[i];
 export const fac = (p) => FACTIONS[p.f];
 
 function mkPlayer(i, f, side) {
-  return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqx: BASES[i].x, hqz: BASES[i].z };
+  return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqLvl: 1, hqx: BASES[i].x, hqz: BASES[i].z };
 }
 
 // diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
@@ -85,6 +85,10 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
 const sqR = (def, slot) => (def.n > 1 ? 1.3 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1);
 const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || S.city.find((b) => b.id === id) || null;
 const FLOOR_HP = 120;
+// Downtown HQ upgrades. City Hall (builders): L2 workers rebuild 2x faster + recruiting costs 35; L3 tax x1.75, shops pay 10.
+// Hideout (wreckers): L2 loot +50% and tags pay 5; L3 fighters hit storefronts 1.25x harder.
+export const HQ_UP = [250, 450];
+const lvl = (i) => (S.players[i] ? S.players[i].hqLvl || 1 : 1);
 // Floors standing for a city storefront's hp: a floor is gone once its slice of hp is fully gone.
 const floorsFor = (b) => Math.max(0, Math.min(b.floors, Math.ceil(b.hp / FLOOR_HP - 1e-6)));
 
@@ -208,10 +212,18 @@ function applyCmd(c) {
     case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
     case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
     case 'repair': { const b = byId(c.id); if (b && (b.owner === p.i || b.city) && b.built >= 1 && (b.hp < b.maxHp || b.tag || (b.city && S.down && !b.shop))) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
+    case 'hqup': { // Downtown: City Hall (builders) / Hideout (wreckers), levels 2 and 3
+      if (!S.down || p.hqLvl >= 3) break;
+      const cost = HQ_UP[p.hqLvl - 1], hq = hqOf(p);
+      if (!hq || p.cash < cost) break;
+      p.cash -= cost; p.hqLvl++;
+      S.events.push({ k: 'hqup', x: hq.x, z: hq.z, owner: p.i, lvl: p.hqLvl, role: S.down.role[p.i] });
+      break;
+    }
     case 'recruit': { // Downtown: tap a drifter. Builders give a job (worker, 50), wreckers hand over a spray can (fighter, 40).
       const d = S.drift && S.drift.find((q) => q.id === c.id), D = S.down;
       if (!d || !D) break;
-      const role = D.role[p.i], cost = role === 'b' ? 50 : 40;
+      const role = D.role[p.i], cost = role === 'b' ? (p.hqLvl >= 2 ? 35 : 50) : 40;
       if (p.cash < cost) break;
       p.cash -= cost; recruit(d, p.i);
       break;
@@ -288,8 +300,9 @@ function killSquad(t) {
 function hitBld(b, d, by) {
   if (b.city) { // a storefront: floors come off from the top, the ground floor last; rubble stays and can be rebuilt
     if (b.hp <= 0) return;
+    if (S.down && by !== undefined && S.down.role[by] === 'w' && lvl(by) >= 3) d *= 1.25;
     if (S.down && by !== undefined && S.down.role[by] === 'w') {
-      if (b.shop) { b.shop = false; const p = pl(by); p.cash += 30; p.st.earned += 30; S.events.push({ k: 'looted', ci: b.ci, x: b.x, z: b.z, owner: by }); } // smash-and-grab
+      if (b.shop) { b.shop = false; const p = pl(by), g = lvl(by) >= 2 ? 45 : 30; p.cash += g; p.st.earned += g; S.events.push({ k: 'looted', ci: b.ci, x: b.x, z: b.z, owner: by }); } // smash-and-grab
       if (!b.tag) { b.tag = true; b.work = 0; S.events.push({ k: 'tagged', ci: b.ci, x: b.x, z: b.z }); }
     }
     b.hp = Math.max(0, b.hp - d);
@@ -414,7 +427,7 @@ function updateWorker(s, dt) {
       else if (!b.tag && b.work >= 4 && p.cash >= 60) { p.cash -= 60; b.shop = true; b.work = 0; S.events.push({ k: 'shopopen', ci: b.ci, x: b.x, z: b.z, owner: s.owner }); }
       return;
     }
-    const hp = Math.min(b.maxHp - b.hp, 25 * dt);
+    const hp = Math.min(b.maxHp - b.hp, 25 * dt * (b.city && S.down && lvl(s.owner) >= 2 ? 2 : 1));
     b.hp += hp; p.cash -= hp / 10;
     if (b.city) { // a storefront goes back up a whole floor at a time, once that floor's hp is fully paid for
       b.dead = false;
@@ -579,7 +592,7 @@ function stepDown(dt) {
   if (D.taxT >= 10) {
     D.taxT -= 10;
     const shops = S.city.filter((b) => b.shop).length, tags = S.city.filter((b) => b.tag).length;
-    const pb = pl(bi), ib = Math.round(50 * D.meter) + shops * 6, pw = pl(wi), iw = tags * 3; // shops pay the builders, tagged blocks pay the wreckers
+    const pb = pl(bi), ib = Math.round(50 * D.meter * (lvl(bi) >= 3 ? 1.75 : 1)) + shops * (lvl(bi) >= 3 ? 10 : 6), pw = pl(wi), iw = tags * (lvl(wi) >= 2 ? 5 : 3); // shops pay the builders, tagged blocks pay the wreckers
     pb.cash += ib; pb.st.earned += ib; pw.cash += iw; pw.st.earned += iw;
     S.events.push({ k: 'income', owner: bi });
   }

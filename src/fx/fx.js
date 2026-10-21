@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=141';
-import { walkH, CITY } from '../map/layout.js?v=141';
-import { sfx } from './sfx.js?v=141';
-import { shake, CAM } from '../camera/camera.js?v=141';
-import { FC } from '../render/models.js?v=141';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=141';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=143';
+import { walkH, CITY } from '../map/layout.js?v=143';
+import { sfx } from './sfx.js?v=143';
+import { shake, CAM } from '../camera/camera.js?v=143';
+import { FC } from '../render/models.js?v=143';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=143';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -315,7 +315,7 @@ export function fxDeath(x, z, f) {
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', hqup: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -441,6 +441,12 @@ export function handleEvents(S, bump) {
       case 'tagged': for (let i = 0; i < 14; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: gy(ev.x, ev.z, 1 + Math.random() * 1.5), z: ev.z + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5) * 2, vy: Math.random(), vz: (Math.random() - 0.5) * 2, c: [0xff5ad1, 0x7ee05b, 0x5ae0ff, 0xf5b83a][i % 4], s: 0.2, life: 0.6, g: 2 }); break;
       case 'scrub': for (let i = 0; i < 16; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: gy(ev.x, ev.z, 0.5 + Math.random() * 2), z: ev.z + (Math.random() - 0.5) * 4, vy: 0.8 + Math.random(), c: 0xeaf6ff, s: 0.22, life: 1.1, g: -0.3, drag: 1, grow: 1.5 }); break;
       case 'shopopen': fxRing(ev.x, ev.z, 0.5, 6, 0x7ee05b, 0.7, 0.2); fxCoin(ev.x, 4, ev.z); for (let i = 0; i < 10; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: gy(ev.x, ev.z, 2.5), z: ev.z + (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 2, c: i % 2 ? 0xf5b83a : 0xffffff, s: 0.16, life: 1, g: 4 }); break;
+      case 'hqup': { // City Hall: gold rings + white confetti; Hideout: neon spray burst
+        const cs = ev.role === 'b' ? [0xf5b83a, 0xffffff] : [0xff5ad1, 0x7ee05b, 0x5ae0ff];
+        fxRing(ev.x, ev.z, 1, 8, cs[0], 0.8, 0.2); fxRing(ev.x, ev.z, 0.5, 6, cs[1], 0.7, 2); shake(0.4, ev.x, ev.z);
+        for (let i = 0; i < 30; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: gy(ev.x, ev.z, 4), z: ev.z + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5) * 5, vy: 3 + Math.random() * 4, vz: (Math.random() - 0.5) * 5, c: cs[i % cs.length], s: 0.2, life: 1.6, g: 6, drag: 0.8 });
+        break;
+      }
       case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }

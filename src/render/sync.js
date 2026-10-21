@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=141';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=141';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=141';
-import { emit } from '../fx/particles.js?v=141';
-import { bark } from '../fx/sfx.js?v=141';
-import { TICK } from '../config/factions.js?v=141';
-import { walkH } from '../map/layout.js?v=141';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=141';
-import { CAM } from '../camera/camera.js?v=141';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=143';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=143';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=143';
+import { emit } from '../fx/particles.js?v=143';
+import { bark } from '../fx/sfx.js?v=143';
+import { TICK } from '../config/factions.js?v=143';
+import { walkH } from '../map/layout.js?v=143';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=143';
+import { CAM } from '../camera/camera.js?v=143';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=141';
-import { UI } from '../ui/state.js?v=141';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=141';
+import { Q, pl, getSim } from '../sim/sim.js?v=143';
+import { UI } from '../ui/state.js?v=143';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=143';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=141';
+import { lerpAngle } from '../util/math.js?v=143';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -404,6 +404,7 @@ export function syncRender(S, alpha, dt, time) {
     let o = R.bl.get(b.id);
     if (!o) { o = makeBldObj(b); R.bl.set(b.id, o); }
     o.mesh.scale.y = 0.25 + 0.75 * b.built;
+    if (b.kind === 'hq' && S.down) { const L = (pl(b.owner).hqLvl || 1) - 1; o.mesh.scale.y *= 1 + 0.18 * L; o.mesh.scale.x = o.mesh.scale.z = 1 + 0.07 * L; } // City Hall / Hideout grows a size per level
     if (b.kind === 'tower') {
       if (!o.crew) { o.crew = new THREE.Group(); for (let k = 0; k < 3; k++) { const f = new THREE.Group(); f.add(box(0.28, 0.45, 0.22, b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0, 0.23, 0), box(0.22, 0.22, 0.22, 0xf2c9a0, 0, 0.58, 0)); f.position.set((k - 1) * 0.7, 4.6, k === 1 ? 0.6 : -0.4); o.crew.add(f); } casts(o.crew); o.root.add(o.crew); }
       o.crew.visible = !!b.garrison;
