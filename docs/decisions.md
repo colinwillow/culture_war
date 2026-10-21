@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B120 (overnight loop): Menu long-press names (dev aid): holding any menu button (faction cards, difficulty stars, mode buttons, sound, graphics) for ~0.45 s shows its name in the tooltip bubble, and that press then does nothing (a normal tap still acts)
 - B119 (overnight loop): Menu backdrop: while the menu is up (on load and after quitting/finishing a match), the camera eases to the city centre, pulls out and slowly circles it, so the live city turns behind the faction cards
 - B118 (overnight loop): First-match train nudge: with a finished barracks selected, its first trainable unit button pulses (same gold pulse as the hammer) until a squad is trained once; remembered (cw-trained)
 - B117 (overnight loop): First-match nudge: on a phone that has never opened the build menu, the hammer button gently pulses (scale + gold ring) until it is tapped once; remembered (cw-built), no words

@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=119';
-import { UI, select, selSquads } from './state.js?v=119';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=119';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=119';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=119';
-import { camera } from '../render/scene.js?v=119';
-import { walkH } from '../map/layout.js?v=119';
-import { THREE } from '../render/scene.js?v=119';
-import { showHint } from './hint.js?v=119';
+import { svg } from './icons.js?v=120';
+import { UI, select, selSquads } from './state.js?v=120';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=120';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=120';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=120';
+import { camera } from '../render/scene.js?v=120';
+import { walkH } from '../map/layout.js?v=120';
+import { THREE } from '../render/scene.js?v=120';
+import { showHint } from './hint.js?v=120';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -190,7 +190,7 @@ function confirmPlace() {
 // ---- Press handling: tap = action, hold = show the button's name ----
 let hold = null;
 function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
-function showTip(el, text) {
+export function showTip(el, text) {
   tipEl.textContent = text; tipEl.hidden = false;
   const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
   tipEl.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';

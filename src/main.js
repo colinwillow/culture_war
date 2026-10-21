@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=119';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=119';
-import { syncRender, clearRender, bump } from './render/sync.js?v=119';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=119';
-import { newSim, getSim, step } from './sim/sim.js?v=119';
-import { TICK } from './config/factions.js?v=119';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=119';
-import { initInput, lockPageZoom } from './input/input.js?v=119';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=119';
-import { resetUI } from './ui/state.js?v=119';
-import { fillIcons, svg } from './ui/icons.js?v=119';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=119';
-import { updateMinimap } from './ui/minimap.js?v=119';
-import { isMuted, setMuted } from './fx/sfx.js?v=119';
-import { loadChars } from './render/chars.js?v=119';
-import { FC } from './render/models.js?v=119';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=120';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=120';
+import { syncRender, clearRender, bump } from './render/sync.js?v=120';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=120';
+import { newSim, getSim, step } from './sim/sim.js?v=120';
+import { TICK } from './config/factions.js?v=120';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=120';
+import { initInput, lockPageZoom } from './input/input.js?v=120';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=120';
+import { resetUI } from './ui/state.js?v=120';
+import { fillIcons, svg } from './ui/icons.js?v=120';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=120';
+import { updateMinimap } from './ui/minimap.js?v=120';
+import { isMuted, setMuted } from './fx/sfx.js?v=120';
+import { loadChars } from './render/chars.js?v=120';
+import { FC } from './render/models.js?v=120';
 
-export const BUILD = 119; // written by `npm run bump`
+export const BUILD = 120; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -86,6 +86,14 @@ function applyGfx() {
 gfxBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); lowGfx = !lowGfx; try { localStorage.setItem('cw-low', lowGfx ? '1' : '0'); } catch (er) {} applyGfx(); });
 gfxBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 applyGfx();
+// Dev aid: long-press any menu button (faction, stars, modes, sound, graphics) to see its name; the press then does nothing.
+{
+  let lp = null; const tip = document.getElementById('tip');
+  const name = (el) => el.getAttribute('aria-label') || (el.childNodes[1] && el.childNodes[1].textContent) || el.textContent.trim();
+  document.addEventListener('pointerdown', (e) => { const el = e.target.closest('#menu button, #muteBtn, #gfxBtn'); if (!el) return; lp = { el, long: false, t: setTimeout(() => { lp.long = true; showTip(el, name(el)); }, 450) }; }, true);
+  const end = (e) => { if (!lp) return; clearTimeout(lp.t); tip.hidden = true; if (lp.long && e.type === 'pointerup') { e.stopImmediatePropagation(); e.preventDefault(); } lp = null; };
+  document.addEventListener('pointerup', end, true); document.addEventListener('pointercancel', end, true);
+}
 // Pause: freezes the sim and every animation (dt 0) but keeps drawing; tap the dim to resume. Auto-pauses when the
 // phone switches away from the tab.
 let paused = false;
