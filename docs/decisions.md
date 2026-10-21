@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B40 (overnight loop): build zone preview: while placing a building, each of your finished buildings shows the 26 m circle you're allowed to build in - faint green fill with a slowly turning dashed rim; disappears when you confirm or cancel
 - B39 (overnight loop): Rally made visible: thin pink lines link every pair of Activist squads close enough to rally each other (same 8 m as the bonus), gently pulsing and bobbing - more lines = bigger damage bonus
 - B38 (overnight loop): Junkyard made visible: a destroyed monster truck or fireworks cart leaves a charred, tilted husk with its wheels knocked off, smoking (flames at first) for ~20 s before it sinks away - next to the existing coin pop for the 50% scrap refund
 - B37 (overnight loop): food trucks open for business: a box vendor in a paper hat leans out of the side hatch, bobbing and looking around; the awning flaps; the grill puffs steam - all of it stops once the truck sells out

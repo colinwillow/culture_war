@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=39';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=39';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=39';
-import { emit } from '../fx/particles.js?v=39';
-import { TICK } from '../config/factions.js?v=39';
-import { walkH } from '../map/layout.js?v=39';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=39';
-import { Q, pl } from '../sim/sim.js?v=39';
-import { UI } from '../ui/state.js?v=39';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=39';
-import { lerpAngle } from '../util/math.js?v=39';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=40';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=40';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=40';
+import { emit } from '../fx/particles.js?v=40';
+import { TICK } from '../config/factions.js?v=40';
+import { walkH } from '../map/layout.js?v=40';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=40';
+import { Q, pl } from '../sim/sim.js?v=40';
+import { UI } from '../ui/state.js?v=40';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=40';
+import { lerpAngle } from '../util/math.js?v=40';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -476,6 +476,25 @@ export function syncRender(S, alpha, dt, time) {
     R.ghost.ring.material.color.setHex(ok ? 0x9dff78 : 0xff6557);
     R.ghost.g.traverse((n) => { if (n.material && n !== R.ghost.ring) n.material.color.setHex(ok ? 0xffffff : 0xff6557); });
   } else if (R.ghost) { disposeObj(R.ghost.g); R.ghost = null; }
+  // Build zone: while placing, every finished building of yours shows the circle you may build inside
+  // (faint fill + a slowly turning dashed rim). Rebuilt only when the set of buildings changes.
+  const own = UI.place ? S.blds.filter((b) => b.owner === 0 && b.built >= 1) : [];
+  const key = own.map((b) => b.id).join(',');
+  if (R.zoneKey !== key) {
+    if (R.zone) disposeObj(R.zone);
+    R.zone = null; R.zoneKey = key;
+    if (own.length) {
+      const g = new THREE.Group(), fill = basic(0x9dff78, 0.07), rim = basic(0x9dff78, 0.55);
+      for (const b of own) {
+        const c = new THREE.Mesh(new THREE.CircleGeometry(BUILD_RADIUS, 48), fill); c.rotation.x = -Math.PI / 2; c.position.set(b.x, walkH(b.x, b.z) + 0.09, b.z); c.renderOrder = 1; g.add(c);
+        const r = new THREE.Group(); r.position.copy(c.position); r.userData.spin = true;
+        for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2, d = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.35), rim); d.rotation.set(-Math.PI / 2, 0, -a); d.position.set(Math.cos(a) * BUILD_RADIUS, 0.02, Math.sin(a) * BUILD_RADIUS); r.add(d); }
+        g.add(r);
+      }
+      scene.add(g); R.zone = g;
+    }
+  }
+  if (R.zone) R.zone.children.forEach((c) => { if (c.userData.spin) c.rotation.y = time * 0.05; });
 }
 
 export function clearRender() {
@@ -486,6 +505,7 @@ export function clearRender() {
   for (const m of R.pend.values()) disposeObj(m);
   if (R.ghost) disposeObj(R.ghost.g);
   R.ghost = null;
+  if (R.zone) disposeObj(R.zone); R.zone = null; R.zoneKey = '';
   for (const d of dying) disposeObj(d.root); dying.length = 0;
   for (const c of corpses) disposeObj(c.o.root); corpses.length = 0;
   R.sq.clear(); R.bl.clear(); R.nodes.clear(); R.zones.clear(); R.pend.clear();
