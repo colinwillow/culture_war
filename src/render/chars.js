@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=103';
+import { THREE } from './scene.js?v=104';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -240,6 +240,16 @@ function addCarry(g, f) {
     const bag = new THREE.Group(); bag.position.set(0.42, 0.75, 0.1); g.add(bag);
     bx(bag, 0.12, 0.38, 0.5, 0x1a1a1a, 0, 0, 0); bx(bag, 0.06, 0.08, 0.16, 0xd9b44a, 0, 0.22, 0);
     for (let i = 0; i < 2; i++) bx(cash, 0.1, 0.1, 0.16, 0x7cc46a, 0, 0.26, (i - 0.5) * 0.18);
+    bag.add(cash); g.userData.bag = bag;
+  } else if (f === 'sc') { // Street Crew Hustlers carry a sneaker box under the arm, cash poking out of the lid
+    const bag = new THREE.Group(); bag.position.set(0.4, 0.85, 0.05); g.add(bag);
+    bx(bag, 0.22, 0.2, 0.42, 0xf28c28, 0, 0, 0); bx(bag, 0.24, 0.05, 0.44, 0xffffff, 0, 0.12, 0); bx(bag, 0.23, 0.04, 0.12, 0x7a3fd1, 0, 0, 0.16);
+    for (let i = 0; i < 3; i++) bx(cash, 0.06, 0.12, 0.14, 0x7cc46a, 0, 0.2, (i - 1) * 0.13);
+    bag.add(cash); g.userData.bag = bag;
+  } else if (f === 'nd') { // Nerds' Tech Support wear a laptop messenger bag on the hip that bulges with cash
+    const bag = new THREE.Group(); bag.position.set(-0.3, 0.8, 0); g.add(bag);
+    bx(bag, 0.1, 0.36, 0.48, 0x2f3446, 0, 0, 0); bx(bag, 0.11, 0.06, 0.48, 0x4a6fe3, 0, 0.12, 0); bx(bag, 0.03, 0.9, 0.06, 0x4a6fe3, 0.18, 0.35, 0);
+    for (let i = 0; i < 2; i++) bx(cash, 0.1, 0.1, 0.16, 0x7cc46a, 0, 0.24, (i - 0.5) * 0.18);
     bag.add(cash); g.userData.bag = bag;
   } else if (f !== 'ac') { // Backwoods and Hard Hats push wheelbarrows
     const wb = new THREE.Group(); wb.position.set(0, 0, 0.75); g.add(wb);

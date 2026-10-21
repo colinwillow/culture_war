@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B104 (overnight loop): Worker kit for the new factions: Street Crew Hustlers carry an orange sneaker box under the arm with cash poking out of the lid; Nerds' Tech Support wear a laptop messenger bag on the hip that bulges with cash (previously both pushed the Backwoods wheelbarrow)
 - B103 (overnight loop): Pause screen quit: a big round home button at the bottom of the pause dim abandons the match and returns to the menu (tap anywhere else still resumes)
 - B102 (overnight loop): Pedestrians (render only): 12 blocky townsfolk in assorted shirts stroll the avenue sidewalks, bob as they walk, turn back at the freeway trench and the home lawns, and sprint away (5 m/s, bigger bob) from any fight within 14 m; two instanced draws total
 - B101 (overnight loop): Death flourishes: each fallen fighter loses one on-trope item that pops up, tumbles, bounces once and lies there ~4 s before sinking - Backwoods trucker cap, Activists placard, Hard Hats hard hat, Street Crew sneaker, Nerds glasses; Old Money sheds fluttering bills instead (not seen in a screenshot yet)
