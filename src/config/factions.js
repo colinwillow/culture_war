@@ -152,6 +152,9 @@ export const CITYFOLK = {
     cav: { name: 'Armoured Car', n: 1, hp: 520, dmg: 26, range: 1.6, speed: 7, cost: 0, build: 0, cp: 0, area: true, vehicle: true },
     melee: { name: 'Fire Crew', n: 3, hp: 70, dmg: 0, range: 1, speed: 4.6, cost: 0, build: 0, cp: 0 },
     civ: { name: 'Civilian', n: 1, hp: 30, dmg: 0, range: 1, speed: 3.4, cost: 0, build: 0, cp: 0 },
+    truck: { name: 'Army Truck', n: 1, hp: 420, dmg: 0, range: 1, speed: 8, cost: 0, build: 0, cp: 0, vehicle: true },
+    army: { name: 'Soldiers', n: 6, hp: 110, dmg: 12, range: 11, speed: 4.4, cost: 0, build: 0, cp: 0 },
+    robot: { name: 'Riot Mech', n: 1, hp: 1600, dmg: 45, range: 2.6, speed: 3.6, cost: 0, build: 0, cp: 0, area: true, vehicle: true },
   },
   powers: [],
 };

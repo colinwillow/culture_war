@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=146';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=146';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=146';
-import { mulberry32 } from '../util/math.js?v=146';
-import { aiStep } from './ai.js?v=146';
+} from '../config/factions.js?v=147';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=147';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=147';
+import { mulberry32 } from '../util/math.js?v=147';
+import { aiStep } from './ai.js?v=147';
 
 let S = null;
 export const getSim = () => S;
@@ -265,7 +265,7 @@ function perHit(s, t) {
   if (pl(s.owner).party > 0) m *= 1.3;
   if (s.patch > 0) m *= 1.25;
   let d = s.def.dmg * m;
-  if (t.isBld) d *= s.slot === 'siege' ? 3 : 0.5;
+  if (t.isBld) d *= s.slot === 'siege' || s.slot === 'robot' ? 3 : 0.5;
   else if (s.slot === 'siege') d *= 0.5;
   else if (COUNTER[s.slot] === t.slot) d *= 2;
   return d;
@@ -509,7 +509,7 @@ function updateSquad(s, dt) {
   if (s.patch > 0) s.patch -= dt;
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
-  if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else if (s.slot === 'civ') updateCiv(s, dt); else if (s.slot === 'melee') updateFireCrew(s, dt); else updateCop(s, dt); return; }
+  if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else if (s.slot === 'civ') updateCiv(s, dt); else if (s.slot === 'melee') updateFireCrew(s, dt); else if (s.slot === 'truck') updateTruck(s, dt); else updateCop(s, dt); return; }
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
   if (s.slot === 'hero') heroAbility(s);
   if (s.sit) return;
@@ -594,7 +594,10 @@ function recruit(d, owner) {
 // ---- The city: heat + police ----
 // Trouble a player causes raises their heat (smashing storefronts, hurting city people, a long noisy match). Heat cools
 // off slowly. Above 6 patrol cops come, above 15 SWAT, above 30 armoured cars - for whoever is hottest, from the
-// nearest map edge to where they last caused trouble. When that player cools below 3, the police pack up and leave.
+// nearest map edge to where they last caused trouble. Above 45 the army trucks a squad of soldiers in; above 65
+// a riot mech walks in and starts stamping on that side's buildings. When that player cools below 3, the police pack up and leave.
+const HEAT_TIERS = [6, 15, 30, 45, 65], FORCE_TIERS = ['pike', 'ranged', 'cav', 'army', 'robot'];
+const FORCE = new Set([...FORCE_TIERS, 'truck']);
 function addHeat(pi, v, x, z) { if (!S.heat || pi > 1) return; S.heat.v[pi] += v; S.heat.at[pi] = { x, z }; }
 function stepCity(dt) {
   const H = S.heat;
@@ -603,14 +606,14 @@ function stepCity(dt) {
   H.base += dt * 0.01; // a long war gets noticed: +0.6 a minute for everyone, so by ~10 min the police come regardless
   H.t += dt; if (H.t < 2) return; H.t = 0;
   const hot = H.v[0] >= H.v[1] ? 0 : 1, h = H.v[hot] + H.base;
-  const cops = S.squads.filter((q) => q.owner === 2 && (q.slot === 'pike' || q.slot === 'ranged' || q.slot === 'cav'));
-  const want = h >= 30 ? 3 : h >= 15 ? 2 : h >= 6 ? 1 : 0; // tiers
-  const tiers = ['pike', 'ranged', 'cav'];
+  const cops = S.squads.filter((q) => q.owner === 2 && FORCE.has(q.slot));
+  const want = HEAT_TIERS.filter((v) => h >= v).length;
   for (let k = 0; k < want; k++) {
-    if (cops.some((q) => q.slot === tiers[k])) continue;
+    const slot = FORCE_TIERS[k]; // the army arrives as a truck that drops its soldiers
+    if (cops.some((q) => q.slot === slot || (slot === 'army' && q.slot === 'truck'))) continue;
     const at = H.at[hot] || { x: 0, z: 0 }, ex = at.x >= 0 ? 58 : -58;
     const [x, z] = nearestFree(ex, Math.max(-90, Math.min(90, at.z)));
-    const q = spawnSquad(S.cityP, tiers[k], x, z); q.hunt = hot; q.post = { x, z }; q.edge = { x, z };
+    const q = spawnSquad(S.cityP, slot === 'army' ? 'truck' : slot, x, z); q.hunt = hot; q.post = { x, z }; q.edge = { x, z };
     S.events.push({ k: 'siren', x, z, tier: k, hunt: hot });
   }
   // fire crews: one per two burning storefronts (max 2), from the edge nearest the fire
@@ -624,8 +627,31 @@ function stepCity(dt) {
     if (H.v[q.hunt] + H.base < 3 && q.order.type !== 'leave') { const o = H.v[1 - q.hunt] + H.base; if (o >= 6) q.hunt = 1 - q.hunt; else setOrder(q, { type: 'leave' }); }
   }
 }
+// Army truck: drives at the trouble, unloads its soldiers 12 m short (or after 20 s), then heads home.
+function updateTruck(s, dt) {
+  if (s.order.type !== 'leave') {
+    const at = S.heat.at[s.hunt] || { x: 0, z: 0 }; s.driveT = (s.driveT || 0) + dt;
+    if (Math.hypot(at.x - s.x, at.z - s.z) > 12 && s.driveT < 20) { moveTo(s, at.x, at.z, dt); return; }
+    const [x, z] = nearestFree(s.x, s.z), q = spawnSquad(S.cityP, 'army', x, z); q.hunt = s.hunt; q.post = { x, z }; q.edge = s.edge;
+    S.events.push({ k: 'unload', x, z, h: s.heading }); setOrder(s, { type: 'leave' });
+  }
+  if (moveTo(s, s.edge.x, s.edge.z, dt)) { const i = S.squads.indexOf(s); if (i >= 0) S.squads.splice(i, 1); s.dead = true; }
+}
 function updateCop(s, dt) {
   if (s.order.type === 'leave') { if (moveTo(s, s.edge.x, s.edge.z, dt)) { const i = S.squads.indexOf(s); if (i >= 0) S.squads.splice(i, 1); s.dead = true; } return; }
+  if (s.slot === 'robot') { // the mech goes for the hunted side's buildings (never the HQ - the city does not end your war for you), stepping on anyone in the way
+    let b = null, bd = 1e9;
+    for (const o of S.blds) { if (o.owner !== s.hunt || o.kind === 'hq') continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; b = o; } }
+    let u = null, ud = 6;
+    for (const o of S.squads) { if (o.owner !== s.hunt || o.gar) continue; const d = dist(s, o); if (d < ud) { ud = d; u = o; } }
+    const t = u || b;
+    if (t) {
+      const reach = t.isBld ? t.r + s.def.range : s.def.range;
+      if (Math.hypot(t.x - s.x, t.z - s.z) > reach) chase(s, t, dt);
+      else { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1.6; attack(s, t); } }
+      return;
+    }
+  }
   // the nearest unit (or building) of the side being hunted; otherwise head for where the trouble was
   let t = null, bd = 18;
   for (const o of S.squads) { if (o.owner !== s.hunt || o.gar) continue; const d = dist(s, o); if (d < bd) { bd = d; t = o; } }

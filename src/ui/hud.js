@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=146';
-import { UI, select, selSquads } from './state.js?v=146';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=146';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=146';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=146';
-import { camera } from '../render/scene.js?v=146';
-import { walkH } from '../map/layout.js?v=146';
-import { THREE } from '../render/scene.js?v=146';
-import { showHint } from './hint.js?v=146';
-import { sfx } from '../fx/sfx.js?v=146';
+import { svg } from './icons.js?v=147';
+import { UI, select, selSquads } from './state.js?v=147';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=147';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=147';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=147';
+import { camera } from '../render/scene.js?v=147';
+import { walkH } from '../map/layout.js?v=147';
+import { THREE } from '../render/scene.js?v=147';
+import { showHint } from './hint.js?v=147';
+import { sfx } from '../fx/sfx.js?v=147';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -166,7 +166,7 @@ export function refreshHUD() {
   const heat = document.getElementById('heatChip');
   heat.style.display = S.heat ? '' : 'none';
   if (S.heat) {
-    document.getElementById('heatBar').style.setProperty('--w', Math.min(1, (S.heat.v[0] + S.heat.base) / 30) * 100 + '%');
+    document.getElementById('heatBar').style.setProperty('--w', Math.min(1, (S.heat.v[0] + S.heat.base) / 65) * 100 + '%');
     heat.classList.toggle('hunted', S.squads.some((q) => q.owner === 2 && q.hunt === 0 && q.slot !== 'worker' && q.order.type !== 'leave'));
   }
   const hc = document.getElementById('hillChip');

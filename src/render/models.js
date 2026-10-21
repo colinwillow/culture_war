@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=146';
+import { THREE, box, cyl, mat } from './scene.js?v=147';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -45,6 +45,21 @@ export function makeMember(f, slot) {
       body.add(red, blue); g.userData.siren = [red, blue];
       for (const [x, z] of [[0.8, 1.1], [-0.8, 1.1], [0.8, -1.1], [-0.8, -1.1]]) g.add(wheel(0.36, 0.3, x, 0.36, z));
       tagWheels(g);
+    } else if (slot === 'truck') { // olive army truck: cab, canvas-covered bed
+      g = new THREE.Group(); const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.8;
+      body.add(box(1.9, 0.5, 4.6, 0x3f4a2a, 0, 0.75, 0), box(1.8, 1.0, 1.3, 0x4f5b35, 0, 1.45, 1.55), box(1.6, 0.4, 0.06, 0x9fd6ff, 0, 1.65, 2.21));
+      body.add(box(1.9, 1.3, 2.9, 0x6b6a4a, 0, 1.65, -0.75), box(1.92, 0.1, 2.94, 0x4f5b35, 0, 2.32, -0.75));
+      for (const [x, z] of [[0.85, 1.5], [-0.85, 1.5], [0.85, -0.6], [-0.85, -0.6], [0.85, -1.6], [-0.85, -1.6]]) g.add(wheel(0.42, 0.34, x, 0.42, z));
+      tagWheels(g);
+    } else if (slot === 'army') { // soldiers: olive fatigues, round helmet, rifle
+      g = humanoid({ ...C, dark: 0x3f4a2a }, 0x5b6b3a, 0x3f4a2a);
+      g.add(cyl(0.24, 0.26, 0.16, 0x4f5b35, 0, 1.55, 0, 10), box(0.07, 0.09, 0.8, 0x222222, 0.3, 0.95, 0.35));
+    } else if (slot === 'robot') { // riot mech: a slab-armoured walker with a police light bar, twice anyone's height
+      g = humanoid({ ...C, dark: 0x2a3040, skin: 0x8a90a0 }, 0x1a1f2e, 0x2a3040); g.scale.setScalar(2.6);
+      g.add(box(0.5, 0.22, 0.05, 0x9fd6ff, 0, 1.35, 0.17), box(0.62, 0.5, 0.4, 0xf3efe2, 0, 1.0, 0), box(0.12, 0.12, 0.5, 0x444444, 0.34, 0.85, 0.25), box(0.12, 0.12, 0.5, 0x444444, -0.34, 0.85, 0.25));
+      const red = box(0.18, 0.08, 0.12, 0xff3030, -0.11, 1.62, 0), blue = box(0.18, 0.08, 0.12, 0x3060ff, 0.11, 1.62, 0);
+      red.material = new THREE.MeshBasicMaterial({ color: 0xff3030 }); blue.material = new THREE.MeshBasicMaterial({ color: 0x3060ff });
+      g.add(red, blue); g.userData.siren = [red, blue];
     } else if (slot === 'melee') { g = humanoid(C, 0xc62f2f, 0xf2c232); g.add(box(0.52, 0.1, 0.34, 0xe8ff3a, 0, 0.7, 0), box(0.36, 0.1, 0.46, 0xf2c232, 0, 1.47, 0.04), box(0.08, 0.08, 0.7, 0x3a3a3a, 0.3, 0.8, 0.35)); }
     else if (slot === 'civ') { const sh = [0x6fc3ff, 0xe85d9a, 0x7ee05b, 0xf2b632, 0xc9b79a, 0x8a6f5a][(Math.random() * 6) | 0]; g = humanoid({ ...C, skin: [0xf2c9a0, 0xc68a5e, 0x8d5a3b, 0xe0b48c][(Math.random() * 4) | 0], dark: 0x3d4a5a }, sh, [0x2a2a2a, 0x8a5a3a, 0xd9c08a][(Math.random() * 3) | 0]); }
     else { g = humanoid(C, C.main, C.dark); g.add(box(0.36, 0.06, 0.42, C.dark, 0, 1.47, 0.08), box(0.1, 0.1, 0.04, 0xf2c232, 0.12, 1.0, 0.17)); if (slot === 'ranged') g.add(box(0.5, 0.55, 0.06, 0x3a3a3a, -0.1, 0.85, 0.2)); else g.add(box(0.05, 0.05, 0.6, 0x111111, 0.32, 0.7, 0.25)); }

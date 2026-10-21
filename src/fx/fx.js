@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=146';
-import { walkH, CITY } from '../map/layout.js?v=146';
-import { sfx } from './sfx.js?v=146';
-import { shake, CAM } from '../camera/camera.js?v=146';
-import { FC } from '../render/models.js?v=146';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=146';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=147';
+import { walkH, CITY } from '../map/layout.js?v=147';
+import { sfx } from './sfx.js?v=147';
+import { shake, CAM } from '../camera/camera.js?v=147';
+import { FC } from '../render/models.js?v=147';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=147';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -315,7 +315,7 @@ export function fxDeath(x, z, f) {
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', siren: 'siren', fireout: 'chime', hqup: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', siren: 'siren', unload: 'thud', fireout: 'chime', hqup: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -344,7 +344,7 @@ export function handleEvents(S, bump) {
         else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }
         bump(ev.id); break;
       case 'hit':
-        if (ev.area && ev.slot === 'cav') shake(0.5, ev.tx, ev.tz); // monster truck slam
+        if (ev.area && (ev.slot === 'cav' || ev.slot === 'robot')) shake(ev.slot === 'robot' ? 0.8 : 0.5, ev.tx, ev.tz); // monster truck slam, mech stomp
         if (ev.slot === 'hero' && ev.f === 'ac') { // bullhorn blast: rings roll from him to the target
           const dx = ev.tx - ev.x, dz = ev.tz - ev.z;
           for (let k = 0; k < 3; k++) setTimeout(() => fxRing(ev.x + dx * (0.3 + k * 0.3), ev.z + dz * (0.3 + k * 0.3), 0.3, 1.4 + k * 0.4, 0xe85d9a, 0.3, 1.4), k * 90);
@@ -453,6 +453,7 @@ export function handleEvents(S, bump) {
       case 'fireout': { const c = CITY[ev.ci], top = gy(ev.x, ev.z) + (c ? c.h : 4);
         for (let k = 0; k < 14; k++) emit({ x: ev.x + (Math.random() - 0.5) * 3, y: top - Math.random() * 2, z: ev.z + (Math.random() - 0.5) * 3, vx: (Math.random() - 0.5), vy: 1.5 + Math.random() * 1.5, vz: (Math.random() - 0.5), c: k % 2 ? 0xf2f2f2 : 0xc8d0d8, s: 0.9, life: 2, g: -0.3, drag: 1, grow: 2.5 });
         break; }
+      case 'unload': { const g0 = gy(ev.x, ev.z); fxRing(ev.x, ev.z, 0.5, 4, 0x8a9a5a, 0.5); for (let k = 0; k < 12; k++) emit({ x: ev.x + (Math.random() - 0.5) * 3, y: g0 + 0.3, z: ev.z + (Math.random() - 0.5) * 3, vx: (Math.random() - 0.5) * 3, vy: 0.6 + Math.random(), vz: (Math.random() - 0.5) * 3, c: 0xc2b28e, s: 0.6, life: 1.2, g: -0.2, drag: 2, grow: 2.4 }); break; }
       case 'siren': fxRing(ev.x, ev.z, 0.5, 6, 0xff3030, 0.6, 0.2); fxRing(ev.x, ev.z, 0.5, 5, 0x3060ff, 0.6, 1.2); break;
       case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
