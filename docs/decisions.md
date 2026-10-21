@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B16 (overnight loop): powers pass: Fourth of July fires 6 rockets on high arcs with spark trails, then aerial star shells bloom over the target; mud bog bubbles and spits the whole time; Parade fires confetti cannons from every squad; Pie leaves a whipped-cream splat with flying cream
 - B15 (overnight loop): smarter computer: after ~70 s it sends a third of its workers to the richest contested truck on its half with an escort squad guarding it; badly hurt squads retreat home. New rule for BOTH sides: squads standing by their own HQ/depot with no enemy near heal 4%/s (green sparkles)
 - B13 (overnight loop): food trucks show who works them: ring, awning and a rippling flag on the sign pole turn blue (yours) / red (theirs), flash blue-red when both sides' workers are on it, gold when nobody is
 - B12 (overnight loop): minimap top-left under the chips: city blocks, trench, businesses (gold), buildings (blue/red squares), squads (dots), white camera box; tap or drag on it to fly the camera there

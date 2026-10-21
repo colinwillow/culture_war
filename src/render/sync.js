@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=15';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=15';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=15';
-import { emit } from '../fx/particles.js?v=15';
-import { TICK } from '../config/factions.js?v=15';
-import { walkH } from '../map/layout.js?v=15';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=15';
-import { Q, pl } from '../sim/sim.js?v=15';
-import { UI } from '../ui/state.js?v=15';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=15';
-import { lerpAngle } from '../util/math.js?v=15';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=16';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=16';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=16';
+import { emit } from '../fx/particles.js?v=16';
+import { TICK } from '../config/factions.js?v=16';
+import { walkH } from '../map/layout.js?v=16';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=16';
+import { Q, pl } from '../sim/sim.js?v=16';
+import { UI } from '../ui/state.js?v=16';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=16';
+import { lerpAngle } from '../util/math.js?v=16';
 
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
@@ -273,6 +273,12 @@ export function syncRender(S, alpha, dt, time) {
       m.position.set(zn.x, walkH(zn.x, zn.z), zn.z); scene.add(m); R.zones.set(zn.id, m);
     }
     m.children[0].material.opacity = Math.min(0.85, zn.t);
+    // Mud bubbles: blobs well up all over the bog and pop.
+    if (Math.random() < dt * zn.r * 2.2) {
+      const a = Math.random() * 6.28, rr = Math.sqrt(Math.random()) * zn.r * 0.9, bx = zn.x + Math.cos(a) * rr, bz = zn.z + Math.sin(a) * rr;
+      emit({ x: bx, y: walkH(bx, bz) + 0.15, z: bz, vy: 0.5 + Math.random() * 0.4, c: Math.random() < 0.5 ? 0x5b4026 : 0x7a5a3a, s: 0.35, life: 0.6, g: 0, grow: 1.9 });
+      if (Math.random() < 0.3) for (let k = 0; k < 3; k++) emit({ x: bx, y: walkH(bx, bz) + 0.3, z: bz, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: 0x4a331d, s: 0.14, life: 0.5, g: 14 });
+    }
   }
   for (const [id, m] of R.zones) if (!seenZ.has(id)) { disposeObj(m); R.zones.delete(id); }
 
