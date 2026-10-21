@@ -205,3 +205,8 @@ body.show-mute #gfxBtn { display: grid; }
 .diff button.mode { flex-direction: column; gap: 2px; height: 56px; }
 .diff button.mode small { font: 8px/1 var(--num); letter-spacing: .04em; }
 .hillc.down #hillMe { color: #f3efe2; } .hillc.down #hillThem { color: #9aa0a6; } .hillc.down.up .ic { color: #7ee05b; } .hillc.down.low .ic { color: #ff5a4f; }
+.heatc .hb { width: 54px; }
+.heatc .hb i { display: block; height: 7px; border-radius: 4px; background: rgba(255,255,255,.12); position: relative; overflow: hidden; }
+.heatc .hb i::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--w, 0%); background: linear-gradient(90deg, #f2c232, #ff5a4f); }
+.heatc.hunted .ic { animation: sirenFlash .5s steps(2) infinite; }
+@keyframes sirenFlash { 0% { color: #ff3030; } 50% { color: #3060ff; } }

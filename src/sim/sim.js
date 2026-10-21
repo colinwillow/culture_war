@@ -8,17 +8,17 @@
 //   - Q: read-only queries (canPlace, canTrain, ...) the UI may call for instant button feedback.
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
-  COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=143';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=143';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=143';
-import { mulberry32 } from '../util/math.js?v=143';
-import { aiStep } from './ai.js?v=143';
+  COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
+} from '../config/factions.js?v=145';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=145';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=145';
+import { mulberry32 } from '../util/math.js?v=145';
+import { aiStep } from './ai.js?v=145';
 
 let S = null;
 export const getSim = () => S;
-export const pl = (i) => S.players[i];
-export const fac = (p) => FACTIONS[p.f];
+export const pl = (i) => (i === 2 ? S.cityP : S.players[i]); // 2 = the city (computer-run, never in S.players)
+export const fac = (p) => (p.f === 'city' ? CITYFOLK : FACTIONS[p.f]);
 
 function mkPlayer(i, f, side) {
   return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqLvl: 1, hqx: BASES[i].x, hqz: BASES[i].z };
@@ -58,6 +58,10 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     else spawnSquad(p, 'melee', p.hqx, p.hqz - p.side * 12);
   }
   if (mode === 'hero') S.duel = true;
+  // The city fights back (every mode but Hero vs Hero): heat per player, police dispatched from the map edges.
+  S.cityP = { i: 2, f: 'city', side: 0, inc: 1, cash: 1e9, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqx: 0, hqz: 0 };
+  S.heat = mode === 'hero' ? null : { v: [0, 0], at: [null, null], t: 0, base: 0 };
+  if (S.heat) for (const [x, z] of [[-58, 30], [58, -30]]) { const [fx, fz] = nearestFree(x, z); const w = spawnSquad(S.cityP, 'worker', fx, fz); w.task = null; }
   if (S.down) { // the city starts already battered: about a third of the floors are missing (rubble on some blocks)
     for (const b of S.city) { const k = S.rng(); const lost = k < 0.12 ? b.floors : k < 0.5 ? Math.floor(S.rng() * b.floors * 0.7) : 0; b.fl = b.floors - lost; b.hp = b.fl * FLOOR_HP; b.dead = b.fl === 0; }
     S.down.total = S.city.reduce((a, b) => a + b.floors, 0);
@@ -288,7 +292,8 @@ function hitSquad(t, dmg, area, attacker, cap = 5) {
     let rem = dmg;
     for (let i = 0; i < t.members.length && rem > 0; i++) if (t.members[i] > 0) { const take = Math.min(t.members[i], rem); t.members[i] -= take; rem -= take; if (t.members[i] <= 0) { t.members[i] = 0; killed++; } }
   }
-  if (killed) { credit(attacker, killed); pl(1 - t.owner).st.kills += killed; }
+  if (killed) { credit(attacker, killed); const kp = attacker ? pl(attacker.owner) : t.owner < 2 ? pl(1 - t.owner) : null; if (kp) kp.st.kills += killed; }
+  if (t.owner === 2 && attacker && attacker.owner < 2) addHeat(attacker.owner, 0.6 + killed * (t.slot === 'worker' ? 4 : 1.5), t.x, t.z); // hurting the city's people
   if (aliveN(t) === 0) killSquad(t);
   return killed;
 }
@@ -309,6 +314,7 @@ function hitBld(b, d, by) {
     const fl = floorsFor(b);
     while (b.fl > fl) {
       b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors });
+      if (by !== undefined) addHeat(by, 2, b.x, b.z);
       if (S.down) for (const d of [...S.drift]) if (Math.hypot(d.x - b.x, d.z - b.z) < 9 && ++d.upset >= 2) recruit(d, S.down.role.indexOf('w'));
       if (S.down) { S.down.hot = { x: b.x, z: b.z, t: S.t }; if (by !== undefined && S.down.role[by] === 'w') { const p = pl(by); p.cash += 20; p.st.earned += 20; S.events.push({ k: 'deposit', x: b.x, z: b.z, owner: by }); } } // looting a floor pays the wreckers
     }
@@ -334,12 +340,13 @@ function attack(s, t) {
   else if (s.def.area) { total = ph * Math.min(5, aliveN(t)); hitSquad(t, ph, true, s); }
   else { total = ph * n; hitSquad(t, total, false, s); }
   if (!t.isBld && s.f === 'ac' && s.slot === 'ranged') t.debuff = 5;
+  if (S.heat && s.owner < 2 && t.owner < 2 && !t.isBld && Math.abs(s.z) < 54) addHeat(s.owner, 0.05, s.x, s.z); // brawling in the streets (not on the home lawns) gets noticed
   const p = pl(s.owner); p.meter = Math.min(100, p.meter + total / 15 * (fac(p).traits?.hype || 1));
   S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot, to: t.owner, tb: t.isBld ? t.id : undefined });
 }
 function nearestEnemy(s, maxD) {
   let best = null, bd = maxD;
-  for (const o of S.squads) { if (o.owner === s.owner || o.gar) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
+  for (const o of S.squads) { if (o.owner === s.owner || o.gar || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== s.owner))) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
   for (const b of S.blds) { if (b.owner === s.owner) continue; const d = dist(s, b) + 2; if (d < bd) { bd = d; best = b; } }
   return best;
 }
@@ -500,6 +507,7 @@ function updateSquad(s, dt) {
   if (s.patch > 0) s.patch -= dt;
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
+  if (s.owner === 2) { if (s.slot === 'worker') updateCrew(s, dt); else updateCop(s, dt); return; }
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
   if (s.slot === 'hero') heroAbility(s);
   if (s.sit) return;
@@ -581,6 +589,47 @@ function recruit(d, owner) {
   else { q.members = q.members.map((h, k) => (k === 0 ? h : 0)); q.post = { x: d.x, z: d.z }; } // one new recruit, not a whole squad
   S.events.push({ k: role === 'b' ? 'hired' : 'riled', x: d.x, z: d.z, owner, f: p.f });
 }
+// ---- The city: heat + police ----
+// Trouble a player causes raises their heat (smashing storefronts, hurting city people, a long noisy match). Heat cools
+// off slowly. Above 6 patrol cops come, above 15 SWAT, above 30 armoured cars - for whoever is hottest, from the
+// nearest map edge to where they last caused trouble. When that player cools below 3, the police pack up and leave.
+function addHeat(pi, v, x, z) { if (!S.heat || pi > 1) return; S.heat.v[pi] += v; S.heat.at[pi] = { x, z }; }
+function stepCity(dt) {
+  const H = S.heat;
+  for (let i = 0; i < 2; i++) H.v[i] = Math.max(0, H.v[i] - dt * 0.06);
+  H.base += dt * 0.01; // a long war gets noticed: +0.6 a minute for everyone, so by ~10 min the police come regardless
+  H.t += dt; if (H.t < 2) return; H.t = 0;
+  const hot = H.v[0] >= H.v[1] ? 0 : 1, h = H.v[hot] + H.base;
+  const cops = S.squads.filter((q) => q.owner === 2 && q.slot !== 'worker');
+  const want = h >= 30 ? 3 : h >= 15 ? 2 : h >= 6 ? 1 : 0; // tiers
+  const tiers = ['pike', 'ranged', 'cav'];
+  for (let k = 0; k < want; k++) {
+    if (cops.some((q) => q.slot === tiers[k])) continue;
+    const at = H.at[hot] || { x: 0, z: 0 }, ex = at.x >= 0 ? 58 : -58;
+    const [x, z] = nearestFree(ex, Math.max(-90, Math.min(90, at.z)));
+    const q = spawnSquad(S.cityP, tiers[k], x, z); q.hunt = hot; q.post = { x, z }; q.edge = { x, z };
+    S.events.push({ k: 'siren', x, z, tier: k, hunt: hot });
+  }
+  for (const q of cops) { // the trouble is over: go back to the edge (and vanish when there)
+    if (H.v[q.hunt] + H.base < 3 && q.order.type !== 'leave') { const o = H.v[1 - q.hunt] + H.base; if (o >= 6) q.hunt = 1 - q.hunt; else setOrder(q, { type: 'leave' }); }
+  }
+}
+function updateCop(s, dt) {
+  if (s.order.type === 'leave') { if (moveTo(s, s.edge.x, s.edge.z, dt)) { const i = S.squads.indexOf(s); if (i >= 0) S.squads.splice(i, 1); s.dead = true; } return; }
+  // the nearest unit (or building) of the side being hunted; otherwise head for where the trouble was
+  let t = null, bd = 18;
+  for (const o of S.squads) { if (o.owner !== s.hunt || o.gar) continue; const d = dist(s, o); if (d < bd) { bd = d; t = o; } }
+  if (!t) { const at = S.heat.at[s.hunt]; if (at) moveTo(s, at.x, at.z, dt); return; }
+  if (dist(s, t) > s.def.range) chase(s, t, dt);
+  else { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1; attack(s, t); } }
+}
+function updateCrew(s, dt) { // road crews rebuild the most-damaged storefront with nobody fighting next to it
+  if (s.order.type === 'repair') return updateWorker(s, dt);
+  s.jobT = (s.jobT || 0) - dt; if (s.jobT > 0) return; s.jobT = 3;
+  const job = S.city.filter((b) => b.hp < b.maxHp && !S.squads.some((o) => o.owner < 2 && o.slot !== 'worker' && Math.hypot(o.x - b.x, o.z - b.z) < 12))
+    .sort((a, b) => Math.hypot(a.x - s.x, a.z - s.z) - Math.hypot(b.x - s.x, b.z - s.z))[0];
+  if (job) setOrder(s, { type: 'repair', b: job });
+}
 function stepDown(dt) {
   const D = S.down;
   D.meter = S.city.reduce((a, b) => a + b.fl, 0) / D.total;
@@ -650,6 +699,7 @@ export function step() {
   if (S.cap && !S.over) stepCap(dt);
   if (S.duel && !S.over) for (const p of S.players) if (!S.squads.some((q) => q.owner === p.i && q.slot === 'hero' && aliveN(q) > 0)) { S.over = { winner: 1 - p.i, duel: true }; break; }
   if (S.down && !S.over) stepDown(dt);
+  if (S.heat && !S.over) stepCity(dt);
   if (S.race && !S.over) for (const p of S.players) if (p.st.earned >= S.race.goal) { S.over = { winner: p.i, race: true }; break; }
   for (const b of [...S.blds]) {
     if (b.dead) continue;
@@ -693,7 +743,7 @@ export function step() {
         const tm = b.kind === 'tower' ? (fac(p).traits?.towerMul || 1) : 1; // Nerds: souped-up towers
         const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : (BLD.tower.range + (gar ? 4 : 0)) * tm, dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1) * tm;
         let t = null, bd = rng;
-        for (const o of S.squads) { if (o.owner === b.owner || o.gar) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
+        for (const o of S.squads) { if (o.owner === b.owner || o.gar || (o.owner === 2 && (o.slot === 'worker' || o.hunt !== b.owner))) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
         if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq', bk: b.kind, to: t.owner }); hitSquad(t, dmg, false, null); }
       }
     }

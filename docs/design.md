@@ -146,6 +146,16 @@ in a headless page; needs `python3 -m http.server 4174` from the repo's parent).
 Other systems: time of day (morning -> golden hour over ~11 min, lamps + windows glow), AI garrisons its towers,
 end-of-match camera swoop, hero entrance spotlight, faction-coloured HUD accents, voice barks on orders, graffiti tags.
 
+## Main direction (Colin, Oct 21 2026): aliens vs aliens, with the humans as the living city
+Every player is an alien faction (greys abduct, mantis mind-control, lizards possess hosts, toad brutes smash and eat,
+parasites infect, fungus spreads...). Each is a different verb applied to the same human city. The humans are never a
+player pick: the computer runs them. Civilians, road crews and firefighters keep rebuilding; police respond to each
+side's HEAT and escalate (patrol cops -> SWAT -> armoured cars -> army, maybe robots/mechs at the top). Smash too much and
+the city lands on you while your rival quietly farms it. The same living-city rules are meant to power Colin's
+third-person game too. Mix species across every faction; costume/gear defines the side, never the body.
+- Built (B145): the city as a computer-run third side (owner 2, `S.cityP`, `CITYFOLK` in factions.js), heat per player,
+  police tiers, road crews. Next: firefighters + fires, civilians as sim units, alien verbs on the existing factions.
+
 ## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
 The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping
 it standing; a city meter swings between ruins and metropolis. Fictional groups only, roast both sides, cartoon violence,

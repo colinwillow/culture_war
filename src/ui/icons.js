@@ -36,6 +36,7 @@ export const ICON = {
   disc: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 6a6 6 0 0 1 6 6"/>',
   wifi: '<path d="M2 9a15 15 0 0 1 20 0"/><path d="M5.5 12.5a10 10 0 0 1 13 0"/><path d="M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1"/>',
   patch: '<path d="M8 4l-5 8 5 8"/><path d="M16 4l5 8-5 8"/><path d="M14 3l-4 18"/>',
+  siren: '<path d="M6 18v-6a6 6 0 0 1 12 0v6"/><path d="M4 21h16"/><path d="M12 2v2M4.2 5.2l1.4 1.4M19.8 5.2l-1.4 1.4"/><path d="M10 13a2 2 0 0 1 2-2"/>',
   shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
   hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
   eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',

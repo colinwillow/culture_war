@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=143';
+import { THREE, box, cyl, mat } from './scene.js?v=145';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -10,6 +10,7 @@ export const FC = {
   om: { main: 0x2f6b4f, dark: 0x1d2b45, skin: 0xf0c8a8, alt: 0xd9b44a, hair: 0x2a2a2a },
   sc: { main: 0x7a3fd1, dark: 0x1e1e2a, skin: 0xc68a5e, alt: 0x7ee05b, hair: 0x1a1a1a },
   nd: { main: 0x4a6fe3, dark: 0x22252e, skin: 0xe8c4a0, alt: 0xf2e14c, hair: 0x5a3a22 },
+  city: { main: 0x2b3f7a, dark: 0x1a1f2e, skin: 0xe0b48c, alt: 0xf3efe2, hair: 0x1a1f2e },
   hh: { main: 0xf28c28, dark: 0x3a3a3a, skin: 0xd9a77e, alt: 0xf2c232, hair: 0xf2c232 },
 };
 
@@ -34,6 +35,19 @@ const tagWheels = (g) => { g.userData.wheels = g.children.filter((c) => c.geomet
 export function makeMember(f, slot) {
   const C = FC[f];
   let g;
+  if (f === 'city') { // the city's own people: hi-vis road crews, navy police, an armoured car with a light bar
+    if (slot === 'worker') { g = humanoid(C, 0xf28c28, 0xf2c232); g.add(box(0.52, 0.08, 0.34, 0xe8ff3a, 0, 0.95, 0)); }
+    else if (slot === 'cav') {
+      g = new THREE.Group(); const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.5;
+      body.add(box(1.7, 0.8, 3.4, 0x1a1f2e, 0, 0.75, 0), box(1.5, 0.6, 1.8, 0xf3efe2, 0, 1.45, -0.2), box(1.4, 0.4, 0.06, 0x9fd6ff, 0, 1.5, 0.72), box(1.74, 0.12, 3.44, 0xf3efe2, 0, 0.75, 0));
+      const red = box(0.5, 0.18, 0.3, 0xff3030, -0.3, 1.85, -0.2), blue = box(0.5, 0.18, 0.3, 0x3060ff, 0.3, 1.85, -0.2);
+      red.material = new THREE.MeshBasicMaterial({ color: 0xff3030 }); blue.material = new THREE.MeshBasicMaterial({ color: 0x3060ff });
+      body.add(red, blue); g.userData.siren = [red, blue];
+      for (const [x, z] of [[0.8, 1.1], [-0.8, 1.1], [0.8, -1.1], [-0.8, -1.1]]) g.add(wheel(0.36, 0.3, x, 0.36, z));
+      tagWheels(g);
+    } else { g = humanoid(C, C.main, C.dark); g.add(box(0.36, 0.06, 0.42, C.dark, 0, 1.47, 0.08), box(0.1, 0.1, 0.04, 0xf2c232, 0.12, 1.0, 0.17)); if (slot === 'ranged') g.add(box(0.5, 0.55, 0.06, 0x3a3a3a, -0.1, 0.85, 0.2)); else g.add(box(0.05, 0.05, 0.6, 0x111111, 0.32, 0.7, 0.25)); }
+    return g;
+  }
   if (f === 'om' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
     if (slot === 'cav') {
       // Golf cart: white tub, striped canopy on four posts, a bag of clubs on the back.

@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=143';
+import { THREE } from './scene.js?v=145';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -25,6 +25,7 @@ const CHARS = {
   jack: { file: 'jack.glb', h: 1.74 },
   blonde: { file: 'beautiful_blonde.glb', h: 1.66 },
   asian: { file: 'beautiful_asian.glb', h: 1.62, own: { walk: 'female_walk' } },
+  officer: { file: 'dummy_officer.glb', h: 1.8 },
   builder: { file: 'contruction_worker.glb', h: 1.76, own: { idle: 'idle', walk: 'walk_fwd', swing: '1-handed_swing_01', stab: '2-handed-swing', hit: 'take_damage_01', die: 'hit_and_fall' } },
 };
 // Clip donors: our state name -> [donor key, clip name in that file].
@@ -81,6 +82,12 @@ export const CAST = {
     pike: { who: ['jack', 'blonde', 'hipster', 'asian'], prop: 'foamsword', atk: 'stab' },
     melee: { who: ['blonde', 'jack', 'asian', 'hippie'], prop: 'shield', atk: 'swing' },
     ranged: { who: ['hipster', 'asian', 'jack'], prop: 'controller', atk: 'shoot' },
+  },
+  // The city (computer-run): road crews are the construction worker, police are the officer + the suited guard.
+  city: {
+    worker: { who: ['builder'], atk: 'swing' },
+    pike: { who: ['officer', 'guard'], prop: 'baton', atk: 'swing' },
+    ranged: { who: ['officer'], prop: 'shotgun', atk: 'shoot' },
   },
   // Street Crew: a mixed crew (moussa, jack and the two women), everyone in sneakers. atk can be a list: one per member.
   sc: {
@@ -216,6 +223,7 @@ function prop(kind) {
   else if (kind === 'foamsword') { bx(0.06, 0.06, 0.25, 0x333333, 0, 0, 0.05); bx(0.3, 0.06, 0.06, C2(), 0, 0, 0.18); bx(0.1, 0.05, 1.1, 0x7fd1ff, 0, 0, 0.75); }
   else if (kind === 'shield') { bx(0.08, 0.6, 0.5, 0xd9d9d9, 0.12, 0, 0.1); bx(0.09, 0.3, 0.12, 0xf2e14c, 0.13, 0, 0.1); }
   else if (kind === 'controller') { bx(0.3, 0.08, 0.16, 0x222222, 0, 0, 0.12); bx(0.06, 0.04, 0.06, 0xff3030, 0.08, 0.05, 0.12); bx(0.03, 0.3, 0.03, 0x888888, -0.1, 0.15, 0.12); }
+  else if (kind === 'baton') { bx(0.05, 0.05, 0.6, 0x111111, 0, 0, 0.25); bx(0.03, 0.12, 0.03, 0x111111, 0, -0.06, 0.05); }
   else if (kind === 'sneaker') { bx(0.12, 0.08, 0.3, 0xffffff, 0, 0, 0.18); bx(0.13, 0.03, 0.31, 0x7a3fd1, 0, -0.05, 0.18); bx(0.1, 0.1, 0.1, 0x7ee05b, 0, 0.07, 0.08); }
   else if (kind === 'boombox') {
     bx(0.5, 0.28, 0.14, 0x2a2a2a, 0, 0.18, 0.12); bx(0.4, 0.04, 0.04, 0x888888, 0, 0.35, 0.12);

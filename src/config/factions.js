@@ -138,3 +138,18 @@ export const FACTIONS = {
     ],
   },
 };
+
+// The city itself (Colin, Oct 21: "the humans are kind of their own thing ... constantly trying to fix their city").
+// Never a player pick: the computer runs it. Road crews rebuild storefronts; police come for whoever is causing trouble
+// (heat), escalating patrol cops -> SWAT -> armoured cars. Not in FACTIONS, so it is never an opponent or a menu card.
+export const CITYFOLK = {
+  name: 'The City',
+  bldNames: {},
+  units: {
+    worker: { name: 'Road Crew', n: 1, hp: 60, dmg: 0, range: 1, speed: 4.2, cost: 0, build: 0, cp: 0 },
+    pike: { name: 'Patrol Cops', n: 4, hp: 60, dmg: 6, range: 1.3, speed: 4.4, cost: 0, build: 0, cp: 0 },
+    ranged: { name: 'SWAT', n: 4, hp: 80, dmg: 11, range: 9, speed: 4.2, cost: 0, build: 0, cp: 0 },
+    cav: { name: 'Armoured Car', n: 1, hp: 520, dmg: 26, range: 1.6, speed: 7, cost: 0, build: 0, cp: 0, area: true, vehicle: true },
+  },
+  powers: [],
+};

@@ -171,3 +171,9 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [ ] Downtown balance: AI-vs-AI has wreckers winning ~2/3 - tune after Colin plays both sides (computer builders may just play worse)
 - [ ] Step 5: Colin's building kit pieces (weirdport models/building_kit) replace the floor slabs
 - [ ] Later: hex city layout (Catan-like blocks, bending streets, real chokepoints)
+
+## The living city (main direction - see docs/design.md "Main direction")
+- [x] (B145) Step 1: the city as a computer-run third side - heat per player (smashing storefronts, hurting city people, street brawls, +0.6/min baseline), patrol cops at 6, SWAT at 15, armoured car at 30, from the map edge nearest the trouble; they leave when the heat drops; 2 road crews rebuild storefronts; heat meter + flashing siren in the HUD
+- [ ] Step 2: fires + firefighters (wrecked storefronts catch fire and spread; fire crews put them out), civilians as sim units who flee and get hurt
+- [ ] Step 3: army tier (trucks + soldiers) and a robot/mech top tier
+- [ ] Step 4: alien verbs prototyped on existing factions - one faction abducts humans (tractor beam -> tech), one possesses hosts (disguised until it strikes)

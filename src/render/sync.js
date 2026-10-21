@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=143';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=143';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=143';
-import { emit } from '../fx/particles.js?v=143';
-import { bark } from '../fx/sfx.js?v=143';
-import { TICK } from '../config/factions.js?v=143';
-import { walkH } from '../map/layout.js?v=143';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=143';
-import { CAM } from '../camera/camera.js?v=143';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=145';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=145';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=145';
+import { emit } from '../fx/particles.js?v=145';
+import { bark } from '../fx/sfx.js?v=145';
+import { TICK } from '../config/factions.js?v=145';
+import { walkH } from '../map/layout.js?v=145';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=145';
+import { CAM } from '../camera/camera.js?v=145';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=143';
-import { UI } from '../ui/state.js?v=143';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=143';
+import { Q, pl, getSim } from '../sim/sim.js?v=145';
+import { UI } from '../ui/state.js?v=145';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=145';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=143';
+import { lerpAngle } from '../util/math.js?v=145';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -44,7 +44,7 @@ function makeSquadObj(s) {
   const real = !!members[0].userData.anim;
   // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
   const wait = !real && !!(CAST[s.f] && CAST[s.f][s.slot]);
-  const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.25));
+  const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.owner === 0 ? 0x7fd1ff : s.owner === 2 ? 0xf3efe2 : 0xff5a4f, 0.25));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.08; root.add(team);
   const sel = ringMesh(s.r + 0.45, s.r + 0.72, selCol(), 0.95); sel.visible = false; root.add(sel);
   const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
@@ -361,7 +361,8 @@ export function syncRender(S, alpha, dt, time) {
     o.lastAlive = alive;
     o.sel.visible = selIds.has(s.id);
     o.team.material.opacity = 0.25 + s.rally * 2 + (s.bull > 0 || s.ot > 0 ? 0.25 : 0);
-    o.team.material.color.setHex(s.bull > 0 ? 0xe85d9a : s.ot > 0 ? 0xf2c232 : s.owner === 0 ? 0x7fd1ff : 0xff5a4f);
+    o.team.material.color.setHex(s.owner === 2 ? (s.slot === 'worker' ? 0xf28c28 : Math.sin(time * 9) > 0 ? 0xff3030 : 0x3060ff) : s.bull > 0 ? 0xe85d9a : s.ot > 0 ? 0xf2c232 : s.owner === 0 ? 0x7fd1ff : 0xff5a4f); // police discs flash red/blue
+    for (const m of o.members) if (m.userData.siren) { const on = Math.sin(time * 9) > 0; m.userData.siren[0].visible = on; m.userData.siren[1].visible = !on; }
     let tot = 0; for (const h of s.members) tot += h;
     setBar(o.bar, tot / (s.members.length * s.mhp));
     o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;

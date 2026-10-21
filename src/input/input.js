@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=143';
-import { walkH } from '../map/layout.js?v=143';
-import { getSim, command } from '../sim/sim.js?v=143';
-import { UI, select, selSquads } from '../ui/state.js?v=143';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=143';
-import { fxMarker } from '../fx/fx.js?v=143';
-import { ack } from '../render/sync.js?v=143';
+import { THREE, camera, canvas } from '../render/scene.js?v=145';
+import { walkH } from '../map/layout.js?v=145';
+import { getSim, command } from '../sim/sim.js?v=145';
+import { UI, select, selSquads } from '../ui/state.js?v=145';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=145';
+import { fxMarker } from '../fx/fx.js?v=145';
+import { ack } from '../render/sync.js?v=145';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -57,7 +57,7 @@ function onTap(cx, cy) {
   const dr = S.drift && S.drift.find((d) => Math.hypot(d.x - g.x, d.z - g.z) < 1.6);
   if (dr) { command(0, { type: 'recruit', id: dr.id }); fxMarker(dr.x, dr.z, 0xf5b83a); return; }
   const sel = selSquads(), ids = sel.map((s) => s.id);
-  const enemy = pickSquad(S, cx, cy, 1) || pickBld(S, g, 1);
+  const enemy = pickSquad(S, cx, cy, 1) || pickSquad(S, cx, cy, 2) || pickBld(S, g, 1);
   if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); ack(ids, true); return; }
   // A city storefront: workers selected = rebuild it (if it is damaged); fighters selected = smash it, floor by floor.
   const cb = S.city && S.city.find((b) => Math.abs(g.x - b.x) < b.sx / 2 + 0.6 && Math.abs(g.z - b.z) < b.sz / 2 + 0.6);

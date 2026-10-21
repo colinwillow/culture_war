@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=143';
-import { UI, select, selSquads } from './state.js?v=143';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=143';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=143';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=143';
-import { camera } from '../render/scene.js?v=143';
-import { walkH } from '../map/layout.js?v=143';
-import { THREE } from '../render/scene.js?v=143';
-import { showHint } from './hint.js?v=143';
-import { sfx } from '../fx/sfx.js?v=143';
+import { svg } from './icons.js?v=145';
+import { UI, select, selSquads } from './state.js?v=145';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=145';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=145';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=145';
+import { camera } from '../render/scene.js?v=145';
+import { walkH } from '../map/layout.js?v=145';
+import { THREE } from '../render/scene.js?v=145';
+import { showHint } from './hint.js?v=145';
+import { sfx } from '../fx/sfx.js?v=145';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -162,6 +162,13 @@ export function refreshHUD() {
   const used = cpUsed(p), cap = cpCap(p);
   document.querySelector('#cp b').textContent = used + '/' + cap;
   document.getElementById('cp').classList.toggle('full', used >= cap);
+  // Heat: how much attention the city is paying you (police at 6, SWAT at 15, armour at 30); the siren flashes while hunted.
+  const heat = document.getElementById('heatChip');
+  heat.style.display = S.heat ? '' : 'none';
+  if (S.heat) {
+    document.getElementById('heatBar').style.setProperty('--w', Math.min(1, (S.heat.v[0] + S.heat.base) / 30) * 100 + '%');
+    heat.classList.toggle('hunted', S.squads.some((q) => q.owner === 2 && q.hunt === 0 && q.slot !== 'worker' && q.order.type !== 'leave'));
+  }
   const hc = document.getElementById('hillChip');
   hc.style.display = S.hill || S.race || S.cap || S.down ? '' : 'none';
   if (S.hill) {
