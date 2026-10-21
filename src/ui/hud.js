@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=148';
-import { UI, select, selSquads } from './state.js?v=148';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=148';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=148';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=148';
-import { camera } from '../render/scene.js?v=148';
-import { walkH } from '../map/layout.js?v=148';
-import { THREE } from '../render/scene.js?v=148';
-import { showHint } from './hint.js?v=148';
-import { sfx } from '../fx/sfx.js?v=148';
+import { svg } from './icons.js?v=150';
+import { UI, select, selSquads } from './state.js?v=150';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=150';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=150';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=150';
+import { camera } from '../render/scene.js?v=150';
+import { walkH } from '../map/layout.js?v=150';
+import { THREE } from '../render/scene.js?v=150';
+import { showHint } from './hint.js?v=150';
+import { sfx } from '../fx/sfx.js?v=150';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -99,7 +99,7 @@ function panelSpec() {
     // Tap a portrait: select just that squad and fly the camera to it.
     for (const q of sq.slice(0, 6)) {
       let hp = 0, alive = 0; for (const h of q.members) { hp += h; if (h > 0) alive++; }
-      out.push({ id: 'sq-' + q.id, name: F.units[q.slot].name, icon: q.slot, noCost: true, cls: 'card', pips: q.members.length > 1 ? q.members.length : 0, pipsOn: alive, hp: hp / (q.members.length * q.mhp),
+      out.push({ id: 'sq-' + q.id, name: q.def.name, icon: q.slot === 'civ' ? 'people' : q.slot, noCost: true, cls: 'card', pips: q.members.length > 1 ? q.members.length : 0, pipsOn: alive, hp: hp / (q.members.length * q.mhp),
         badge: q.rank ? '\u2605'.repeat(Math.min(q.rank, 5)) : '', tap: () => { select({ type: 'sq', ids: [q.id] }); focus(q.x, q.z); } });
     }
     // Stance: one big toggle for the whole selection - a planted flag (hold ground) or crossed blades (charge in).

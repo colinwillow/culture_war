@@ -29,6 +29,7 @@ export const BUILD_KINDS = ['depot', 'barracks', 'tower'];
 export const FACTIONS = {
   bw: {
     name: 'Backwoods',
+    traits: { infect: true }, // infect: civilians turn into walking goo bombs that spread and burst on the enemy
     bldNames: { hq: 'Homestead', depot: 'Bait Shop', barracks: 'Barracks', tower: 'Deer Stand' },
     units: {
       worker: { name: 'Odd-Jobber', n: 1, hp: 60, dmg: 3, range: 1, speed: 4.5, cost: 60, build: 8, cp: 1 },
@@ -84,7 +85,7 @@ export const FACTIONS = {
   // Old Money (Elite): tiny squads of 3, expensive, each member worth two of anyone else's.
   om: {
     name: 'Old Money',
-    traits: { cash: 1.1, inc: 1.2 }, // trust fund: starts with 10% more cash and 20% more passive income
+    traits: { cash: 1.1, inc: 1.2, eat: true }, // trust fund: starts with 10% more cash and 20% more passive income; eat: hurt squads gulp a civilian to heal
     bldNames: { hq: 'The Mansion', depot: 'Bank Vault', barracks: 'Country Club', tower: 'Guard Booth' },
     units: {
       worker: { name: 'Butler', n: 1, hp: 70, dmg: 3, range: 1, speed: 4.5, cost: 70, build: 8, cp: 1 },
@@ -103,7 +104,7 @@ export const FACTIONS = {
   // Street Crew (Rush): cheap, fast, fragile. Hype - their power meter fills 25% faster.
   sc: {
     name: 'Street Crew',
-    traits: { hype: 1.25 },
+    traits: { hype: 1.25, mind: true }, // mind: hypnotises civilians into fighting for them for 40 s
     bldNames: { hq: 'Record Shop', depot: 'Sneaker Store', barracks: 'Rec Centre', tower: 'Speaker Stack' },
     units: {
       worker: { name: 'Hustler', n: 1, hp: 50, dmg: 2, range: 1, speed: 5.5, cost: 55, build: 7, cp: 1 },

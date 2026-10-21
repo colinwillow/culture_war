@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=148';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=148';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=148';
-import { mulberry32 } from '../util/math.js?v=148';
-import { aiStep } from './ai.js?v=148';
+} from '../config/factions.js?v=150';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=150';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=150';
+import { mulberry32 } from '../util/math.js?v=150';
+import { aiStep } from './ai.js?v=150';
 
 let S = null;
 export const getSim = () => S;
@@ -390,10 +390,38 @@ function chase(s, t, dt) {
 // abduct (Nerds) - any squad beams up a civilian within 10 m every 8 s: +30 cash, +8 power, a little heat.
 // possess (Activists) - a squad that walks into a civilian wears them: enemies, towers, police and civilians stop seeing
 // it for 60 s or until it attacks, and that first strike hits double.
+// eat (Old Money) - a hurt squad gulps a civilian within 7 m and heals to full (10 s each, +3 heat).
+// mind (Street Crew) - a squad hypnotises a civilian within 8 m into fighting for it for 40 s (15 s each, 3 at once).
+// infect (Backwoods) - a squad spits goo on a civilian within 8 m; it walks at the nearest enemy, spreads to one more
+// civilian on the way, and bursts in goo (area damage). See updateInfected.
+const THRALL = { ...CITYFOLK.units.civ, name: 'Hypnotized', dmg: 6, cp: 0 };
+const civNear = (s, r) => S.squads.find((o) => o.owner === 2 && o.slot === 'civ' && !(o.inf > 0) && Math.hypot(o.x - s.x, o.z - s.z) < r);
 function alienVerb(s, dt) {
+  if (s.thrall > 0) { s.thrall -= dt; if (s.thrall <= 0) { s.owner = 2; s.def = CITYFOLK.units.civ; setOrder(s, { type: 'idle' }); s.goal = null; S.events.push({ k: 'unmind', x: s.x, z: s.z }); } return; }
   if (s.disg > 0) { s.disg -= dt; if (s.disg <= 0) S.events.push({ k: 'reveal', id: s.id, x: s.x, z: s.z, f: s.f }); }
-  if (s.slot === 'worker' || s.slot === 'hero' || s.def.vehicle || s.def.flies || !S.heat) return;
+  if (s.slot === 'worker' || s.slot === 'hero' || s.slot === 'civ' || s.def.vehicle || s.def.flies || !S.heat) return;
   const tr = fac(pl(s.owner)).traits || {};
+  if (tr.eat) {
+    if (s.eatT > 0) { s.eatT -= dt; return; }
+    let hurt = false; for (const h of s.members) if (h > 0 && h < s.mhp) hurt = true;
+    const c = hurt && civNear(s, 7); if (!c) return;
+    s.eatT = 10; for (let i = 0; i < s.members.length; i++) if (s.members[i] > 0) s.members[i] = s.mhp;
+    addHeat(s.owner, 3, c.x, c.z); S.events.push({ k: 'eat', x: c.x, z: c.z, sx: s.x, sz: s.z, id: c.id });
+    killSquad(c); return;
+  }
+  if (tr.mind) {
+    if (s.mindT > 0) { s.mindT -= dt; return; }
+    if (S.squads.filter((o) => o.thrall > 0 && o.owner === s.owner).length >= 3) return;
+    const c = civNear(s, 8); if (!c) return;
+    s.mindT = 15; c.owner = s.owner; c.thrall = 40; c.def = THRALL; c.goal = null; c.fleeT = 0; setOrder(c, { type: 'idle' }); c.post = { x: c.x, z: c.z };
+    addHeat(s.owner, 1, c.x, c.z); S.events.push({ k: 'mind', x: c.x, z: c.z, sx: s.x, sz: s.z }); return;
+  }
+  if (tr.infect) {
+    if (s.infT > 0) { s.infT -= dt; return; }
+    const c = civNear(s, 8); if (!c) return; // a goo spit: civilians run from fighters inside 9 m, so it has to reach
+    s.infT = 6; c.inf = 14; c.infBy = s.owner; c.spread = 1;
+    addHeat(s.owner, 1, c.x, c.z); S.events.push({ k: 'infect', x: c.x, z: c.z }); return;
+  }
   if (tr.abduct) {
     if (s.beamT > 0) { s.beamT -= dt; return; }
     const c = S.squads.find((o) => o.owner === 2 && o.slot === 'civ' && Math.hypot(o.x - s.x, o.z - s.z) < 10);
@@ -709,15 +737,30 @@ function updateFireCrew(s, dt) {
   s.hoseT = (s.hoseT || 0) - dt; if (s.hoseT <= 0) { s.hoseT = 0.25; S.events.push({ k: 'hose', x: s.x, z: s.z, tx: f.x, tz: f.z }); }
   if (f.fire <= 0) { f.fire = 0; S.events.push({ k: 'fireout', ci: f.ci, x: f.x, z: f.z }); }
 }
-// Civilians: stroll between storefronts; when fighters from either alien side are within 9 m they run the other way.
+// Civilians: stroll between storefronts; when fighters from either alien side are within 6 m they run the other way.
 function addCivilian(fromEdge) {
   let x, z;
   if (fromEdge) [x, z] = nearestFree(S.rng() < 0.5 ? -58 : 58, (S.rng() - 0.5) * 100);
   else { const b = S.city[Math.floor(S.rng() * S.city.length)]; [x, z] = nearestFree(b.x, b.z + (S.rng() < 0.5 ? 1 : -1) * (b.sz / 2 + 2.5)); }
   const c = spawnSquad(S.cityP, 'civ', x, z); c.goal = null;
 }
+function updateInfected(s, dt) {
+  s.inf -= dt;
+  const foe = 1 - s.infBy;
+  if (s.spread > 0) { const o = civNear(s, 3); if (o) { s.spread = 0; o.inf = 14; o.infBy = s.infBy; o.spread = 1; S.events.push({ k: 'infect', x: o.x, z: o.z }); } }
+  let t = null, bd = 30;
+  for (const o of S.squads) { if (o.owner !== foe || o.gar || o.dead) continue; const d = dist(s, o); if (d < bd) { bd = d; t = o; } }
+  if (!t) for (const b of S.blds) { if (b.owner !== foe) continue; const d = dist(s, b); if (d < bd) { bd = d; t = b; } }
+  if (t && dist(s, t) > 1.5) chase(s, t, dt * 1.3);
+  if ((t && dist(s, t) <= 1.5) || s.inf <= 0) { // burst
+    for (const o of [...S.squads]) if (o.owner === foe && !o.gar && Math.hypot(o.x - s.x, o.z - s.z) < 4 + o.r) hitSquad(o, 35, true, null);
+    for (const b of S.blds) if (b.owner === foe && Math.hypot(b.x - s.x, b.z - s.z) < 4 + b.r) hitBld(b, 60, s.infBy);
+    S.events.push({ k: 'goo', x: s.x, z: s.z }); killSquad(s);
+  }
+}
 function updateCiv(s, dt) {
-  let th = null, bd = 9;
+  if (s.inf > 0) { updateInfected(s, dt); return; }
+  let th = null, bd = 6; // close enough to see the whites of their eyes (alien verbs reach 7-10 m, so they land first)
   for (const o of S.squads) { if (o.owner === 2 || o.slot === 'worker' || o.gar || o.disg > 0 || o.f === 'ac') continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; th = o; } } // nobody runs from a friendly-looking crowd
   if (th) { // run!
     const dx = s.x - th.x, dz = s.z - th.z, l = Math.hypot(dx, dz) || 1;

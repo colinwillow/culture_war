@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=148';
-import { walkH, CITY } from '../map/layout.js?v=148';
-import { sfx } from './sfx.js?v=148';
-import { shake, CAM } from '../camera/camera.js?v=148';
-import { FC } from '../render/models.js?v=148';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=148';
+import { THREE, scene, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=150';
+import { walkH, CITY } from '../map/layout.js?v=150';
+import { sfx } from './sfx.js?v=150';
+import { shake, CAM } from '../camera/camera.js?v=150';
+import { FC } from '../render/models.js?v=150';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=150';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -315,7 +315,7 @@ export function fxDeath(x, z, f) {
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', siren: 'siren', unload: 'thud', abduct: 'whoosh', possess: 'sting', reveal: 'sting', fireout: 'chime', hqup: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', siren: 'siren', unload: 'thud', abduct: 'whoosh', possess: 'sting', reveal: 'sting', eat: 'thud', mind: 'chime', infect: 'tap', goo: 'boom', fireout: 'chime', hqup: 'fanfare', looted: 'ding', tagged: 'whoosh', scrub: 'tap', shopopen: 'chime', hired: 'ding', riled: 'sting', chunk: 'boom', chunkfix: 'ding', hush: 'ding', golive: 'ding', wifi: 'sting', patch: 'chime', hill: 'chime', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -469,6 +469,21 @@ export function handleEvents(S, bump) {
       case 'reveal': { // the disguise drops: a purple burst
         const g0 = gy(ev.x, ev.z); fxRing(ev.x, ev.z, 0.4, 3.5, 0xa05aff, 0.5); shake(0.25, ev.x, ev.z);
         for (let k = 0; k < 16; k++) { const a = Math.random() * 6.28; emit({ x: ev.x, y: g0 + 1, z: ev.z, vx: Math.cos(a) * 5, vy: 2 + Math.random() * 2, vz: Math.sin(a) * 5, c: k % 2 ? 0xa05aff : 0xffffff, s: 0.22, life: 0.7, g: 6, drag: 1.5 }); }
+        break; }
+      case 'eat': { // gulp: the civilian is yanked into the squad and a chomp ring snaps shut
+        const g0 = gy(ev.x, ev.z), dx = ev.sx - ev.x, dz = ev.sz - ev.z;
+        const dude = new THREE.Group(); dude.add(box(0.4, 0.7, 0.3, 0x6fc3ff, 0, 0.6, 0), box(0.3, 0.3, 0.3, 0xe0b48c, 0, 1.15, 0)); dude.position.set(ev.x, g0, ev.z);
+        addFx(dude, 0.45, (o, k) => { o.position.set(ev.x + dx * k, g0 + Math.sin(k * Math.PI) * 1.2, ev.z + dz * k); o.scale.setScalar(1 - k * 0.9); o.rotation.y += 0.4; });
+        setTimeout(() => { fxRing(ev.sx, ev.sz, 2.4, 0.2, 0xf5b83a, 0.35); fxBits(ev.sx, ev.sz, 0xf5b83a, 6); }, 430);
+        break; }
+      case 'mind': { // hypnosis: pink/cyan rings pulse out of the civilian
+        for (let k = 0; k < 3; k++) setTimeout(() => fxRing(ev.x, ev.z, 0.3, 2.6, k % 2 ? 0x5ae0ff : 0xff5ad1, 0.45, 1.2), k * 140);
+        break; }
+      case 'unmind': fxRing(ev.x, ev.z, 0.3, 1.6, 0xffffff, 0.4, 1.2); break;
+      case 'infect': { const g0 = gy(ev.x, ev.z); fxRing(ev.x, ev.z, 0.3, 1.8, 0x7cff4a, 0.4); for (let k = 0; k < 10; k++) emit({ x: ev.x, y: g0 + 1.2, z: ev.z, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, c: 0x7cff4a, s: 0.2, life: 0.8, g: 9, floor: g0 + 0.05 }); break; }
+      case 'goo': { // the goo bomb bursts: green splash, splat ring
+        const g0 = gy(ev.x, ev.z); fxRing(ev.x, ev.z, 0.5, 4.5, 0x7cff4a, 0.5); shake(0.35, ev.x, ev.z);
+        for (let k = 0; k < 30; k++) { const a = Math.random() * 6.28, sp = 3 + Math.random() * 5; emit({ x: ev.x, y: g0 + 0.8, z: ev.z, vx: Math.cos(a) * sp, vy: 3 + Math.random() * 4, vz: Math.sin(a) * sp, c: k % 3 ? 0x7cff4a : 0x3fa02a, s: 0.3, life: 1.2, g: 12, floor: g0 + 0.05 }); }
         break; }
       case 'unload': { const g0 = gy(ev.x, ev.z); fxRing(ev.x, ev.z, 0.5, 4, 0x8a9a5a, 0.5); for (let k = 0; k < 12; k++) emit({ x: ev.x + (Math.random() - 0.5) * 3, y: g0 + 0.3, z: ev.z + (Math.random() - 0.5) * 3, vx: (Math.random() - 0.5) * 3, vy: 0.6 + Math.random(), vz: (Math.random() - 0.5) * 3, c: 0xc2b28e, s: 0.6, life: 1.2, g: -0.2, drag: 2, grow: 2.4 }); break; }
       case 'siren': fxRing(ev.x, ev.z, 0.5, 6, 0xff3030, 0.6, 0.2); fxRing(ev.x, ev.z, 0.5, 5, 0x3060ff, 0.6, 1.2); break;
