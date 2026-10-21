@@ -1,15 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=124';
-import { UI, select, selSquads } from './state.js?v=124';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=124';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=124';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=124';
-import { camera } from '../render/scene.js?v=124';
-import { walkH } from '../map/layout.js?v=124';
-import { THREE } from '../render/scene.js?v=124';
-import { showHint } from './hint.js?v=124';
+import { svg } from './icons.js?v=125';
+import { UI, select, selSquads } from './state.js?v=125';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=125';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=125';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=125';
+import { camera } from '../render/scene.js?v=125';
+import { walkH } from '../map/layout.js?v=125';
+import { THREE } from '../render/scene.js?v=125';
+import { showHint } from './hint.js?v=125';
+import { sfx } from '../fx/sfx.js?v=125';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -26,6 +27,8 @@ function applyBtn(el, b) {
   for (const k of ['dis', 'poor', 'ready', 'armed', 'on']) el.classList.toggle(k, !!b[k]);
   el.classList.toggle('cpblock', !!b.cp);
   el.classList.toggle('nudge', !!b.nudge);
+  // Power-ready ping: the moment a power's button turns ready it pops once (gold burst) with a soft chime.
+  if (b.id && b.id.startsWith('pw-')) { if (b.ready && !el.dataset.wasReady) { el.classList.remove('ping'); void el.offsetWidth; el.classList.add('ping'); sfx('ding', 0.5); } el.dataset.wasReady = b.ready ? '1' : ''; }
   const c = el.querySelector('.cost'); if (c && c.textContent !== String(b.cost)) c.textContent = b.cost;
   const bd = el.querySelector('.badge'), bt = b.badge ? String(b.badge) : ''; if (bd.textContent !== bt) bd.textContent = bt;
   el.querySelector('.prog').style.width = (b.prog != null ? Math.round(b.prog * 100) : 0) + '%';

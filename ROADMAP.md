@@ -159,3 +159,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 20 (added 14:32 UTC by the loop, same rules)
 - [x] (B124) FX: win confetti — when you win, confetti in your faction's colours rains over the camera swoop (losing: a slow grey drizzle of ash instead)
+- [x] (B125) UI: power-ready ping — when a power's meter fills, its button pops once with a gold burst and a soft chime

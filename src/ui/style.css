@@ -192,3 +192,5 @@ body.show-mute #gfxBtn { display: grid; }
 #speedBtn { position: absolute; left: calc(50% + 70px); bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); font: 26px/1 var(--display); color: var(--gold); }
 /* HQ in danger: a soft red glow pulses in from the screen edges (opacity driven from main.js). */
 #danger { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; box-shadow: inset 0 0 90px 30px rgba(255, 50, 40, .55); }
+.btn.ping { animation: ping .7s ease-out; }
+@keyframes ping { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 184, 58, .9); } 35% { transform: scale(1.25); } 100% { transform: scale(1); box-shadow: 0 0 0 22px rgba(245, 184, 58, 0); } }
