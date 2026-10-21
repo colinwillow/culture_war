@@ -1,7 +1,7 @@
 // Pooled particles: ONE InstancedMesh (one draw call) for every spark, dust puff, flash and coin chip.
 // The old fx.js effects build a mesh + geometry + material per bit, which is fine for a ring but not for a battle.
 // A particle fades by shrinking (instanced opacity would need a custom shader), which reads fine at RTS distance.
-import { THREE, scene } from '../render/scene.js?v=47';
+import { THREE, scene } from '../render/scene.js?v=48';
 
 const MAX = 900;
 const geo = new THREE.BoxGeometry(1, 1, 1);

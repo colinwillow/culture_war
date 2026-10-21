@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=47';
-import { UI, select, selSquads } from './state.js?v=47';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=47';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=47';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=47';
-import { camera } from '../render/scene.js?v=47';
-import { walkH } from '../map/layout.js?v=47';
-import { THREE } from '../render/scene.js?v=47';
-import { showHint } from './hint.js?v=47';
+import { svg } from './icons.js?v=48';
+import { UI, select, selSquads } from './state.js?v=48';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=48';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=48';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=48';
+import { camera } from '../render/scene.js?v=48';
+import { walkH } from '../map/layout.js?v=48';
+import { THREE } from '../render/scene.js?v=48';
+import { showHint } from './hint.js?v=48';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -123,13 +123,21 @@ export function refreshHUD() {
   renderButtons(cmdEl, cmdSpec());
   renderButtons(queueEl, queueSpec());
   const p = pl(0);
-  document.querySelector('#cash b').textContent = Math.floor(p.cash);
+  // Cash chip flashes green and bumps up when money comes in, red and dips when it goes out.
+  const cash = Math.floor(p.cash), chip = document.getElementById('cash');
+  if (lastCash !== null && cash !== lastCash) {
+    chip.classList.remove('gain', 'spend'); void chip.offsetWidth;
+    chip.classList.add(cash > lastCash ? 'gain' : 'spend');
+  }
+  lastCash = cash;
+  document.querySelector('#cash b').textContent = cash;
   const used = cpUsed(p), cap = cpCap(p);
   document.querySelector('#cp b').textContent = used + '/' + cap;
   document.getElementById('cp').classList.toggle('full', used >= cap);
   document.getElementById('meterFill').style.width = Math.round(p.meter) + '%';
 }
-export function resetHUD() { panelEl.dataset.key = ''; cmdEl.dataset.key = ''; queueEl.dataset.key = ''; }
+let lastCash = null;
+export function resetHUD() { lastCash = null; panelEl.dataset.key = ''; cmdEl.dataset.key = ''; queueEl.dataset.key = ''; }
 
 // ---- Placement confirm floats above the ghost ----
 const v3 = new THREE.Vector3();

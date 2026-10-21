@@ -58,7 +58,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B45) Map: overpass traffic — little cars also drive the city avenues (render only), stopping at the red lights
 - [x] (B46) FX: worker gather sparkle — while a worker is on shift a chef-hat steam puff / cash register 'ka-ching' coin flips up every second
 - [x] (B47) Logic: building repair — idle workers near a damaged own building fix it slowly (hammer sparks), costs a trickle of cash
-- [ ] UI: income ticker — the cash chip briefly flashes green and bumps when money comes in, red when spent
+- [x] (B48) UI: income ticker — the cash chip briefly flashes green and bumps when money comes in, red when spent
 - [ ] Placeholder: Bike Collective rides real bikes — frame triangle, handlebars, bell flash on attack; rider leans into turns
 - [ ] FX: projectile variety — Shotgun Hunters spray 3 pellets, Megaphone Crew fires visible sound-wave arcs
 - [ ] Map: weather — light drifting clouds casting moving soft shadow patches over the city (cheap: 3 big transparent decals)
