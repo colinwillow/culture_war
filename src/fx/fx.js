@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=70';
-import { walkH } from '../map/layout.js?v=70';
-import { sfx } from './sfx.js?v=70';
-import { shake, CAM } from '../camera/camera.js?v=70';
-import { FC } from '../render/models.js?v=70';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=70';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=71';
+import { walkH } from '../map/layout.js?v=71';
+import { sfx } from './sfx.js?v=71';
+import { shake, CAM } from '../camera/camera.js?v=71';
+import { FC } from '../render/models.js?v=71';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=71';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -226,7 +226,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', blockparty: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -241,7 +241,7 @@ export function handleEvents(S, bump) {
       case 'shot':
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
-        else if (ev.f === 'ac' && ev.slot === 'ranged') { soundWaves(ev.x, ev.z, ev.tx, ev.tz); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
+        else if ((ev.f === 'ac' || ev.f === 'sc') && ev.slot === 'ranged') { soundWaves(ev.x, ev.z, ev.tx, ev.tz); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
         else if (ev.f === 'bw' && ev.slot === 'ranged') { // shotgun: three pellets in a spread
           const dx = ev.tx - ev.x, dz = ev.tz - ev.z, L = Math.hypot(dx, dz) || 1, px = -dz / L, pz = dx / L;
           for (const k of [-1, 0, 1]) { const sp = k * (0.5 + Math.random() * 0.5); burstShot(ev.x, gy(ev.x, ev.z, 1.25), ev.z, ev.tx + px * sp, gy(ev.tx, ev.tz, 0.8 + Math.random() * 0.4), ev.tz + pz * sp, 0xfff2a8); }
@@ -286,6 +286,17 @@ export function handleEvents(S, bump) {
       }
       case 'takeover': { const g0 = gy(ev.x, ev.z); for (let i = 0; i < 30; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: g0 + 8 + Math.random() * 4, z: ev.z + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5), vy: -4, vz: (Math.random() - 0.5), c: i % 3 ? 0x7cc46a : 0xf5b83a, s: 0.3, life: 2, g: 2, drag: 1, floor: g0 + 0.1 }); fxRing(ev.x, ev.z, 0.5, 4, 0xd9b44a, 0.6); break; }
       case 'jetfly': fxRing(ev.x, ev.z, 3, 0.5, 0xd9b44a, 1.6, 0.15); jetFlyover(ev.x, ev.z); break;
+      case 'blockparty': for (const s of S.squads) if (s.owner === ev.owner) { // the speakers kick in: bass rings pulse off every squad + coloured sparks
+        fxRing(s.x, s.z, 0.5, 4, 0x7a3fd1, 0.5, 0.2); fxRing(s.x, s.z, 0.3, 3, 0x7ee05b, 0.5, 1.4);
+        for (let k = 0; k < 8; k++) emit({ x: s.x, y: gy(s.x, s.z, 1.6), z: s.z, vx: (Math.random() - 0.5) * 4, vy: 3 + Math.random() * 3, vz: (Math.random() - 0.5) * 4, c: [0x7a3fd1, 0x7ee05b, 0xff5ad1, 0x5ae0ff][k % 4], s: 0.18, life: 1.4, g: 5, drag: 1 });
+      } break;
+      case 'mixlaunch': fxRing(ev.x, ev.z, 7, 0.5, 0x7a3fd1, 1.2, 0.15); break;
+      case 'mixboom': { // the drop: three bass rings roll out, everything bounces, a spray of purple/green
+        shake(1.2, ev.x, ev.z);
+        for (let k = 0; k < 3; k++) fxRing(ev.x, ev.z, 0.5, ev.r * (1 + k * 0.25), [0x7a3fd1, 0x7ee05b, 0xff5ad1][k], 0.5 + k * 0.15, 0.3);
+        fxBits(ev.x, ev.z, 0x7a3fd1, 10, 1, 8); fxBits(ev.x, ev.z, 0x7ee05b, 10, 1, 8);
+        break;
+      }
       case 'jetdrop': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5); fxBits(ev.x, ev.z, 0xd9b44a, 8, 1, 5); break;
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;

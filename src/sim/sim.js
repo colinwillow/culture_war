@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=70';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=70';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=70';
-import { mulberry32 } from '../util/math.js?v=70';
-import { aiStep } from './ai.js?v=70';
+} from '../config/factions.js?v=71';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=71';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=71';
+import { mulberry32 } from '../util/math.js?v=71';
+import { aiStep } from './ai.js?v=71';
 
 let S = null;
 export const getSim = () => S;
@@ -21,7 +21,7 @@ export const pl = (i) => S.players[i];
 export const fac = (p) => FACTIONS[p.f];
 
 function mkPlayer(i, f, side) {
-  return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, hqx: BASES[i].x, hqz: BASES[i].z };
+  return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, party: 0, hqx: BASES[i].x, hqz: BASES[i].z };
 }
 
 // diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
@@ -127,6 +127,8 @@ export const A = {
     const pw = fac(p).powers[idx];
     if (!pw || !Q.powerReady(p, idx)) return false;
     if (pw.id === 'pie') { const h = S.squads.find((o) => o.owner !== p.i && o.slot === 'hero'); h.stun = 15; S.events.push({ k: 'pie', x: h.x, z: h.z }); }
+    else if (pw.id === 'blockparty') { p.party = 12; S.events.push({ k: 'blockparty', owner: p.i }); } // whole army +30% damage and speed
+    else if (pw.id === 'mixtape') { S.pending.push({ id: S.nid++, kind: 'mixtape', owner: p.i, x, z, r: 7, t: 1.2 }); S.events.push({ k: 'mixlaunch', x, z, owner: p.i }); }
     else if (pw.id === 'parade') { p.parade = 15; S.events.push({ k: 'parade', owner: p.i }); }
     else if (pw.id === 'mud') { S.zones.push({ id: S.nid++, kind: 'mud', owner: p.i, x, z, r: 8, t: 10 }); S.events.push({ k: 'mud', x, z }); }
     else if (pw.id === 'cones') { S.zones.push({ id: S.nid++, kind: 'cones', owner: p.i, x, z, r: 7, t: 12 }); S.events.push({ k: 'cones', x, z, r: 7 }); }
@@ -199,6 +201,7 @@ function perHit(s, t) {
   if (s.rally) m *= 1 + s.rally;
   if (s.debuff > 0) m *= 0.8;
   if (s.bull > 0) m *= 1.25;
+  if (pl(s.owner).party > 0) m *= 1.3;
   let d = s.def.dmg * m;
   if (t.isBld) d *= s.slot === 'siege' ? 3 : 0.5;
   else if (s.slot === 'siege') d *= 0.5;
@@ -257,7 +260,7 @@ function attack(s, t) {
   else if (s.def.area) { total = ph * Math.min(5, aliveN(t)); hitSquad(t, ph, true, s); }
   else { total = ph * n; hitSquad(t, total, false, s); }
   if (!t.isBld && s.f === 'ac' && s.slot === 'ranged') t.debuff = 5;
-  const p = pl(s.owner); p.meter = Math.min(100, p.meter + total / 15);
+  const p = pl(s.owner); p.meter = Math.min(100, p.meter + total / 15 * (fac(p).traits?.hype || 1));
   S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot, to: t.owner });
 }
 function nearestEnemy(s, maxD) {
@@ -269,7 +272,7 @@ function nearestEnemy(s, maxD) {
 function speedMult(s) {
   let m = 1;
   for (const z of S.zones) if ((z.kind === 'mud' || z.kind === 'cones') && z.owner !== s.owner && !s.def.flies && Math.hypot(z.x - s.x, z.z - s.z) < z.r) m *= z.kind === 'mud' ? 0.5 : 0.35; // Road Closed: enemies squeeze through the cones
-  if (pl(s.owner).parade > 0) m *= 1.3;
+  if (pl(s.owner).parade > 0 || pl(s.owner).party > 0) m *= 1.3;
   if (s.bull > 0) m *= 1.25;
   if (s.ot > 0) m *= 1.2;
   return m;
@@ -451,6 +454,9 @@ function resolvePending(pd) {
   } else if (pd.kind === 'jet') {
     const [x, z] = nearestFree(pd.x, pd.z), q = spawnSquad(pl(pd.owner), 'melee', x, z);
     q.post = { x, z }; S.events.push({ k: 'jetdrop', x, z });
+  } else if (pd.kind === 'mixtape') { // the bass drops: everyone caught in it is knocked flat for a moment
+    for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) { hitSquad(o, 20, true, null, 99); o.stun = Math.max(o.stun, 2.5); }
+    S.events.push({ k: 'mixboom', x: pd.x, z: pd.z, r: pd.r });
   } else if (pd.kind === 'wreck') {
     for (const o of [...S.squads]) if (o.owner !== pd.owner && Math.hypot(o.x - pd.x, o.z - pd.z) < pd.r + o.r) { hitSquad(o, 80, true, null, 99); o.stun = Math.max(o.stun, 1.5); }
     for (const b of [...S.blds]) if (b.owner !== pd.owner && Math.hypot(b.x - pd.x, b.z - pd.z) < pd.r + b.r) hitBld(b, 450);
@@ -469,6 +475,7 @@ export function step() {
     p.incomeT += dt;
     if (p.incomeT >= 10) { p.incomeT -= 10; { const inc = Math.round((BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot')) * p.inc); p.cash += inc; p.st.earned += inc; } S.events.push({ k: 'income', owner: p.i }); }
     if (p.parade > 0) p.parade -= dt;
+    if (p.party > 0) p.party -= dt;
   }
   for (const b of [...S.blds]) {
     if (b.dead) continue;

@@ -98,4 +98,23 @@ export const FACTIONS = {
       { id: 'jet', name: 'Private Jet', cost: 110, target: true, icon: 'plane' },
     ],
   },
+  // Street Crew (Rush): cheap, fast, fragile. Hype - their power meter fills 25% faster.
+  sc: {
+    name: 'Street Crew',
+    traits: { hype: 1.25 },
+    bldNames: { hq: 'Record Shop', depot: 'Sneaker Store', barracks: 'Rec Centre', tower: 'Speaker Stack' },
+    units: {
+      worker: { name: 'Hustler', n: 1, hp: 50, dmg: 2, range: 1, speed: 5.5, cost: 55, build: 7, cp: 1 },
+      pike: { name: 'Sneakerheads', n: 6, hp: 40, dmg: 5, range: 1.2, speed: 4.6, cost: 90, build: 8, cp: 5 },
+      melee: { name: 'Breakdancers', n: 6, hp: 45, dmg: 6, range: 1.2, speed: 4.6, cost: 100, build: 9, cp: 5 },
+      ranged: { name: 'Boombox Crew', n: 4, hp: 35, dmg: 8, range: 8, speed: 4.4, cost: 120, build: 10, cp: 5 },
+      cav: { name: 'Lowrider', n: 1, hp: 380, dmg: 24, range: 1.4, speed: 8.5, cost: 260, build: 18, cp: 10, area: true, vehicle: true },
+      siege: { name: 'Graffiti Tagger', n: 1, hp: 180, dmg: 45, range: 6, speed: 4, cost: 280, build: 22, cp: 10 },
+      hero: { name: 'The DJ', n: 1, hp: 480, dmg: 16, range: 6, speed: 5.5, cost: 700, build: 38, cp: 15 },
+    },
+    powers: [
+      { id: 'blockparty', name: 'Block Party', cost: 50, target: false, icon: 'music' },
+      { id: 'mixtape', name: 'Mixtape Drop', cost: 90, target: true, icon: 'disc' },
+    ],
+  },
 };

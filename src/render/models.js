@@ -2,12 +2,13 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=70';
+import { THREE, box, cyl, mat } from './scene.js?v=71';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
   ac: { main: 0x2cc2ad, dark: 0x1c4f57, skin: 0xe8b892, alt: 0xe85d9a, hair: 0x2a2a2a },
   om: { main: 0x2f6b4f, dark: 0x1d2b45, skin: 0xf0c8a8, alt: 0xd9b44a, hair: 0x2a2a2a },
+  sc: { main: 0x7a3fd1, dark: 0x1e1e2a, skin: 0xc68a5e, alt: 0x7ee05b, hair: 0x1a1a1a },
   hh: { main: 0xf28c28, dark: 0x3a3a3a, skin: 0xd9a77e, alt: 0xf2c232, hair: 0xf2c232 },
 };
 

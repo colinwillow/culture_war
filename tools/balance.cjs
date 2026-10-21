@@ -10,12 +10,12 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   console.log(await p.evaluate(async (seeds) => {
     const v = document.querySelector('script[type=module]').src.split('?v=')[1];
     const M = await import('./src/sim/sim.js?v=' + v), AI = await import('./src/sim/ai.js?v=' + v), F = await import('./src/config/factions.js?v=' + v);
-    const fs = ['bw', 'ac', 'hh', 'om'], wins = {}, out = [];
+    const fs = Object.keys(F.FACTIONS), wins = {}, out = [];
     for (const f of fs) wins[f] = { w: 0, g: 0, t: 0 };
     for (const a of fs) for (const c of fs) { if (a === c) continue;
       for (const seed of seeds) {
         // force player 1 faction: pick seed so others[seed%3] === c
-        const others = fs.filter(k => k !== a); const sd = seed * 3 + others.indexOf(c);
+        const others = fs.filter(k => k !== a); const sd = seed * others.length + others.indexOf(c);
         M.newSim(a, sd, 1); const S = M.getSim();
         let i = 0; for (; i < 20 * 900 && !S.over; i++) { M.step(); AI.aiStep(S, F.TICK, 0); if (i % 40 === 0) S.events.length = 0; }
         const w = S.over ? (S.over.winner === 0 ? a : c) : 'draw';

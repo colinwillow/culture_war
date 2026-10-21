@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B71 (overnight loop): Street Crew faction data (5th faction, so far only as a random computer opponent on placeholders): Hustler, Sneakerheads, Breakdancers, Boombox Crew (sound-wave shots), Lowrider, Graffiti Tagger, The DJ; Hype trait (meter +25%); Block Party (army +30% dmg/speed 12 s) and Mixtape Drop (7 m bass drop: 20 dmg + 2.5 s stun). AI round robin: sc 11/24, mid-pack
 - B70 (overnight loop): dev readout: tap the B# on the menu title to toggle a small line bottom-left - fps, worst frame ms, units alive, draw calls, triangles (remembered on the phone). Start of an Activists match here: ~130 draws, ~195k triangles
 - B69 (overnight loop): balance pass from AI-vs-AI round robins (aiStep can now drive either player; harness kept as tools/balance.cjs): Activists rally cap 25%->20% and Sign Wavers/Picket +10 cost; Backwoods pitchforks 65hp/9dmg, brawlers 90hp; Old Money infantry hp up, cost down ~10% and 3 army points instead of 5. Win rates over 18 games each went from bw4 ac9 hh7 om4 (of 12) to bw12 ac9 hh10 om5 (of 18)
 - (docs, no build) CLAUDE.md current state + design.md 'Built so far' table refreshed after the overnight loop.
