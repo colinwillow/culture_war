@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=13';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=13';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=13';
-import { mulberry32 } from '../util/math.js?v=13';
-import { aiStep } from './ai.js?v=13';
+} from '../config/factions.js?v=15';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=15';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=15';
+import { mulberry32 } from '../util/math.js?v=15';
+import { aiStep } from './ai.js?v=15';
 
 let S = null;
 export const getSim = () => S;
@@ -320,6 +320,16 @@ function updateWorker(s, dt) {
 }
 function updateSquad(s, dt) {
   if (s.cd > 0) s.cd -= dt;
+  // Patch-up at home: a squad standing by its own HQ or depot with no enemy close heals 4%/s (both sides).
+  if (s.slot !== 'worker') {
+    const home = S.blds.find((b) => b.owner === s.owner && b.built >= 1 && (b.kind === 'hq' || b.kind === 'depot') && Math.hypot(b.x - s.x, b.z - s.z) < b.r + 9);
+    let hurt = false; for (const h of s.members) if (h > 0 && h < s.mhp) hurt = true;
+    if (home && hurt && !nearestEnemy(s, 12)) {
+      for (let i = 0; i < s.members.length; i++) if (s.members[i] > 0) s.members[i] = Math.min(s.mhp, s.members[i] + s.mhp * 0.04 * dt);
+      s.healT = (s.healT || 0) - dt;
+      if (s.healT <= 0) { s.healT = 1.2; S.events.push({ k: 'heal', x: s.x, z: s.z }); }
+    }
+  }
   if (s.debuff > 0) s.debuff -= dt;
   if (s.bull > 0) s.bull -= dt;
   if (s.abil > 0) s.abil -= dt;

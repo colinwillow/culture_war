@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=13';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder } from './sim.js?v=13';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=15';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=15';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -61,7 +61,31 @@ export function aiStep(S, dt) {
   }
   if (S.t > 160 && p.cash >= F.units.hero.cost + 150) A.train(p, hq, 'hero');
   F.powers.forEach((pw, i) => { if (p.meter >= pw.cost) aiPower(S, p, i, pw); });
-  const mine = S.squads.filter((s) => s.owner === 1 && s.slot !== 'worker');
+  // Expand: once the base runs, send a third of the workers to the richest contested truck on our half,
+  // and park an escort squad on it.
+  const workers = workersOf(p);
+  if (S.t > 70 && workers.length >= 4) {
+    const half = S.nodes.filter((n) => n.amount > 300 && Math.sign(n.z) === p.side && Math.abs(n.z) < 50);
+    half.sort((a, b) => b.amount - a.amount);
+    const tgt = half[0];
+    if (tgt) {
+      const want = Math.ceil(workers.length / 3), on = workers.filter((w) => w.task && w.task.node === tgt);
+      for (const w of workers) { if (on.length >= want) break; if (w.task && w.task.node !== tgt && !w.carry) { setOrder(w, { type: 'gather', node: tgt }); w.task = { state: 'find' }; on.push(w); } }
+      if (!ai.escort || ai.escort.dead) {
+        const free = S.squads.find((s) => s.owner === 1 && s.slot !== 'worker' && s.slot !== 'hero' && s.order.type === 'idle');
+        if (free) { ai.escort = free; free.escortFor = tgt; setOrder(free, { type: 'move', x: tgt.x + 3, z: tgt.z - p.side * 3 }); }
+      }
+    }
+  }
+  // Retreat: a squad down to under a third of its health (and not a lone vehicle) walks home to patch up.
+  for (const s of S.squads) {
+    if (s.owner !== 1 || s.slot === 'worker') continue;
+    let hp = 0; for (const h of s.members) hp += h;
+    const k = hp / (Math.max(1, aliveN(s)) * s.mhp); // survivors' health: the fallen cannot be patched up
+    if (!s.retreat && k < 0.33 && Math.hypot(s.x - p.hqx, s.z - p.hqz) > 20) { s.retreat = true; setOrder(s, { type: 'move', x: p.hqx + (S.rng() - 0.5) * 10, z: p.hqz - p.side * 10 }); }
+    else if (s.retreat && k > 0.9) s.retreat = false;
+  }
+  const mine = S.squads.filter((s) => s.owner === 1 && s.slot !== 'worker' && !s.retreat && s !== ai.escort);
   const threat = S.squads.find((s) => s.owner === 0 && s.slot !== 'worker' && Math.hypot(s.x - p.hqx, s.z - p.hqz) < 36);
   if (threat) { mine.forEach((s) => { if (s.order.type !== 'attack') setOrder(s, { type: 'attack', target: threat }); }); return; }
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
