@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=65';
+import { THREE, box, cyl, mat } from './scene.js?v=66';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -176,6 +176,26 @@ function crane(h, reach, x = 0, z = 0) {
 }
 export function bldMesh(kind, f) {
   const mesh = new THREE.Group(), C = FC[f];
+  if (f === 'om') {
+    // Old Money: white columns, gold trim, manicured hedges.
+    if (kind === 'hq') {
+      mesh.add(box(6, 3.4, 4.4, 0xf4f1de, 0, 1.7, -0.3), box(6.4, 0.4, 4.8, 0xd9b44a, 0, 3.6, -0.3), box(4.6, 1.4, 3.4, 0xe8e0cc, 0, 4.5, -0.6), box(2.4, 0.6, 1.2, 0x1d2b45, 0, 5.4, -0.6));
+      for (let i = -2; i <= 2; i++) mesh.add(cyl(0.18, 0.2, 3, 0xffffff, i * 1.1, 1.5, 2.2, 10));
+      mesh.add(box(5.4, 0.25, 0.6, 0xffffff, 0, 3.1, 2.2), box(1.2, 1.9, 0.1, 0x3a2416, 0, 0.95, 1.93));
+      for (const x of [-3.6, 3.6]) mesh.add(box(0.8, 0.8, 3.6, 0x2f6b4f, x, 0.4, 0.4));
+    } else if (kind === 'depot') {
+      mesh.add(box(2.8, 2, 2.4, 0x9a9a9a, 0, 1), box(3, 0.3, 2.6, 0xd9b44a, 0, 2.15));
+      const door = cyl(0.75, 0.75, 0.15, 0x5a5a5a, 0, 1, 1.25, 16); door.rotation.x = Math.PI / 2; mesh.add(door, box(0.5, 0.08, 0.08, 0xd9b44a, 0, 1, 1.35));
+      const coin = cyl(0.75, 0.75, 0.16, 0xf5b83a, 0, 3.2, 0, 16); coin.rotation.x = Math.PI / 2; mesh.add(coin); mesh.userData.coin = coin;
+    } else if (kind === 'barracks') {
+      mesh.add(box(4.2, 2.2, 3.4, 0xf4f1de, 0, 1.1), box(4.6, 0.6, 3.8, 0x2f6b4f, 0, 2.5), box(1.4, 1.4, 0.1, 0x1d2b45, 0, 0.7, 1.72));
+      mesh.add(cyl(0.05, 0.05, 2.4, 0xcccccc, 1.8, 3.9, 1.2, 6), box(0.8, 0.5, 0.04, 0xd9b44a, 2.2, 4.8, 1.2));
+    } else {
+      mesh.add(box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, 0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, 0.6));
+      mesh.add(box(1.8, 1.4, 1.8, 0xf4f1de, 0, 3.3, 0), box(1.9, 0.5, 1.9, 0x2b3a4c, 0, 3.4, 0), box(2.1, 0.3, 2.1, 0xd9b44a, 0, 4.15, 0));
+    }
+    return mesh;
+  }
   if (f === 'hh') {
     // Hard Hats: everything is a building site - portable cabins, corrugated sheds, and a crane over the base.
     if (kind === 'hq') {

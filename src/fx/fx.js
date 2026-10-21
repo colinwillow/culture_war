@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=65';
-import { walkH } from '../map/layout.js?v=65';
-import { sfx } from './sfx.js?v=65';
-import { shake, CAM } from '../camera/camera.js?v=65';
-import { FC } from '../render/models.js?v=65';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=65';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=66';
+import { walkH } from '../map/layout.js?v=66';
+import { sfx } from './sfx.js?v=66';
+import { shake, CAM } from '../camera/camera.js?v=66';
+import { FC } from '../render/models.js?v=66';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=66';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -182,6 +182,16 @@ function wreckingBall(x, z) {
     else { const u = (t - 1.4) / 1.0; arm.rotation.x = Math.sin(u * Math.PI * 0.5) * 0.9; o.position.y = top + u * 20; }
   });
 }
+/** Private Jet: a little white jet streaks over the target, drops a gold crate on a parachute that lands at 1.6 s. */
+function jetFlyover(x, z) {
+  const g0 = gy(x, z), jet = new THREE.Group();
+  jet.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 4), mat(0xffffff)), new THREE.Mesh(new THREE.BoxGeometry(5, 0.12, 1), mat(0xe8e0cc)), new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.7), mat(0xd9b44a)));
+  jet.children[2].position.set(0, 0.6, -1.7);
+  addFx(jet, 1.6, (o, k) => { o.position.set(x + (k - 0.5) * 70, g0 + 22, z - (k - 0.5) * 20); o.rotation.y = Math.atan2(70, -20); emit({ x: o.position.x, y: o.position.y, z: o.position.z, c: 0xffffff, s: 0.35, life: 0.6, g: 0, grow: 2 }); });
+  const drop = new THREE.Group(), chute = new THREE.Mesh(new THREE.SphereGeometry(1.4, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xd9b44a));
+  chute.position.y = 2.4; drop.add(chute, new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(0x5a3a22)));
+  addFx(drop, 1.6, (o, k) => { o.position.set(x, g0 + 0.5 + (1 - k) * 20, z); o.rotation.y = k * 3; });
+}
 /** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
 function fxRubble(x, z, r) {
   const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
@@ -275,7 +285,7 @@ export function handleEvents(S, bump) {
         break;
       }
       case 'takeover': { const g0 = gy(ev.x, ev.z); for (let i = 0; i < 30; i++) emit({ x: ev.x + (Math.random() - 0.5) * 4, y: g0 + 8 + Math.random() * 4, z: ev.z + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5), vy: -4, vz: (Math.random() - 0.5), c: i % 3 ? 0x7cc46a : 0xf5b83a, s: 0.3, life: 2, g: 2, drag: 1, floor: g0 + 0.1 }); fxRing(ev.x, ev.z, 0.5, 4, 0xd9b44a, 0.6); break; }
-      case 'jetfly': fxRing(ev.x, ev.z, 3, 0.5, 0xd9b44a, 1.6, 0.15); break;
+      case 'jetfly': fxRing(ev.x, ev.z, 3, 0.5, 0xd9b44a, 1.6, 0.15); jetFlyover(ev.x, ev.z); break;
       case 'jetdrop': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5); fxBits(ev.x, ev.z, 0xd9b44a, 8, 1, 5); break;
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
