@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=79';
-import { walkH } from '../map/layout.js?v=79';
-import { sfx } from './sfx.js?v=79';
-import { shake, CAM } from '../camera/camera.js?v=79';
-import { FC } from '../render/models.js?v=79';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=79';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=80';
+import { walkH } from '../map/layout.js?v=80';
+import { sfx } from './sfx.js?v=80';
+import { shake, CAM } from '../camera/camera.js?v=80';
+import { FC } from '../render/models.js?v=80';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=80';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -199,6 +199,19 @@ function sprayTag(S, ev) {
   addFx(m, 40, (o, k) => { if (!S.blds.some((x) => x.id === bid)) o.visible = false; });
   TAGS.push(m); if (TAGS.length > 40) { const old = TAGS.shift(); old.visible = false; }
 }
+/** A hero walks out: a spotlight beam drops onto the HQ door for 2.5 s, plus one on-trope flourish per faction. */
+function heroEntrance(ev) {
+  const g0 = gy(ev.x, ev.z), beam = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 2.2, 22, 20, 1, true), basic(0xfff3c4, 0));
+  beam.position.set(ev.x, g0 + 11, ev.z);
+  addFx(beam, 2.5, (o, k) => { o.material.opacity = Math.min(1, k * 8) * (1 - k) * 0.35; });
+  fxRing(ev.x, ev.z, 0.5, 4, 0xfff3c4, 0.8, 0.15); shake(0.4, ev.x, ev.z);
+  const up = (c, n, vy, s = 0.18) => { for (let i = 0; i < n; i++) emit({ x: ev.x + (Math.random() - 0.5) * 2, y: g0 + 0.5, z: ev.z + (Math.random() - 0.5) * 2, vx: (Math.random() - 0.5) * 3, vy: vy + Math.random() * 3, vz: (Math.random() - 0.5) * 3, c: c[i % c.length], s, life: 1.6, g: 6, drag: 1 }); };
+  if (ev.f === 'bw') { up([0x6b4a2a, 0xffffff, 0x3a2416], 16, 5, 0.22); sfx('sting', 0.6); } // feathers: the eagle has landed
+  else if (ev.f === 'ac') { fxRing(ev.x, ev.z, 0.5, 7, 0xe85d9a, 0.6, 0.2); fxRing(ev.x, ev.z, 0.3, 5, 0xf5b83a, 0.5, 1.4); }
+  else if (ev.f === 'hh') { up([0xf2c232, 0xffffff], 20, 6, 0.14); sfx('ding', 0.6); } // whistle sparks
+  else if (ev.f === 'om') { up([0xf5b83a, 0x7cc46a], 24, 7, 0.24); sfx('ding', 0.8); } // money shower
+  else if (ev.f === 'sc') { up([0x7a3fd1, 0x7ee05b, 0xff5ad1], 18, 5); sfx('scratch', 0.9); } // record scratch
+}
 /** Mixtape Drop: a giant spinning vinyl record falls out of the sky and lands flat at 1.2 s (the bass drop). */
 function vinylDrop(x, z) {
   const g0 = gy(x, z), rec = new THREE.Group();
@@ -249,7 +262,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', heroin: 'fanfare', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -347,6 +360,7 @@ export function handleEvents(S, bump) {
       case 'mud': fxRing(ev.x, ev.z, 1, 8, 0x5b4026, 0.5, 0.15); fxBits(ev.x, ev.z, 0x5b4026, 10, 0.3, 8); break;
       case 'fwlaunch': { const p = S.players[ev.owner]; for (let i = 0; i < 6; i++) fxRocket(p.hqx + (Math.random() - 0.5) * 3, p.hqz, ev.x + (Math.random() - 0.5) * 8, ev.z + (Math.random() - 0.5) * 8, CONF[i], 1.5 + i * 0.05); break; }
       case 'fwboom': fxFireworks(ev.x, ev.z, ev.r); shake(1.2, ev.x, ev.z); break;
+      case 'heroin': heroEntrance(ev); break;
       case 'spawn': fxRing(ev.x, ev.z, 0.5, 2.2, 0xf3efe2, 0.35); break;
     }
   }

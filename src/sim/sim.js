@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=79';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=79';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=79';
-import { mulberry32 } from '../util/math.js?v=79';
-import { aiStep } from './ai.js?v=79';
+} from '../config/factions.js?v=80';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=80';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=80';
+import { mulberry32 } from '../util/math.js?v=80';
+import { aiStep } from './ai.js?v=80';
 
 let S = null;
 export const getSim = () => S;
@@ -516,7 +516,7 @@ export function step() {
           const rp = b.rally, [rx, rz] = rp ? [rp.x, rp.z] : rallyPoint(p), jx = rp ? 3 : 12, jz = rp ? 3 : 6;
           const [fx, fz] = nearestFree(rx + (S.rng() - 0.5) * jx, rz + (S.rng() - 0.5) * jz); setOrder(s, { type: 'move', x: fx, z: fz });
         }
-        S.events.push({ k: 'spawn', x: sx, z: sz });
+        S.events.push({ k: slot === 'hero' ? 'heroin' : 'spawn', x: sx, z: sz, f: p.f, owner: p.i });
       }
     }
     if (b.kind === 'hq' || b.kind === 'tower') {

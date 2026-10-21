@@ -53,6 +53,8 @@ export function sfx(name, k = 1) {
     case 'sting': tone('sawtooth', 220, 440, 0.35, 0.12 * k); tone('square', 330, 660, 0.35, 0.08 * k, 0.05); burst(0.3, 0.12 * k, 2500); break;
     case 'whoosh': burst(0.5, 0.25 * k, 1800, 4); break;
     case 'blip': if (ok(name, 120)) tone('sine', 520, 780, 0.08, 0.1 * k); break;
+    case 'fanfare': tone('triangle', 523, 523, 0.14, 0.16 * k); tone('triangle', 659, 659, 0.14, 0.16 * k, 0.12); tone('triangle', 784, 784, 0.4, 0.18 * k, 0.24); tone('square', 392, 392, 0.5, 0.05 * k, 0.24); break;
+    case 'scratch': burst(0.12, 0.25 * k, 3500, 6); burst(0.1, 0.22 * k, 1800, 6, 0.14); break;
     case 'tap': if (ok(name, 40)) tone('sine', 700, 500, 0.04, 0.08 * k); break;
   }
 }

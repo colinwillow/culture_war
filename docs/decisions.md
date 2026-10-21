@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B80 (overnight loop): Hero entrance: when a hero walks out, a soft spotlight beam drops on the door for 2.5 s with a ring, a small shake and a fanfare, plus a faction flourish - Backwoods feathers, Activists bullhorn rings, Hard Hats whistle sparks, Old Money money shower, Street Crew record scratch + neon notes (new sim event 'heroin' in place of 'spawn' for heroes)
 - B79 (overnight loop): Street Crew base dressing round the Record Shop: a half basketball court (lines, key, hoop), a boombox on a milk crate whose speakers thump with the rest, two graffiti-tagged dumpsters and a bench
 - B78 (overnight loop): Voice barks: ordering a squad answers with a tiny synth two-syllable 'hup!' (buzzy voice through a vowel filter) - faction pitch + contour (Backwoods low rise, Activists bright, Hard Hats gruff, Old Money snooty fall, Street Crew 'yo-yo-yo'); attack orders louder/higher, heroes lower, vehicles honk twice; one voice per order, throttled 260 ms, respects mute
 - B77 (overnight loop): Faction-coloured HUD: your faction colour (set as CSS --fc/--fc2 at match start) fills the power meter and edges it and the command cards; selection rings on squads and buildings take it too (washed 35% toward white). Friend/foe team discs stay blue/red so the read never changes
