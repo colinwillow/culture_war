@@ -2,14 +2,15 @@
 
 Newest first. Colin's feedback in his words where it matters.
 
-## Overnight loop summary (Oct 21 2026, ~08:30-14:55 UTC, B2 -> B121)
+## Overnight loop summary (Oct 21 2026, ~08:30-14:40 UTC, B2 -> B125)
 Colin asked: "keep developing it, UI, game logic, particle effects, map, placeholder 3D animated objects - on a loop until
 8 am". Every build below shipped to main UNVERIFIED on a phone (headless boot check + sim fast-forwards only).
 - Factions: 2 -> 6 playable (Hard Hats, Old Money, Street Crew, Nerds added), each with traits, two powers, its own hero
   ability, placeholder vehicles/hero/buildings and base dressing; balanced AI-vs-AI to 22-28/50 each (tools/balance.cjs).
 - Modes: Versus, King of the Hill, Resource Race, Capture and Hold, Hero vs Hero (all vs computer); 3 difficulties.
 - Late additions (B107-B120): building draw-call merge, LOW graphics toggle, minimap objectives, hero duel balance,
-  end-screen matchup badges, clearer rain, first-match nudges, menu orbit, menu long-press names.
+  end-screen matchup badges, clearer rain, first-match nudges, menu orbit, menu long-press names; then (B122-B125)
+  pause-screen 1x/2x game speed, red edge pulse when your HQ is under 40%, win confetti / lose ash, power-ready ping.
 - Feel: particles everywhere, synth audio + voice barks, time of day, rain, match intro fly-over, end swoop + victory
   dance, hero entrance, death flourishes, pedestrians, city traffic/pigeons/clouds.
 - UI: minimap, command cards, queue, rally flags, under-attack arrow, hold-to-select-army, power aim ring, faction HUD
