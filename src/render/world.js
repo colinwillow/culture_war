@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=44';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=44';
-import { hash } from '../util/math.js?v=44';
-import { emit } from '../fx/particles.js?v=44';
+import { THREE, scene, mat, box } from './scene.js?v=45';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=45';
+import { hash } from '../util/math.js?v=45';
+import { emit } from '../fx/particles.js?v=45';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -170,7 +170,25 @@ export function buildWorld() {
   const pgeo = new THREE.BoxGeometry(0.22, 0.18, 0.34);
   const pigIM = new THREE.InstancedMesh(pgeo, new THREE.MeshLambertMaterial({ color: 0x8d929c }), pigeons.length);
   pigIM.frustumCulled = false; scene.add(pigIM);
-  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM, pigeons, pigIM };
+  // City cars: a few little cars cruise the open stretches of each avenue (U-turning at dead ends), keep right,
+  // stop for red lights at intersections and wait politely if troops are in the road ahead.
+  const segs = [];
+  for (const ax of AVENUES) {
+    let run = null;
+    for (let z = -HOME_Z + 2; z <= HOME_Z - 2; z += 1) {
+      const ok = !BLOCKS.some((b) => b.kind === 'bld' && (inRect(ax - 2, z, b, 0.6) || inRect(ax + 2, z, b, 0.6)));
+      if (ok) { if (!run) run = { ax, z0: z, z1: z }; else run.z1 = z; } else if (run) { segs.push(run); run = null; }
+    }
+    if (run) segs.push(run);
+  }
+  const ccars = [];
+  segs.filter((g) => g.z1 - g.z0 > 20).forEach((g, gi) => { for (let k = 0; k < 2; k++) ccars.push({ g, z: g.z0 + hash(gi * 7 + k, 3) * (g.z1 - g.z0), dir: k ? 1 : -1, v: 0, top: 6 + hash(gi, k) * 3, c: [0xd64545, 0x3d6fd6, 0xe8e0cc, 0x2a2a2a, 0xf2b632, 0x7cab58][(gi * 2 + k) % 6] }); });
+  const ccIM = new THREE.InstancedMesh(unitBox, mat(0xffffff), Math.max(1, ccars.length * 2));
+  ccars.forEach((c, i) => { ccIM.setColorAt(i * 2, C.setHex(c.c)); ccIM.setColorAt(i * 2 + 1, C.setHex(0x2b3a4c)); });
+  ccIM.count = ccars.length * 2; ccIM.frustumCulled = false; scene.add(ccIM);
+  const lightAt = []; // intersections that have a lamp, with their phase (same formula as the lamps themselves)
+  for (const ax of AVENUES) for (const cz0 of CROSS_STREETS) for (const sz of [1, -1]) { const cz = sz * cz0; if (open(ax + 5.4, cz + 4.6 * sz) || open(ax, cz)) lightAt.push({ ax, cz, ph: (ax + cz) * 0.37 }); }
+  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM, pigeons, pigIM, ccars, ccIM, lightAt };
 
   // Freeway traffic (render only, loops forever).
   const lanes = [-3.2, -1, 1, 3.2];
@@ -223,6 +241,21 @@ function updateLife(dt, S) {
     birdIM.setMatrixAt(i, M);
   });
   birdIM.instanceMatrix.needsUpdate = true;
+  const { ccars, ccIM, lightAt } = life;
+  ccars.forEach((c, i) => {
+    const x = c.g.ax + c.dir * 1.8; // keep right
+    let stop = false;
+    for (const L of lightAt) { if (L.ax !== c.g.ax) continue; const ahead = (L.cz - c.z) * c.dir - 4.5; if (ahead > 0 && ahead < 5 && (wt + L.ph * 9) % 9 < 3) stop = true; }
+    if (S && S.squads.some((q) => Math.abs(q.x - x) < 3 && (q.z - c.z) * c.dir > 0 && (q.z - c.z) * c.dir < 6)) stop = true;
+    c.v += ((stop ? 0 : c.top) - c.v) * Math.min(1, dt * (stop ? 4 : 1.2));
+    c.z += c.v * c.dir * dt;
+    if (c.z > c.g.z1) { c.z = c.g.z1; c.dir = -1; } else if (c.z < c.g.z0) { c.z = c.g.z0; c.dir = 1; }
+    const y = walkH(x, c.z);
+    Q.setFromEuler(_e.set(0, c.dir > 0 ? 0 : Math.PI, 0));
+    M.compose(V.set(x, y + 0.45, c.z), Q, Sv.set(1.5, 0.7, 3)); ccIM.setMatrixAt(i * 2, M);
+    M.compose(V.set(x, y + 1.0, c.z - c.dir * 0.2), Q, Sv.set(1.25, 0.45, 1.5)); ccIM.setMatrixAt(i * 2 + 1, M);
+  });
+  ccIM.instanceMatrix.needsUpdate = true;
   const { pigeons, pigIM } = life;
   pigeons.forEach((p, i) => {
     if (p.st === 'peck') {
