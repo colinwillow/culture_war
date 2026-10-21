@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B24 (overnight loop): footstep dust kicks up behind running infantry (more members = more dust) and a skid puff spurts forward round their feet when a squad pulls up from a run; no water in the trench so no splash
 - B23 (overnight loop): idle fidgets: standing box people now look around, stretch both arms up or scratch their head every few seconds (each on its own timer), and stop the moment they move or fight
 - B22 (overnight loop): command card: one portrait per selected squad (up to 6) with alive/dead member dots, a green-amber-red health bar and gold rank stars; tap a portrait to pick just that squad and fly the camera to it
 - B21 (overnight loop): veterancy: heroes level up to 5 (kills 4/10/18/28/40, +12% hp/dmg each) and grow 6% per level with a pulsing ring that turns gold at level 3; veteran squads wear a silver then gold ring; every rank-up throws a spiral of gold sparks

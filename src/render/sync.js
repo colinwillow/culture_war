@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=23';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=23';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=23';
-import { emit } from '../fx/particles.js?v=23';
-import { TICK } from '../config/factions.js?v=23';
-import { walkH } from '../map/layout.js?v=23';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=23';
-import { Q, pl } from '../sim/sim.js?v=23';
-import { UI } from '../ui/state.js?v=23';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=23';
-import { lerpAngle } from '../util/math.js?v=23';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=24';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=24';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=24';
+import { emit } from '../fx/particles.js?v=24';
+import { TICK } from '../config/factions.js?v=24';
+import { walkH } from '../map/layout.js?v=24';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=24';
+import { Q, pl } from '../sim/sim.js?v=24';
+import { UI } from '../ui/state.js?v=24';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=24';
+import { lerpAngle } from '../util/math.js?v=24';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -141,6 +141,19 @@ export function syncRender(S, alpha, dt, time) {
     const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
     const par = pl(s.owner).parade > 0, bs = par ? 18 : s.bull > 0 ? 14 : 10;
     let alive = 0;
+    // Footstep dust under running infantry, and a skid puff round the squad's feet when it pulls up from a run.
+    if (!s.def.vehicle && !s.def.flies) {
+      const sp = Math.hypot(s.x - s.px, s.z - s.pz) / TICK;
+      if (sp > 2 && Math.random() < dt * 4 * s.def.n) {
+        const m = o.members[(Math.random() * o.members.length) | 0];
+        if (m.visible) { m.getWorldPosition(_wp); emit({ x: _wp.x, y: walkH(_wp.x, _wp.z) + 0.1, z: _wp.z, vx: (Math.random() - 0.5) * 0.8 - Math.sin(o.yaw) * 0.8, vy: 0.4 + Math.random() * 0.4, vz: (Math.random() - 0.5) * 0.8 - Math.cos(o.yaw) * 0.8, c: 0xc2b28e, s: 0.22, life: 0.55, g: -0.2, drag: 2.5, grow: 2.2 }); }
+      }
+      if (o.lastSp > 2 && sp < 0.15) for (const m of o.members) if (m.visible) {
+        m.getWorldPosition(_wp);
+        for (let k = 0; k < 2; k++) emit({ x: _wp.x, y: walkH(_wp.x, _wp.z) + 0.1, z: _wp.z, vx: Math.sin(o.yaw) * 1.5 + (Math.random() - 0.5), vy: 0.5, vz: Math.cos(o.yaw) * 1.5 + (Math.random() - 0.5), c: 0xc2b28e, s: 0.28, life: 0.5, g: 0, drag: 3, grow: 2 });
+      }
+      o.lastSp = sp;
+    }
     if (o.real) {
       const v = Math.hypot(s.x - s.px, s.z - s.pz) / TICK;
       const gather = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather';
