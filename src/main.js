@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=102';
-import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=102';
-import { syncRender, clearRender, bump } from './render/sync.js?v=102';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=102';
-import { newSim, getSim, step } from './sim/sim.js?v=102';
-import { TICK } from './config/factions.js?v=102';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=102';
-import { initInput, lockPageZoom } from './input/input.js?v=102';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=102';
-import { resetUI } from './ui/state.js?v=102';
-import { fillIcons, svg } from './ui/icons.js?v=102';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=102';
-import { updateMinimap } from './ui/minimap.js?v=102';
-import { isMuted, setMuted } from './fx/sfx.js?v=102';
-import { loadChars } from './render/chars.js?v=102';
-import { FC } from './render/models.js?v=102';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=103';
+import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=103';
+import { syncRender, clearRender, bump } from './render/sync.js?v=103';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=103';
+import { newSim, getSim, step } from './sim/sim.js?v=103';
+import { TICK } from './config/factions.js?v=103';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=103';
+import { initInput, lockPageZoom } from './input/input.js?v=103';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=103';
+import { resetUI } from './ui/state.js?v=103';
+import { fillIcons, svg } from './ui/icons.js?v=103';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=103';
+import { updateMinimap } from './ui/minimap.js?v=103';
+import { isMuted, setMuted } from './fx/sfx.js?v=103';
+import { loadChars } from './render/chars.js?v=103';
+import { FC } from './render/models.js?v=103';
 
-export const BUILD = 102; // written by `npm run bump`
+export const BUILD = 103; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -85,6 +85,8 @@ muteBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 function setPause(on) { paused = on && running; pauseDim.hidden = !paused; drawMute(); }
 pauseBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(true); });
 pauseBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+// Quit: the home button on the pause dim abandons the match and goes back to the menu.
+document.getElementById('quitBtn').addEventListener('pointerup', (e) => { e.stopPropagation(); running = false; setPause(false); cin = null; intro = null; endEl.hidden = true; menu.hidden = false; drawMute(); });
 pauseDim.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(false); });
 pauseDim.addEventListener('pointerdown', (e) => e.stopPropagation());
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });

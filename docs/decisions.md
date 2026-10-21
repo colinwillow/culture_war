@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B103 (overnight loop): Pause screen quit: a big round home button at the bottom of the pause dim abandons the match and returns to the menu (tap anywhere else still resumes)
 - B102 (overnight loop): Pedestrians (render only): 12 blocky townsfolk in assorted shirts stroll the avenue sidewalks, bob as they walk, turn back at the freeway trench and the home lawns, and sprint away (5 m/s, bigger bob) from any fight within 14 m; two instanced draws total
 - B101 (overnight loop): Death flourishes: each fallen fighter loses one on-trope item that pops up, tumbles, bounces once and lies there ~4 s before sinking - Backwoods trucker cap, Activists placard, Hard Hats hard hat, Street Crew sneaker, Nerds glasses; Old Money sheds fluttering bills instead (not seen in a screenshot yet)
 - B100 (overnight loop): Resource Race: third mode button (coin); first side to EARN 2500 (income + deposits + scrap; spending doesn't count) wins, HQ kill still wins too; the HUD chip shows a gold coin and both sides' earned bars. Portrait menu puts the three mode buttons on their own row under the stars. AI-vs-AI race test ended at 166 s (2500 vs 2020)
