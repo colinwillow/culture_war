@@ -89,6 +89,7 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .pick[data-f="ac"] { background: linear-gradient(170deg, #6ff0dc, var(--ac)); }
 .pick[data-f="hh"] { background: linear-gradient(170deg, #ffd23a, #f28c28); }
 .pick[data-f="om"] { background: linear-gradient(170deg, #f3e3a8, #d9b44a); }
+.pick[data-f="sc"] { background: linear-gradient(170deg, #b98cff, #7a3fd1); }
 .pick:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0, 0, 0, .5); }
 .big { width: 130px; height: 130px; color: var(--gold); filter: drop-shadow(0 6px 0 #000); }
 .big.lose { color: var(--bad); }
@@ -148,7 +149,7 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .btn.sm.herob .gauge { background: rgba(126, 224, 91, .35); }
 .btn.sm.herob .badge { background: rgba(0, 0, 0, .6); color: var(--gold); font-size: 8px; letter-spacing: -1px; top: -2px; right: -2px; }
 @media (orientation: portrait) { .pick { width: min(170px, 42vw); font-size: 19px; padding: 14px 6px 10px; } .pick .ic { width: 44px; height: 44px; } .picks { gap: 10px; } }
-@media (orientation: landscape) { .pick { width: 150px; padding: 12px 8px 10px; font-size: 20px; } .pick .ic { width: 44px; height: 44px; } .overlay { gap: 14px; } }
+@media (orientation: landscape) { .pick { width: 136px; padding: 10px 6px 8px; font-size: 18px; } .picks { gap: 10px; } .pick .ic { width: 44px; height: 44px; } .overlay { gap: 14px; } }
 #muteBtn { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 8px); right: max(60px, calc(env(safe-area-inset-right, 0px) + 60px)); width: 44px; height: 44px; border-radius: 50%; background: var(--panel); border: 2px solid var(--line); color: var(--fg); display: none; place-items: center; padding: 0; z-index: 31; pointer-events: auto; }
 #muteBtn svg { width: 22px; height: 22px; }
 body.show-mute #muteBtn { display: grid; }

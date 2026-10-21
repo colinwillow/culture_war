@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=72';
+import { THREE, box, cyl, mat } from './scene.js?v=73';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -204,6 +204,30 @@ export function bldMesh(kind, f) {
       mesh.add(box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, -0.6), box(0.2, 2.6, 0.2, 0x555555, -0.6, 1.3, 0.6), box(0.2, 2.6, 0.2, 0x555555, 0.6, 1.3, 0.6));
       mesh.add(box(1.8, 1.4, 1.8, 0xf4f1de, 0, 3.3, 0), box(1.9, 0.5, 1.9, 0x2b3a4c, 0, 3.4, 0), box(2.1, 0.3, 2.1, 0xd9b44a, 0, 4.15, 0));
     }
+    return mesh;
+  }
+  if (f === 'sc') {
+    // Street Crew: graffiti-painted brick, neon trim, and speakers everywhere (userData.speakers thump to a beat in sync.js).
+    const spk = [], speaker = (w, h, x, y, z) => { mesh.add(box(w, h, 0.6, 0x1e1e2a, x, y, z)); const c = cyl(w * 0.32, w * 0.32, 0.08, 0x555555, x, y, z + 0.32, 12); c.rotation.x = Math.PI / 2; mesh.add(c); spk.push(c); };
+    const tag = (w, h, x, y, z, c) => mesh.add(box(w, h, 0.04, c, x, y, z));
+    if (kind === 'hq') { // Record Shop: brick front, big vinyl on the roof, a neon strip and two speaker stacks by the door
+      mesh.add(box(6, 3.4, 4.6, 0x8a4a3a, 0, 1.7), box(6.3, 0.35, 4.9, 0x1e1e2a, 0, 3.55), box(4.2, 1.4, 0.1, 0x9fd6ff, 0, 1.3, 2.32), box(6.1, 0.12, 0.12, C.alt, 0, 2.6, 2.36));
+      tag(1.6, 0.8, -2, 2.9, 2.32, 0xff5ad1); tag(1.2, 0.6, 2.1, 0.5, 2.32, C.alt);
+      const disc = cyl(1.8, 1.8, 0.12, 0x111111, 0, 5.2, 0, 24); disc.rotation.x = Math.PI / 2; disc.add(cyl(0.6, 0.6, 0.14, C.main, 0, 0, 0, 16)); mesh.add(disc, box(0.3, 1.6, 0.3, 0x333333, 0, 3.9, 0)); mesh.userData.disc = disc;
+      speaker(0.9, 1.1, -3.6, 0.55, 2.2); speaker(0.9, 1.1, -3.6, 1.65, 2.2); speaker(0.9, 1.1, 3.6, 0.55, 2.2);
+    } else if (kind === 'depot') { // Sneaker Store: white box, a giant sneaker on the roof
+      mesh.add(box(2.8, 1.9, 2.4, 0xf4f4f4, 0, 0.95), box(3, 0.28, 2.6, C.main, 0, 2.04), box(1.8, 0.9, 0.08, 0x9fd6ff, 0, 1, 1.22));
+      mesh.add(box(0.9, 0.5, 2, 0xffffff, 0, 2.5, 0), box(0.95, 0.15, 2.05, C.main, 0, 2.25, 0), box(0.8, 0.6, 0.8, C.alt, 0, 2.9, -0.5));
+      const coin = cyl(0.75, 0.75, 0.16, 0xf5b83a, 0, 3.9, 0, 16); coin.rotation.x = Math.PI / 2; mesh.add(coin); mesh.userData.coin = coin;
+    } else if (kind === 'barracks') { // Rec Centre: low gym with a hoop on the side and painted murals
+      mesh.add(box(4.4, 2.4, 3.6, 0xc9b98a, 0, 1.2), box(4.6, 0.3, 3.8, 0x3a3a46, 0, 2.55), box(1.4, 1.6, 0.1, 0x1e1e2a, 0, 0.8, 1.82));
+      tag(1.3, 1, -1.4, 1.4, 1.82, C.main); tag(1, 0.9, 1.5, 1.5, 1.82, 0xff5ad1); tag(0.04, 1, 2.22, 1.3, 0, C.alt);
+      mesh.add(box(0.12, 3.4, 0.12, 0x888888, 2.9, 1.7, 1), box(0.1, 0.8, 1.1, 0xffffff, 2.9, 3.2, 1.3), box(0.5, 0.04, 0.5, 0xf28c28, 2.9, 2.95, 1.75));
+    } else { // Speaker Stack tower: a scaffold tower of speakers
+      for (const [x, z] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) mesh.add(box(0.15, 4.4, 0.15, 0x555555, x, 2.2, z));
+      speaker(1.5, 1.2, 0, 1, 0.1); speaker(1.5, 1.2, 0, 2.3, 0.1); speaker(1.2, 1, 0, 3.5, 0.1); mesh.add(box(1.8, 0.2, 1.8, C.main, 0, 4.4, 0));
+    }
+    mesh.userData.speakers = spk;
     return mesh;
   }
   if (f === 'hh') {

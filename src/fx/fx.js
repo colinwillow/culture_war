@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=72';
-import { walkH } from '../map/layout.js?v=72';
-import { sfx } from './sfx.js?v=72';
-import { shake, CAM } from '../camera/camera.js?v=72';
-import { FC } from '../render/models.js?v=72';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=72';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=73';
+import { walkH } from '../map/layout.js?v=73';
+import { sfx } from './sfx.js?v=73';
+import { shake, CAM } from '../camera/camera.js?v=73';
+import { FC } from '../render/models.js?v=73';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=73';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -182,6 +182,12 @@ function wreckingBall(x, z) {
     else { const u = (t - 1.4) / 1.0; arm.rotation.x = Math.sin(u * Math.PI * 0.5) * 0.9; o.position.y = top + u * 20; }
   });
 }
+/** Mixtape Drop: a giant spinning vinyl record falls out of the sky and lands flat at 1.2 s (the bass drop). */
+function vinylDrop(x, z) {
+  const g0 = gy(x, z), rec = new THREE.Group();
+  rec.add(new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 0.15, 28), mat(0x111111)), new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.17, 18), mat(0x7a3fd1)));
+  addFx(rec, 1.2, (o, k) => { o.position.set(x, g0 + 0.2 + (1 - k * k) * 26, z); o.rotation.y = k * 18; o.rotation.x = (1 - k) * 0.9; });
+}
 /** Private Jet: a little white jet streaks over the target, drops a gold crate on a parachute that lands at 1.6 s. */
 function jetFlyover(x, z) {
   const g0 = gy(x, z), jet = new THREE.Group();
@@ -290,7 +296,7 @@ export function handleEvents(S, bump) {
         fxRing(s.x, s.z, 0.5, 4, 0x7a3fd1, 0.5, 0.2); fxRing(s.x, s.z, 0.3, 3, 0x7ee05b, 0.5, 1.4);
         for (let k = 0; k < 8; k++) emit({ x: s.x, y: gy(s.x, s.z, 1.6), z: s.z, vx: (Math.random() - 0.5) * 4, vy: 3 + Math.random() * 3, vz: (Math.random() - 0.5) * 4, c: [0x7a3fd1, 0x7ee05b, 0xff5ad1, 0x5ae0ff][k % 4], s: 0.18, life: 1.4, g: 5, drag: 1 });
       } break;
-      case 'mixlaunch': fxRing(ev.x, ev.z, 7, 0.5, 0x7a3fd1, 1.2, 0.15); break;
+      case 'mixlaunch': fxRing(ev.x, ev.z, 7, 0.5, 0x7a3fd1, 1.2, 0.15); vinylDrop(ev.x, ev.z); break;
       case 'mixboom': { // the drop: three bass rings roll out, everything bounces, a spray of purple/green
         shake(1.2, ev.x, ev.z);
         for (let k = 0; k < 3; k++) fxRing(ev.x, ev.z, 0.5, ev.r * (1 + k * 0.25), [0x7a3fd1, 0x7ee05b, 0xff5ad1][k], 0.5 + k * 0.15, 0.3);

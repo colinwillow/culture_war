@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=72';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=72';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=72';
-import { emit } from '../fx/particles.js?v=72';
-import { TICK } from '../config/factions.js?v=72';
-import { walkH } from '../map/layout.js?v=72';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=72';
-import { Q, pl } from '../sim/sim.js?v=72';
-import { UI } from '../ui/state.js?v=72';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=72';
-import { lerpAngle } from '../util/math.js?v=72';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=73';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=73';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=73';
+import { emit } from '../fx/particles.js?v=73';
+import { TICK } from '../config/factions.js?v=73';
+import { walkH } from '../map/layout.js?v=73';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=73';
+import { Q, pl } from '../sim/sim.js?v=73';
+import { UI } from '../ui/state.js?v=73';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=73';
+import { lerpAngle } from '../util/math.js?v=73';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -73,7 +73,7 @@ function makeBldObj(b) {
   root.position.set(b.x, walkH(b.x, b.z), b.z);
   if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
   scene.add(root);
-  return { root, mesh, coin: mesh.userData.coin, pips, scaff, sel, bar, h, r: b.r, smokeT: 0, buildFx: 0, wasBuilt: b.built >= 1, scaffDrop: b.built >= 1 ? 1 : 0 };
+  return { root, mesh, coin: mesh.userData.coin, speakers: mesh.userData.speakers, disc: mesh.userData.disc, pips, scaff, sel, bar, h, r: b.r, smokeT: 0, buildFx: 0, wasBuilt: b.built >= 1, scaffDrop: b.built >= 1 ? 1 : 0 };
 }
 function makeNodeObj(n) {
   const g = nodeMesh();
@@ -383,6 +383,8 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (b.built >= 1 && o.scaffDrop >= 1) o.scaff.visible = false;
     if (o.coin) o.coin.rotation.z += dt * 2.5;
+    if (o.disc) o.disc.rotation.y += dt * 3; // the record on the shop roof spins
+    if (o.speakers && o.speakers.length) { const th = 1 + Math.max(0, Math.sin(time * 9.4)) ** 4 * 0.35; for (const c of o.speakers) c.scale.set(th, 1, th); } // cones thump
     if (o.mesh.userData.jib) o.mesh.userData.jib.rotation.y = Math.sin(time * 0.15 + b.id) * 2.2; // crane slowly slews back and forth
     o.pips.children.forEach((p, i) => { p.visible = i < b.level || (b.up > 0 && i === b.level && Math.sin(time * 10) > 0); });
     o.sel.visible = !!(UI.sel && UI.sel.type === 'bld' && UI.sel.id === b.id);

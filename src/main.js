@@ -1,21 +1,21 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=72';
-import { buildWorld, updateWorld } from './render/world.js?v=72';
-import { syncRender, clearRender, bump } from './render/sync.js?v=72';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=72';
-import { newSim, getSim, step } from './sim/sim.js?v=72';
-import { TICK } from './config/factions.js?v=72';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=72';
-import { initInput, lockPageZoom } from './input/input.js?v=72';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=72';
-import { resetUI } from './ui/state.js?v=72';
-import { fillIcons, svg } from './ui/icons.js?v=72';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=72';
-import { updateMinimap } from './ui/minimap.js?v=72';
-import { isMuted, setMuted } from './fx/sfx.js?v=72';
-import { loadChars } from './render/chars.js?v=72';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=73';
+import { buildWorld, updateWorld } from './render/world.js?v=73';
+import { syncRender, clearRender, bump } from './render/sync.js?v=73';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=73';
+import { newSim, getSim, step } from './sim/sim.js?v=73';
+import { TICK } from './config/factions.js?v=73';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=73';
+import { initInput, lockPageZoom } from './input/input.js?v=73';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=73';
+import { resetUI } from './ui/state.js?v=73';
+import { fillIcons, svg } from './ui/icons.js?v=73';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=73';
+import { updateMinimap } from './ui/minimap.js?v=73';
+import { isMuted, setMuted } from './fx/sfx.js?v=73';
+import { loadChars } from './render/chars.js?v=73';
 
-export const BUILD = 72; // written by `npm run bump`
+export const BUILD = 73; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
