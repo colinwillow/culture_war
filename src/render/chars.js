@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=26';
+import { THREE } from './scene.js?v=27';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -179,6 +179,27 @@ function prop(kind) {
   return g;
 }
 
+/** Worker kit: the Odd-Jobber pushes a wheelbarrow, the Gig Worker wears a delivery bag. Cash shows in it while carrying
+ *  (sync.js toggles userData.cash / bulges userData.bag). Built in metres on the member group, not on a bone. */
+function addCarry(g, f) {
+  const M = (c) => new THREE.MeshLambertMaterial({ color: c });
+  const bx = (p, w, h, d, c, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c)); m.position.set(x, y, z); p.add(m); return m; };
+  const cash = new THREE.Group();
+  if (f === 'bw') {
+    const wb = new THREE.Group(); wb.position.set(0, 0, 0.75); g.add(wb);
+    bx(wb, 0.62, 0.08, 0.7, 0x7a7a7a, 0, 0.42, 0.1); bx(wb, 0.62, 0.3, 0.06, 0x7a7a7a, 0, 0.55, 0.45); bx(wb, 0.06, 0.3, 0.7, 0x7a7a7a, 0.31, 0.55, 0.1); bx(wb, 0.06, 0.3, 0.7, 0x7a7a7a, -0.31, 0.55, 0.1);
+    for (const x of [-0.22, 0.22]) bx(wb, 0.05, 0.05, 0.75, 0x5a3d26, x, 0.6, -0.4);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 12), M(0x222222)); w.rotation.z = Math.PI / 2; w.position.set(0, 0.18, 0.5); wb.add(w);
+    for (let i = 0; i < 6; i++) bx(cash, 0.18, 0.1, 0.12, i % 2 ? 0x7cc46a : 0xf5b83a, (i % 3 - 1) * 0.17, 0.62 + (i > 2 ? 0.1 : 0), 0.05 + (i % 2) * 0.12);
+    wb.add(cash); g.userData.wheel = w;
+  } else {
+    const bag = new THREE.Group(); bag.position.set(0, 1.15, -0.3); g.add(bag);
+    bx(bag, 0.5, 0.48, 0.32, 0x2cc2ad, 0, 0, 0); bx(bag, 0.52, 0.08, 0.34, 0x1c4f57, 0, 0.26, 0);
+    for (let i = 0; i < 3; i++) bx(cash, 0.16, 0.12, 0.1, 0x7cc46a, (i - 1) * 0.15, 0.36, 0);
+    bag.add(cash); g.userData.bag = bag;
+  }
+  cash.visible = false; g.userData.cash = cash;
+}
 /** A real character for (faction, slot), or null if not cast / not loaded. Same contract as makeMember. */
 export function makeChar(f, slot, i) {
   const c = ready && CAST[f] && CAST[f][slot];
@@ -203,6 +224,7 @@ export function makeChar(f, slot, i) {
     if (ONCE.has(st)) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
     actions[st] = a;
   }
+  if (slot === 'worker') addCarry(g, f);
   g.userData.anim = { mixer, actions, cur: null, atk: c.atk, lock: 0 };
   if (actions.idle) { actions.idle.play(); g.userData.anim.cur = 'idle'; mixer.update(Math.random() * 3); }
   return g;

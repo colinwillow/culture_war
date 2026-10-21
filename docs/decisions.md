@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B27 (overnight loop): worker kit: the Odd-Jobber (hick) pushes a wheelbarrow whose wheel rolls with speed and fills with cash bundles on the way home; the Gig Worker (hipster) wears a teal delivery bag that bulges and pulses with cash sticking out; replaces the floating gold box for them
 - B26 (overnight loop): stance toggle: a big button on the squad card flips the selection between aggressive (crossed blades: guard radius + leash as before) and hold ground (planted flag: only hits what is already in weapon range, never steps off its spot); held squads show a small blue flag
 - B25 (overnight loop): freeway traffic: every car/truck has warm headlights and red taillights facing the way it drives; cars passing under an overpass with troops on it honk - a bounce and a little yellow toot
 - B24 (overnight loop): footstep dust kicks up behind running infantry (more members = more dust) and a skid puff spurts forward round their feet when a squad pulls up from a run; no water in the trench so no splash

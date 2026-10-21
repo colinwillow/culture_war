@@ -34,7 +34,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B24) FX: footstep dust under running squads + skid puff when a squad stops; water splash in the trench? (skip if none)
 - [x] (B25) Map: animated freeway traffic gets headlights/taillights + a honk bounce when units cross overpasses above
 - [x] (B26) Logic: stance toggle per squad (aggressive / hold ground) as a big icon button on the card
-- [ ] FX: worker carry visuals — Odd-Jobber pushes a cash-filled wheelbarrow, Gig Worker a delivery bag that bulges with cash
+- [x] (B27) FX: worker carry visuals — Odd-Jobber pushes a cash-filled wheelbarrow, Gig Worker a delivery bag that bulges with cash
 - [ ] UI: under-attack alert — a red pulsing edge arrow pointing to off-screen fights involving your stuff; tap it to jump there
 - [ ] Map: building construction animation — scaffolding rises, crates fly in, hammer sparks, then scaffold drops away
 - [ ] Logic: garrison towers — tap a squad onto your tower to boost its range/damage (visible: tiny figures on top)

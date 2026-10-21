@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=26';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=26';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=26';
-import { emit } from '../fx/particles.js?v=26';
-import { TICK } from '../config/factions.js?v=26';
-import { walkH } from '../map/layout.js?v=26';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=26';
-import { Q, pl } from '../sim/sim.js?v=26';
-import { UI } from '../ui/state.js?v=26';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=26';
-import { lerpAngle } from '../util/math.js?v=26';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=27';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=27';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=27';
+import { emit } from '../fx/particles.js?v=27';
+import { TICK } from '../config/factions.js?v=27';
+import { walkH } from '../map/layout.js?v=27';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=27';
+import { Q, pl } from '../sim/sim.js?v=27';
+import { UI } from '../ui/state.js?v=27';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=27';
+import { lerpAngle } from '../util/math.js?v=27';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -241,7 +241,14 @@ export function syncRender(S, alpha, dt, time) {
     o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;
     o.bar.g.quaternion.copy(camera.quaternion);
     o.stun.visible = s.stun > 0 && s.stun <= 2.5; o.stun.rotation.z = time * 6;
-    o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; o.carry.visible = s.carry > 0;
+    o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; const kit = o.members[0].userData.cash;
+    o.carry.visible = s.carry > 0 && !kit;
+    if (kit) {
+      const u = o.members[0].userData, full = s.carry > 0;
+      kit.visible = full;
+      if (u.bag) { const k = full ? 1.3 + Math.sin(time * 8) * 0.03 : 1; u.bag.scale.set(k, k, k); }
+      if (u.wheel) u.wheel.rotation.x += (Math.hypot(s.x - s.px, s.z - s.pz) / TICK) * dt / 0.18;
+    }
     o.rank.children.forEach((c, i) => (c.visible = i < s.rank)); o.rank.quaternion.copy(camera.quaternion);
     o.vet.visible = s.rank > 0;
     // Hold-ground squads show a small planted flag beside their bar.
