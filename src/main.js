@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE } from './render/scene.js?v=82';
-import { buildWorld, updateWorld } from './render/world.js?v=82';
-import { syncRender, clearRender, bump } from './render/sync.js?v=82';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=82';
-import { newSim, getSim, step } from './sim/sim.js?v=82';
-import { TICK } from './config/factions.js?v=82';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=82';
-import { initInput, lockPageZoom } from './input/input.js?v=82';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=82';
-import { resetUI } from './ui/state.js?v=82';
-import { fillIcons, svg } from './ui/icons.js?v=82';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=82';
-import { updateMinimap } from './ui/minimap.js?v=82';
-import { isMuted, setMuted } from './fx/sfx.js?v=82';
-import { loadChars } from './render/chars.js?v=82';
-import { FC } from './render/models.js?v=82';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=84';
+import { buildWorld, updateWorld, setDusk } from './render/world.js?v=84';
+import { syncRender, clearRender, bump } from './render/sync.js?v=84';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=84';
+import { newSim, getSim, step } from './sim/sim.js?v=84';
+import { TICK } from './config/factions.js?v=84';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=84';
+import { initInput, lockPageZoom } from './input/input.js?v=84';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=84';
+import { resetUI } from './ui/state.js?v=84';
+import { fillIcons, svg } from './ui/icons.js?v=84';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=84';
+import { updateMinimap } from './ui/minimap.js?v=84';
+import { isMuted, setMuted } from './fx/sfx.js?v=84';
+import { loadChars } from './render/chars.js?v=84';
+import { FC } from './render/models.js?v=84';
 
-export const BUILD = 82; // written by `npm run bump`
+export const BUILD = 84; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -127,6 +127,9 @@ function frame(now) {
   hudT -= dt;
   if (hudT <= 0) { hudT = 0.15; refreshHUD(); }
   cinema(dt);
+  // The day wears on: morning at the start, golden hour by ~11 minutes in; lamps and windows come on in the last half.
+  if (S && running) { const k = Math.min(1, Math.max(0, (S.t - 60) / 600)); if (Math.abs(k - (frame.tod ?? -1)) > 0.002) { frame.tod = k; setTimeOfDay(k); setDusk(Math.max(0, k * 2 - 1)); } }
+  else if (!S && frame.tod) { frame.tod = 0; setTimeOfDay(0); setDusk(0); }
   applyCam(dt);
   followSun(CAM.tx, CAM.tz);
   if (S && running) { updateMinimap(dt); updateAlert(dt); }

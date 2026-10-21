@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=82';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=82';
-import { hash } from '../util/math.js?v=82';
-import { emit } from '../fx/particles.js?v=82';
+import { THREE, scene, mat, box } from './scene.js?v=84';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=84';
+import { hash } from '../util/math.js?v=84';
+import { emit } from '../fx/particles.js?v=84';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -102,7 +102,7 @@ export function buildWorld() {
   for (const im of [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)]) im.receiveShadow = true;
   instanced(unitBox, COL.stripe, stalls);
   instanced(unitBox, 0, bodies, true);
-  instanced(unitBox, COL.glass, bands);
+  windows = instanced(unitBox, COL.glass, bands); windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
   instanced(unitBox, COL.roof, roofs);
   instanced(unitBox, 0, signs, true);
   instanced(unitBox, 0x8f939a, acs);
@@ -127,7 +127,7 @@ export function buildWorld() {
     heads.push({ x, y: 5.1, z: zz, sx: 0.6, sy: 0.25, sz: 0.6 });
   }
   instanced(unitBox, 0x3a3a3a, poles);
-  instanced(unitBox, 0xfff1b0, heads);
+  lampHeads = instanced(unitBox, 0xfff1b0, heads); lampHeads.material = new THREE.MeshLambertMaterial({ color: 0xfff1b0 });
 
   // Parked cars.
   const carBodies = PARKED.map((p) => ({ x: p.x, y: 0.6, z: p.z, sx: 1.8, sy: 0.9, sz: 3.8, rot: p.rot, c: p.c }));
@@ -295,6 +295,12 @@ function updateLife(dt, S) {
   pigIM.instanceMatrix.needsUpdate = true;
 }
 
+let lampHeads = null, windows = null;
+/** Late in the day the street lamps light up and the office windows glow warm (k 0..1). */
+export function setDusk(k) {
+  if (lampHeads) lampHeads.material.emissive.setRGB(1 * k, 0.85 * k, 0.45 * k);
+  if (windows) windows.material.emissive.setRGB(0.5 * k, 0.36 * k, 0.12 * k);
+}
 export function updateWorld(dt, S) {
   updateLife(dt, S);
   if (!traffic) return;

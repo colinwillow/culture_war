@@ -1,8 +1,8 @@
 // Minimap, top-left under the resource chips. Fixed orientation: your base at the bottom (+z), enemy at the top.
 // Tap or drag on it to move the camera there. Static city is drawn once; units/buildings redraw ~10x a second.
-import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=82';
-import { CAM, focus } from '../camera/camera.js?v=82';
-import { getSim } from '../sim/sim.js?v=82';
+import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=84';
+import { CAM, focus } from '../camera/camera.js?v=84';
+import { getSim } from '../sim/sim.js?v=84';
 
 const cv = document.getElementById('mini'), ctx = cv.getContext('2d');
 const bg = document.createElement('canvas'), bctx = bg.getContext('2d');
