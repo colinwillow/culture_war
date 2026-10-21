@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=29';
-import { UI, select, selSquads } from './state.js?v=29';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=29';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=29';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=29';
-import { camera } from '../render/scene.js?v=29';
-import { walkH } from '../map/layout.js?v=29';
-import { THREE } from '../render/scene.js?v=29';
-import { showHint } from './hint.js?v=29';
+import { svg } from './icons.js?v=30';
+import { UI, select, selSquads } from './state.js?v=30';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=30';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=30';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=30';
+import { camera } from '../render/scene.js?v=30';
+import { walkH } from '../map/layout.js?v=30';
+import { THREE } from '../render/scene.js?v=30';
+import { showHint } from './hint.js?v=30';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -59,6 +59,9 @@ function panelSpec() {
         out.push({ id: 't-' + sl, name: def.name, icon: sl, cost: def.cost, dis: why === 'lock' || b.built < 1, poor: why === 'cash', cp: why === 'cp', badge: q || '', prog: b.queue[0] === sl ? b.prodT / def.build : null, pips: b.level < REQ[sl] ? REQ[sl] : 0, tap: () => (why ? false : command(0, { type: 'train', id: b.id, slot: sl })) });
       }
       if (b.level < 3) out.push({ id: 'up', name: 'Upgrade to level ' + (b.level + 1), icon: 'up', cost: UPG[b.level], dis: b.built < 1 || b.up > 0, poor: p.cash < UPG[b.level], pips: b.level + 1, prog: b.up > 0 ? 1 - b.up / b.upT : null, tap: () => (Q.canUpgrade(p, b) ? command(0, { type: 'upgrade', id: b.id }) : false) });
+    } else if (b.kind === 'tower' && b.garrison) {
+      const q = S.squads.find((x) => x.id === b.garrison);
+      if (q) out.push({ id: 'eject', name: 'Leave tower', icon: q.slot, noCost: true, cls: 'card', tap: () => command(0, { type: 'eject', id: b.id }) });
     } else if (b.kind === 'hq') {
       const w = F.units.worker, ww = Q.canTrain(p, b, 'worker'), wq = b.queue.filter((x) => x === 'worker').length;
       out.push({ id: 't-worker', name: w.name, icon: 'worker', cost: w.cost, dis: ww === 'lock' || b.built < 1, poor: ww === 'cash', cp: ww === 'cp', badge: wq || '', prog: b.queue[0] === 'worker' ? b.prodT / w.build : null, tap: () => (ww ? false : command(0, { type: 'train', id: b.id, slot: 'worker' })) });

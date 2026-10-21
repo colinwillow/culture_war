@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=29';
-import { walkH } from '../map/layout.js?v=29';
-import { getSim, command } from '../sim/sim.js?v=29';
-import { UI, select, selSquads } from '../ui/state.js?v=29';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=29';
-import { fxMarker } from '../fx/fx.js?v=29';
-import { ack } from '../render/sync.js?v=29';
+import { THREE, camera, canvas } from '../render/scene.js?v=30';
+import { walkH } from '../map/layout.js?v=30';
+import { getSim, command } from '../sim/sim.js?v=30';
+import { UI, select, selSquads } from '../ui/state.js?v=30';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=30';
+import { fxMarker } from '../fx/fx.js?v=30';
+import { ack } from '../render/sync.js?v=30';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -59,6 +59,8 @@ function onTap(cx, cy) {
   const node = pickNode(S, g);
   if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); ack(ids); return; }
   const ob = pickBld(S, g, 0);
+  // Squads selected + tap your finished tower = send one squad in to man it.
+  if (ob && sel.length && ob.kind === 'tower' && ob.built >= 1 && !ob.garrison && sel.some((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero')) { command(0, { type: 'garrison', ids, tower: ob.id }); fxMarker(ob.x, ob.z, 0x7fd1ff); ack(ids); return; }
   if (ob) { select({ type: 'bld', id: ob.id }); return; }
   if (sel.length) { command(0, { type: 'move', ids, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x9dff78); ack(ids); return; }
   // A production building is selected and the ground was tapped: plant its rally flag there (selection stays).

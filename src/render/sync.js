@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=29';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=29';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=29';
-import { emit } from '../fx/particles.js?v=29';
-import { TICK } from '../config/factions.js?v=29';
-import { walkH } from '../map/layout.js?v=29';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=29';
-import { Q, pl } from '../sim/sim.js?v=29';
-import { UI } from '../ui/state.js?v=29';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=29';
-import { lerpAngle } from '../util/math.js?v=29';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=30';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=30';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=30';
+import { emit } from '../fx/particles.js?v=30';
+import { TICK } from '../config/factions.js?v=30';
+import { walkH } from '../map/layout.js?v=30';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=30';
+import { Q, pl } from '../sim/sim.js?v=30';
+import { UI } from '../ui/state.js?v=30';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=30';
+import { lerpAngle } from '../util/math.js?v=30';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -140,6 +140,7 @@ export function syncRender(S, alpha, dt, time) {
     if (!o) { o = makeSquadObj(s); R.sq.set(s.id, o); }
     const x = s.px + (s.x - s.px) * alpha, z = s.pz + (s.z - s.pz) * alpha;
     o.root.position.set(x, walkH(x, z), z);
+    o.root.visible = !s.gar;
     o.yaw = lerpAngle(o.yaw, s.heading, Math.min(1, dt * 10)); o.body.rotation.y = o.yaw;
     const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
     const par = pl(s.owner).parade > 0, bs = par ? 18 : s.bull > 0 ? 14 : 10;
@@ -278,6 +279,11 @@ export function syncRender(S, alpha, dt, time) {
     let o = R.bl.get(b.id);
     if (!o) { o = makeBldObj(b); R.bl.set(b.id, o); }
     o.mesh.scale.y = 0.25 + 0.75 * b.built;
+    if (b.kind === 'tower') {
+      if (!o.crew) { o.crew = new THREE.Group(); for (let k = 0; k < 3; k++) { const f = new THREE.Group(); f.add(box(0.28, 0.45, 0.22, b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0, 0.23, 0), box(0.22, 0.22, 0.22, 0xf2c9a0, 0, 0.58, 0)); f.position.set((k - 1) * 0.7, 4.6, k === 1 ? 0.6 : -0.4); o.crew.add(f); } casts(o.crew); o.root.add(o.crew); }
+      o.crew.visible = !!b.garrison;
+      if (b.garrison) o.crew.children.forEach((f, k) => { f.position.y = 4.6 + Math.abs(Math.sin(time * 4 + k * 2)) * 0.12; f.rotation.y = Math.sin(time * 1.3 + k) * 0.8; });
+    }
     // Construction: scaffold climbs ahead of the walls, crates lob in from the ground, hammer sparks flash on top.
     if (b.built < 1) {
       o.scaff.visible = true; o.scaff.scale.y = Math.max(0.5, o.h * (0.35 + 0.75 * b.built)); o.scaff.position.y = 0;

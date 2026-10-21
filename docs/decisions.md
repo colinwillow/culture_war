@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B30 (overnight loop): garrison towers: with infantry selected, tap your finished tower - one squad walks in and vanishes, three tiny team-coloured lookouts appear on the roof, the tower gets +4 range and +50% damage; select the tower and tap the squad portrait to send them out (they also pop out if the tower falls)
 - B29 (overnight loop): construction: real yellow scaffolding (poles + plank rings) climbs ahead of the rising walls, crates lob in from the ground, hammer sparks flash along the top; when done the scaffold drops into the ground in a dust ring
 - B28 (overnight loop): under-attack alert: when your squads/buildings take hits off-screen, a pulsing red arrow sits on the screen edge pointing at the fight (newest wins, fades 5 s after the last hit); tap it to fly the camera there
 - B27 (overnight loop): worker kit: the Odd-Jobber (hick) pushes a wheelbarrow whose wheel rolls with speed and fills with cash bundles on the way home; the Gig Worker (hipster) wears a teal delivery bag that bulges and pulses with cash sticking out; replaces the floating gold box for them

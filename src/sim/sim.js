@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=29';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=29';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=29';
-import { mulberry32 } from '../util/math.js?v=29';
-import { aiStep } from './ai.js?v=29';
+} from '../config/factions.js?v=30';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=30';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=30';
+import { mulberry32 } from '../util/math.js?v=30';
+import { aiStep } from './ai.js?v=30';
 
 let S = null;
 export const getSim = () => S;
@@ -62,7 +62,7 @@ const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.i
 
 function addBld(p, kind, x, z, done) {
   const d = BLD[kind];
-  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: d.hp, hp: done ? d.hp : d.hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false, rally: null };
+  const b = { id: S.nid++, isBld: true, kind, owner: p.i, f: p.f, x, z, r: d.r, maxHp: d.hp, hp: done ? d.hp : d.hp * 0.1, built: done ? 1 : 0, level: 1, up: 0, upT: 1, queue: [], prodT: 0, cd: 0, dead: false, rally: null, garrison: null };
   S.blds.push(b);
   markCircle(x, z, d.r, 1);
   return b;
@@ -154,6 +154,8 @@ function applyCmd(c) {
     case 'power': A.power(p, c.idx, c.x, c.z); break;
     case 'rally': { const b = byId(c.id); if (b && b.owner === p.i && (b.kind === 'barracks' || b.kind === 'hq')) { const [rx, rz] = nearestFree(c.x, c.z); b.rally = { x: rx, z: rz }; } break; }
     case 'stance': ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') { s.hold = !!c.hold; if (s.hold && s.order.type === 'idle') s.post = { x: s.x, z: s.z }; } }); break;
+    case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
+    case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
     case 'cancel': { const b = byId(c.id); if (b && b.owner === p.i && b.queue[c.idx]) { p.cash += fac(p).units[b.queue[c.idx]].cost; b.queue.splice(c.idx, 1); if (c.idx === 0) b.prodT = 0; S.events.push({ k: 'refund', x: b.x, z: b.z, owner: p.i }); } break; }
     case 'move': { const sel = ownSquads(p.i, c.ids); if (sel.length) moveFormation(sel, c.x, c.z); break; }
     case 'attack': { const t = byId(c.target); if (t && t.owner !== p.i) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') setOrder(s, { type: 'attack', target: t }); }); break; }
@@ -229,6 +231,7 @@ function hitBld(b, d) {
     const i = S.blds.indexOf(b); if (i >= 0) S.blds.splice(i, 1);
     markCircle(b.x, b.z, b.r, -1);
     pl(1 - b.owner).st.razed++;
+    if (b.garrison) ejectTower(b);
     S.events.push({ k: 'boom', x: b.x, z: b.z, r: b.r });
     if (b.kind === 'hq' && !S.over) S.over = { winner: 1 - b.owner };
   }
@@ -245,7 +248,7 @@ function attack(s, t) {
 }
 function nearestEnemy(s, maxD) {
   let best = null, bd = maxD;
-  for (const o of S.squads) { if (o.owner === s.owner) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
+  for (const o of S.squads) { if (o.owner === s.owner || o.gar) continue; const d = dist(s, o) + (o.slot === 'worker' ? 2 : 0); if (d < bd) { bd = d; best = o; } }
   for (const b of S.blds) { if (b.owner === s.owner) continue; const d = dist(s, b) + 2; if (d < bd) { bd = d; best = b; } }
   return best;
 }
@@ -323,7 +326,22 @@ function updateWorker(s, dt) {
     else moveTo(s, d.x, d.z, dt);
   }
 }
+/** Garrison: a squad inside a tower is hidden and untouchable; the tower gets +4 range and +50% damage. */
+function ejectTower(b) {
+  const q = S.squads.find((s) => s.id === b.garrison); b.garrison = null;
+  if (!q) return;
+  const [x, z] = nearestFree(b.x, b.z - pl(b.owner).side * (b.r + 2)); q.x = q.px = x; q.z = q.pz = z; q.gar = null;
+  setOrder(q, { type: 'idle' }); q.post = { x, z };
+  S.events.push({ k: 'eject', x, z });
+}
 function updateSquad(s, dt) {
+  if (s.gar) return;
+  if (s.order.type === 'enter') {
+    const b = s.order.tower;
+    if (b.dead || b.garrison !== s.id) { setOrder(s, { type: 'idle' }); return; }
+    if (Math.hypot(b.x - s.x, b.z - s.z) < b.r + 2.2) { s.gar = b.id; s.path = null; S.events.push({ k: 'enter', x: b.x, z: b.z }); return; }
+    moveTo(s, b.x, b.z - pl(s.owner).side * (b.r + 1.5), dt); return;
+  }
   if (s.cd > 0) s.cd -= dt;
   // Patch-up at home: a squad standing by its own HQ or depot with no enemy close heals 4%/s (both sides).
   if (s.slot !== 'worker') {
@@ -370,9 +388,9 @@ function updateSquad(s, dt) {
 function separate() {
   const a = S.squads;
   for (let i = 0; i < a.length; i++) {
-    const p = a[i]; if (p.def.flies) continue;
+    const p = a[i]; if (p.def.flies || p.gar) continue;
     for (let j = i + 1; j < a.length; j++) {
-      const q = a[j]; if (q.def.flies) continue;
+      const q = a[j]; if (q.def.flies || q.gar) continue;
       let dx = q.x - p.x, dz = q.z - p.z, d = Math.hypot(dx, dz);
       const min = p.r + q.r;
       if (d < min) {
@@ -437,9 +455,9 @@ export function step() {
     if (b.kind === 'hq' || b.kind === 'tower') {
       b.cd -= dt;
       if (b.cd <= 0) {
-        const rng = b.kind === 'hq' ? 10 : BLD.tower.range, dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg;
+        const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : BLD.tower.range + (gar ? 4 : 0), dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1);
         let t = null, bd = rng;
-        for (const o of S.squads) { if (o.owner === b.owner) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
+        for (const o of S.squads) { if (o.owner === b.owner || o.gar) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
         if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq' }); hitSquad(t, dmg, false, null); }
       }
     }
