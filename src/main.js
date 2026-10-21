@@ -1,22 +1,23 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=123';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=123';
-import { syncRender, clearRender, bump } from './render/sync.js?v=123';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=123';
-import { newSim, getSim, step } from './sim/sim.js?v=123';
-import { TICK } from './config/factions.js?v=123';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=123';
-import { initInput, lockPageZoom } from './input/input.js?v=123';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=123';
-import { resetUI } from './ui/state.js?v=123';
-import { fillIcons, svg } from './ui/icons.js?v=123';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=123';
-import { updateMinimap } from './ui/minimap.js?v=123';
-import { isMuted, setMuted } from './fx/sfx.js?v=123';
-import { loadChars } from './render/chars.js?v=123';
-import { FC } from './render/models.js?v=123';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=124';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=124';
+import { syncRender, clearRender, bump } from './render/sync.js?v=124';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=124';
+import { newSim, getSim, step } from './sim/sim.js?v=124';
+import { TICK } from './config/factions.js?v=124';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=124';
+import { initInput, lockPageZoom } from './input/input.js?v=124';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=124';
+import { resetUI } from './ui/state.js?v=124';
+import { fillIcons, svg } from './ui/icons.js?v=124';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=124';
+import { updateMinimap } from './ui/minimap.js?v=124';
+import { isMuted, setMuted } from './fx/sfx.js?v=124';
+import { loadChars } from './render/chars.js?v=124';
+import { emit } from './fx/particles.js?v=124';
+import { FC } from './render/models.js?v=124';
 
-export const BUILD = 123; // written by `npm run bump`
+export const BUILD = 124; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -153,6 +154,12 @@ function cinema(dt) {
   CAM.tx = cin.x0 + (cin.x - cin.x0) * e; CAM.tz = cin.z0 + (cin.z - cin.z0) * e;
   CAM.distT = cin.d0 + (24 - cin.d0) * e;
   CAM.yaw = cin.yaw0 + e * 0.8 + Math.max(0, cin.t - 2) * 0.12;
+  // Win: confetti in your faction's colours rains over the swoop for ~5 s. Lose: a slow grey drizzle of ash.
+  if (cin.t < 5 && Math.random() < dt * 60) {
+    const x = CAM.tx + (Math.random() - 0.5) * 30, z = CAM.tz + (Math.random() - 0.5) * 30, C = FC[cin.f] || FC.bw;
+    if (cin.won) emit({ x, y: 18 + Math.random() * 6, z, vx: (Math.random() - 0.5) * 2, vy: -2, vz: (Math.random() - 0.5) * 2, c: [C.main, C.alt, 0xffffff, 0xf5b83a][(Math.random() * 4) | 0], s: 0.28, life: 4, g: 1.2, drag: 0.6 });
+    else if (Math.random() < 0.5) emit({ x, y: 16 + Math.random() * 6, z, vx: 0.4, vy: -1, vz: 0, c: Math.random() < 0.5 ? 0x6b6b6b : 0x9a9a9a, s: 0.22, life: 5, g: 0.3, drag: 0.4 });
+  }
 }
 function frame(now) {
   const dt = paused ? 0 : Math.min(0.1, (now - last) / 1000);
@@ -181,7 +188,7 @@ function frame(now) {
       return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;
     }).join('');
     const lost = S.players[1 - S.over.winner];
-    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: S.over.hill ? S.hill.x : lost.hqx, z: S.over.hill ? S.hill.z : lost.hqz };
+    cin = { t: 0, won: S.over.winner === 0, f: S.players[0].f, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: S.over.hill ? S.hill.x : lost.hqx, z: S.over.hill ? S.hill.z : lost.hqz };
     if (S.over.duel) { const w = S.squads.find((q) => q.owner === S.over.winner && q.slot === 'hero'); if (w) { cin.x = w.x; cin.z = w.z; } } // a duel swoops onto the winning hero // a hill win swoops onto the hill
     setTimeout(() => (endEl.hidden = false), 2600);
   }
