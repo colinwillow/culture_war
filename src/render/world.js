@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=131';
-import { CAM } from '../camera/camera.js?v=131';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=131';
-import { hash } from '../util/math.js?v=131';
-import { emit } from '../fx/particles.js?v=131';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=133';
+import { CAM } from '../camera/camera.js?v=133';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=133';
+import { hash } from '../util/math.js?v=133';
+import { emit } from '../fx/particles.js?v=133';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -276,21 +276,48 @@ let lampHeads = null, windows = null;
 // sign and AC unit per storefront. syncCity() hides the floors the sim says are gone and drops the roof onto the new top.
 let city = null;
 function buildCity() {
-  const floors = [], bands = [], roofs = [], signs = [], acs = [], idx = [];
+  const floors = [], bands = [], signs = [], acs = [], idx = [];
+  const parts = { flat: [], gable: [], dome: [], drum: [], tank: [], cone: [] }; // roof pieces by shape
   CITY.forEach((b, i) => {
-    const fh = b.h / b.floors, first = floors.length;
+    const fh = b.h / b.floors, first = floors.length, col = FACADES[Math.floor(b.c * FACADES.length)];
+    // Setback towers narrow as they rise: lower half full size, then 80%, top floors 60%.
+    const shrink = (f) => (b.style !== 1 ? 1 : f < b.floors / 2 ? 1 : f < b.floors - 1 ? 0.8 : 0.6);
     for (let f = 0; f < b.floors; f++) {
-      floors.push({ x: b.x, y: fh * f + fh / 2, z: b.z, sx: b.sx, sy: fh, sz: b.sz, c: FACADES[Math.floor(b.c * FACADES.length)] });
-      bands.push({ x: b.x, y: fh * f + fh * 0.7, z: b.z, sx: b.sx + 0.12, sy: f === 0 ? 0.01 : 0.8, sz: b.sz + 0.12 });
+      const k = shrink(f);
+      floors.push({ x: b.x, y: fh * f + fh / 2, z: b.z, sx: b.sx * k, sy: fh, sz: b.sz * k, c: col });
+      bands.push({ x: b.x, y: fh * f + fh * 0.7, z: b.z, sx: b.sx * k + 0.12, sy: f === 0 ? 0.01 : 0.8, sz: b.sz * k + 0.12 });
     }
-    roofs.push({ x: b.x, y: b.h + 0.2, z: b.z, sx: b.sx + 0.3, sy: 0.4, sz: b.sz + 0.3 });
+    const top = shrink(b.floors - 1), w = b.sx * top, d = b.sz * top, rp = [];
+    const add = (kind, it) => { parts[kind].push({ ...it, ci: i }); rp.push([kind, parts[kind].length - 1]); };
+    add('flat', { x: b.x, y: b.h + 0.2, z: b.z, sx: w + 0.3, sy: 0.4, sz: d + 0.3 });
+    if (b.style === 2) { // a pitched roof: a box turned 45 deg about the ridge, sunk so only the top triangle shows
+      const m = Math.min(w, d) * 0.72, y = b.h + 0.4 + Math.min(w, d) * 0.22;
+      add('gable', w < d ? { x: b.x, y, z: b.z, sx: m, sy: m, sz: d * 1.02, rz: Math.PI / 4 } : { x: b.x, y, z: b.z, sx: w * 1.02, sy: m, sz: m, rx: Math.PI / 4 });
+    }
+    if (b.style === 3) { const r = Math.min(w, d) * 0.38; add('drum', { x: b.x, y: b.h + 0.4 + 0.6, z: b.z, sx: r, sy: 1.2, sz: r }); add('dome', { x: b.x, y: b.h + 1.6, z: b.z, sx: r, sy: r, sz: r }); }
+    if (b.style === 4) { const tx = b.x + w * 0.2, tz = b.z - d * 0.2; add('drum', { x: tx, y: b.h + 1.2, z: tz, sx: 0.08, sy: 2, sz: 0.08 }); add('tank', { x: tx, y: b.h + 2.6, z: tz, sx: 1.1, sy: 1.6, sz: 1.1 }); add('cone', { x: tx, y: b.h + 3.75, z: tz, sx: 1.25, sy: 0.7, sz: 1.25 }); }
+    if (b.style === 5) { add('drum', { x: b.x, y: b.h + 1, z: b.z, sx: Math.min(w, d) * 0.22, sy: 1.6, sz: Math.min(w, d) * 0.22 }); add('cone', { x: b.x, y: b.h + 3.4, z: b.z, sx: Math.min(w, d) * 0.22, sy: 3.2, sz: Math.min(w, d) * 0.22 }); }
     signs.push({ x: b.x, y: 2.4, z: b.z, sx: b.sx + 0.2, sy: 0.6, sz: b.sz + 0.2, c: SIGNS[Math.floor(b.sign * SIGNS.length)] });
     acs.push(b.ac ? { x: b.x + b.ac[0], y: b.h + 0.9, z: b.z + b.ac[1], sx: 1.4, sy: 1, sz: 1.2 } : { x: 0, y: -50, z: 0, sx: 0.001, sy: 0.001, sz: 0.001 });
-    idx.push({ first, n: b.floors, fh, shown: b.floors });
+    idx.push({ first, n: b.floors, fh, shown: b.floors, rp });
   });
   const fl = instanced(unitBox, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
   windows = wb; windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
-  city = { fl, wb, roofs: instanced(unitBox, COL.roof, roofs), signs: instanced(unitBox, 0, signs, true), acs: instanced(unitBox, 0x8f939a, acs), floors, bands, roofList: roofs, acList: acs, signList: signs, idx };
+  const GEO = { flat: unitBox, gable: unitBox, dome: new THREE.SphereGeometry(1, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2), drum: new THREE.CylinderGeometry(1, 1, 1, 14), tank: new THREE.CylinderGeometry(1, 1, 1, 12), cone: new THREE.ConeGeometry(1, 1, 12) };
+  const RCOL = { flat: COL.roof, gable: 0x8a3b2e, dome: 0x6fa59a, drum: 0xc9c1ad, tank: 0x8a6a4a, cone: 0x5a4a3a };
+  const roofIM = {};
+  for (const k in parts) {
+    if (!parts[k].length) continue;
+    const im = new THREE.InstancedMesh(GEO[k], mat(RCOL[k]), parts[k].length);
+    parts[k].forEach((it, j) => { setPart(im, j, it, 0); });
+    scene.add(im); roofIM[k] = im;
+  }
+  city = { fl, wb, roofIM, parts, signs: instanced(unitBox, 0, signs, true), acs: instanced(unitBox, 0x8f939a, acs), floors, bands, acList: acs, signList: signs, idx };
+}
+const _roofE = new THREE.Euler();
+function setPart(im, j, it, yOff) {
+  _roofE.set(it.rx || 0, 0, it.rz || 0); Q.setFromEuler(_roofE);
+  M.compose(V.set(it.x, it.y + yOff, it.z), Q, Sv.set(it.sx, it.sy, it.sz)); im.setMatrixAt(j, M);
 }
 const _hide = new THREE.Matrix4().makeScale(0, 0, 0);
 function setBox(im, i, it, yOff = 0) { M.compose(V.set(it.x, it.y + yOff, it.z), Q.identity(), Sv.set(it.sx, it.sy, it.sz)); im.setMatrixAt(i, M); }
@@ -306,11 +333,12 @@ export function syncCity(S) {
       else { city.fl.setMatrixAt(d.first + f, _hide); city.wb.setMatrixAt(d.first + f, _hide); }
     }
     const drop = (d.n - want) * d.fh;
-    if (want > 0) { setBox(city.roofs, i, city.roofList[i], -drop); setBox(city.acs, i, city.acList[i], -drop); setBox(city.signs, i, city.signList[i]); }
-    else { city.roofs.setMatrixAt(i, _hide); city.acs.setMatrixAt(i, _hide); city.signs.setMatrixAt(i, _hide); }
+    for (const [k, j] of d.rp) { if (want > 0) setPart(city.roofIM[k], j, city.parts[k][j], -drop); else city.roofIM[k].setMatrixAt(j, _hide); }
+    if (want > 0) { setBox(city.acs, i, city.acList[i], -drop); setBox(city.signs, i, city.signList[i]); }
+    else { city.acs.setMatrixAt(i, _hide); city.signs.setMatrixAt(i, _hide); }
     d.shown = want; dirty = true;
   });
-  if (dirty) for (const im of [city.fl, city.wb, city.roofs, city.acs, city.signs]) im.instanceMatrix.needsUpdate = true;
+  if (dirty) for (const im of [city.fl, city.wb, city.acs, city.signs, ...Object.values(city.roofIM)]) im.instanceMatrix.needsUpdate = true;
 }
 /** Late in the day the street lamps light up and the office windows glow warm (k 0..1). */
 export function setDusk(k) {
