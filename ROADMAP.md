@@ -133,6 +133,6 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B110) Logic: Capture and Hold mode — three flags (hill + the two side parks); holding more of them drains the enemy's counter
 
 ## Batch 14 (added 14:01 UTC by the loop, same rules)
-- [ ] UI: minimap shows the hill / capture flags as rings in their holder's colour
+- [x] (B111) UI: minimap shows the hill / capture flags as rings in their holder's colour
 - [ ] Docs: CLAUDE.md + docs/design.md for Capture and Hold, Resource Race, graphics toggle and the perf numbers
 - [ ] Logic: Hero vs Hero mode — each side starts with its hero beside the HQ and nothing else to train but workers; a hero falling ends the match

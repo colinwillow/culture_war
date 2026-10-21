@@ -1,8 +1,8 @@
 // Minimap, top-left under the resource chips. Fixed orientation: your base at the bottom (+z), enemy at the top.
 // Tap or drag on it to move the camera there. Static city is drawn once; units/buildings redraw ~10x a second.
-import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=110';
-import { CAM, focus } from '../camera/camera.js?v=110';
-import { getSim } from '../sim/sim.js?v=110';
+import { MAP, BLOCKS, TRENCH } from '../map/layout.js?v=111';
+import { CAM, focus } from '../camera/camera.js?v=111';
+import { getSim } from '../sim/sim.js?v=111';
 
 const cv = document.getElementById('mini'), ctx = cv.getContext('2d');
 const bg = document.createElement('canvas'), bctx = bg.getContext('2d');
@@ -31,6 +31,12 @@ export function updateMinimap(dt) {
   const S = getSim(); if (!S || !W) return;
   ctx.drawImage(bg, 0, 0);
   const u = dpr;
+  // Objectives: the hill / capture flags as rings in their holder's colour (white = nobody), flickering when contested.
+  const objs = S.hill ? [{ ...S.hill, owner: S.hill.holder }] : S.cap ? S.cap.pts : [];
+  for (const f of objs) {
+    ctx.strokeStyle = f.contested ? (Math.sin(performance.now() / 60) > 0 ? '#7fd1ff' : '#ff5a4f') : f.owner === 0 ? '#7fd1ff' : f.owner === 1 ? '#ff5a4f' : '#f3efe2';
+    ctx.lineWidth = 2 * u; ctx.beginPath(); ctx.arc(px(f.x), pz(f.z), Math.max(4 * u, (pz(f.r) - pz(0)) * Math.sign(pz(1) - pz(0))), 0, 6.29); ctx.stroke();
+  }
   for (const n of S.nodes) if (n.amount > 0) { ctx.fillStyle = '#f5b83a'; ctx.beginPath(); ctx.arc(px(n.x), pz(n.z), 2.4 * u, 0, 6.29); ctx.fill(); }
   for (const b of S.blds) {
     const s = (b.kind === 'hq' ? 6 : 4) * u;
