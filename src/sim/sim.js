@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=74';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=74';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=74';
-import { mulberry32 } from '../util/math.js?v=74';
-import { aiStep } from './ai.js?v=74';
+} from '../config/factions.js?v=75';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=75';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=75';
+import { mulberry32 } from '../util/math.js?v=75';
+import { aiStep } from './ai.js?v=75';
 
 let S = null;
 export const getSim = () => S;
@@ -261,7 +261,7 @@ function attack(s, t) {
   else { total = ph * n; hitSquad(t, total, false, s); }
   if (!t.isBld && s.f === 'ac' && s.slot === 'ranged') t.debuff = 5;
   const p = pl(s.owner); p.meter = Math.min(100, p.meter + total / 15 * (fac(p).traits?.hype || 1));
-  S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot, to: t.owner });
+  S.events.push({ k: s.def.range > 3 ? 'shot' : 'hit', id: s.id, x: s.x, z: s.z, tx: t.x, tz: t.z, area: !!s.def.area, f: s.f, slot: s.slot, to: t.owner, tb: t.isBld ? t.id : undefined });
 }
 function nearestEnemy(s, maxD) {
   let best = null, bd = maxD;
@@ -314,6 +314,12 @@ function heroAbility(s) {
       S.squads.forEach((o) => { if (o.owner === s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 9) o.ot = 10; });
       blds.forEach((b) => (b.ot = 10));
       s.abil = 22; S.events.push({ k: 'overtime', x: s.x, z: s.z });
+    }
+  } else if (s.f === 'sc') {
+    // The DJ drops the beat: in a fight, squads within 9 m get +20% speed for 8 s and everyone in range hops to it.
+    if (nearestEnemy(s, 6)) {
+      S.squads.forEach((o) => { if (o.owner === s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 9) { o.ot = 8; o.beatAt = S.t; } });
+      s.abil = 18; S.events.push({ k: 'dropbeat', x: s.x, z: s.z });
     }
   } else if (nearestEnemy(s, 4)) {
     S.squads.forEach((o) => { if (o.owner === s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 8) o.bull = 10; });

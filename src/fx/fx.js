@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=74';
-import { walkH } from '../map/layout.js?v=74';
-import { sfx } from './sfx.js?v=74';
-import { shake, CAM } from '../camera/camera.js?v=74';
-import { FC } from '../render/models.js?v=74';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=74';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=75';
+import { walkH } from '../map/layout.js?v=75';
+import { sfx } from './sfx.js?v=75';
+import { shake, CAM } from '../camera/camera.js?v=75';
+import { FC } from '../render/models.js?v=75';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=75';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -182,6 +182,23 @@ function wreckingBall(x, z) {
     else { const u = (t - 1.4) / 1.0; arm.rotation.x = Math.sin(u * Math.PI * 0.5) * 0.9; o.position.y = top + u * 20; }
   });
 }
+/** Graffiti Tagger: a spray of paint arcs onto the target and, on a building, a tag splat stays on the wall
+ * facing him (up to 40 tags in the world; each lasts 40 s or until the building falls). */
+const TAGS = [], TAGC = [0x7a3fd1, 0x7ee05b, 0xff5ad1, 0x5ae0ff, 0xf5b83a];
+function sprayTag(S, ev) {
+  for (let k = 0; k < 8; k++) { const u = Math.random(); emit({ x: ev.x + (ev.tx - ev.x) * u, y: gy(ev.x, ev.z, 1.4 + Math.sin(u * Math.PI)), z: ev.z + (ev.tz - ev.z) * u, vx: (Math.random() - 0.5), vy: Math.random(), vz: (Math.random() - 0.5), c: TAGC[k % 5], s: 0.18, life: 0.5, g: 2 }); }
+  const b = ev.tb !== undefined && S.blds.find((o) => o.id === ev.tb);
+  if (!b) return;
+  // Snap to the wall facing him: buildings are axis-aligned boxes about this half-width (a guess per kind, all factions).
+  const a = Math.atan2(ev.x - b.x, ev.z - b.z) + (Math.random() - 0.5) * 0.5, sa = Math.sin(a), ca = Math.cos(a);
+  const hw = ({ hq: 2.5, depot: 1.3, barracks: 1.9, tower: 0.85 })[b.kind] + 0.08, side = Math.abs(sa) > Math.abs(ca);
+  const r = hw / Math.max(Math.abs(sa), Math.abs(ca));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.8 + Math.random() * 0.9, 0.5 + Math.random() * 0.6), basic(TAGC[(Math.random() * 5) | 0]));
+  m.position.set(b.x + Math.sin(a) * r, gy(b.x, b.z, 0.7 + Math.random() * 1.6), b.z + Math.cos(a) * r); m.rotation.y = side ? Math.sign(sa) * Math.PI / 2 : ca > 0 ? 0 : Math.PI; m.rotation.z = (Math.random() - 0.5) * 0.6;
+  const bid = b.id;
+  addFx(m, 40, (o, k) => { if (!S.blds.some((x) => x.id === bid)) o.visible = false; });
+  TAGS.push(m); if (TAGS.length > 40) { const old = TAGS.shift(); old.visible = false; }
+}
 /** Mixtape Drop: a giant spinning vinyl record falls out of the sky and lands flat at 1.2 s (the bass drop). */
 function vinylDrop(x, z) {
   const g0 = gy(x, z), rec = new THREE.Group();
@@ -232,7 +249,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', blockparty: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', takeover: 'ding', jetfly: 'whoosh', jetdrop: 'thud', blockparty: 'sting', dropbeat: 'sting', mixlaunch: 'whoosh', mixboom: 'boom', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -245,6 +262,7 @@ export function handleEvents(S, bump) {
     playFor(ev);
     switch (ev.k) {
       case 'shot':
+        if (ev.slot === 'siege' && ev.f === 'sc') sprayTag(S, ev);
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
         else if ((ev.f === 'ac' || ev.f === 'sc') && ev.slot === 'ranged') { soundWaves(ev.x, ev.z, ev.tx, ev.tz); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
@@ -296,6 +314,7 @@ export function handleEvents(S, bump) {
         fxRing(s.x, s.z, 0.5, 4, 0x7a3fd1, 0.5, 0.2); fxRing(s.x, s.z, 0.3, 3, 0x7ee05b, 0.5, 1.4);
         for (let k = 0; k < 8; k++) emit({ x: s.x, y: gy(s.x, s.z, 1.6), z: s.z, vx: (Math.random() - 0.5) * 4, vy: 3 + Math.random() * 3, vz: (Math.random() - 0.5) * 4, c: [0x7a3fd1, 0x7ee05b, 0xff5ad1, 0x5ae0ff][k % 4], s: 0.18, life: 1.4, g: 5, drag: 1 });
       } break;
+      case 'dropbeat': for (let k = 0; k < 3; k++) fxRing(ev.x, ev.z, 0.5, 9, [0x7a3fd1, 0x7ee05b, 0xff5ad1][k], 0.45 + k * 0.2, 0.15 + k * 0.4); shake(0.4, ev.x, ev.z); break;
       case 'mixlaunch': fxRing(ev.x, ev.z, 7, 0.5, 0x7a3fd1, 1.2, 0.15); vinylDrop(ev.x, ev.z); break;
       case 'mixboom': { // the drop: three bass rings roll out, everything bounces, a spray of purple/green
         shake(1.2, ev.x, ev.z);

@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=74';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=74';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=74';
-import { emit } from '../fx/particles.js?v=74';
-import { TICK } from '../config/factions.js?v=74';
-import { walkH } from '../map/layout.js?v=74';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=74';
-import { Q, pl } from '../sim/sim.js?v=74';
-import { UI } from '../ui/state.js?v=74';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=74';
-import { lerpAngle } from '../util/math.js?v=74';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=75';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=75';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=75';
+import { emit } from '../fx/particles.js?v=75';
+import { TICK } from '../config/factions.js?v=75';
+import { walkH } from '../map/layout.js?v=75';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=75';
+import { Q, pl } from '../sim/sim.js?v=75';
+import { UI } from '../ui/state.js?v=75';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=75';
+import { lerpAngle } from '../util/math.js?v=75';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -301,12 +301,14 @@ export function syncRender(S, alpha, dt, time) {
         if (!S.squads.some((e) => e.owner !== s.owner && !e.gar && Math.hypot(e.x - s.x, e.z - s.z) < 12)) o.cheer = 1.4;
       }
     }
+    if (s.beatAt !== undefined && s.beatAt !== o.beatAt) { o.beatAt = s.beatAt; if (s.slot !== 'worker') o.cheer = 1.4; } // the DJ's beat: everyone hops
     if (o.cheer > 0) {
       const before = o.cheer; o.cheer -= dt;
       for (const t of [1.4, 0.95, 0.5]) if (before > t - 0.0001 && o.cheer <= t) o.ack = 0.45; // a hop on each beat
       if (before >= 1.4 - 1e-4) for (const m of o.members) if (m.visible) {
         m.getWorldPosition(_wp);
-        if (s.f === 'ac') for (let k = 0; k < 6; k++) emit({ x: _wp.x, y: _wp.y + 1.8, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 4 + Math.random() * 3, vz: (Math.random() - 0.5) * 3, c: [0xff5a4f, 0xf5b83a, 0x7ee05b, 0x6fc3ff, 0xe85d9a][k % 5], s: 0.16, life: 1.8, g: 5, drag: 1.5 });
+        if (s.f === 'sc') for (let k = 0; k < 3; k++) emit({ x: _wp.x, y: _wp.y + 1.9, z: _wp.z, vx: (Math.random() - 0.5) * 2, vy: 2.5 + Math.random(), vz: (Math.random() - 0.5) * 2, c: [0x7a3fd1, 0x7ee05b, 0xff5ad1][k], s: 0.2, life: 1.3, g: -0.6, drag: 1 });
+        else if (s.f === 'ac') for (let k = 0; k < 6; k++) emit({ x: _wp.x, y: _wp.y + 1.8, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 4 + Math.random() * 3, vz: (Math.random() - 0.5) * 3, c: [0xff5a4f, 0xf5b83a, 0x7ee05b, 0x6fc3ff, 0xe85d9a][k % 5], s: 0.16, life: 1.8, g: 5, drag: 1.5 });
         else emit({ x: _wp.x, y: _wp.y + 1.8, z: _wp.z, vx: (Math.random() - 0.5) * 1.5, vy: 7 + Math.random() * 2, vz: (Math.random() - 0.5) * 1.5, c: Math.random() < 0.5 ? 0xc62f2f : 0x6b4a2a, s: 0.32, life: 1.4, g: 12, floor: walkH(_wp.x, _wp.z) + 0.1 });
       }
     }
