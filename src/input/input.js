@@ -4,12 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=2';
-import { walkH } from '../map/layout.js?v=2';
-import { getSim, command } from '../sim/sim.js?v=2';
-import { UI, select, selSquads } from '../ui/state.js?v=2';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=2';
-import { fxMarker } from '../fx/fx.js?v=2';
+import { THREE, camera, canvas } from '../render/scene.js?v=3';
+import { walkH } from '../map/layout.js?v=3';
+import { getSim, command } from '../sim/sim.js?v=3';
+import { UI, select, selSquads } from '../ui/state.js?v=3';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=3';
+import { fxMarker } from '../fx/fx.js?v=3';
+import { ack } from '../render/sync.js?v=3';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -54,12 +55,12 @@ function onTap(cx, cy) {
   }
   const sel = selSquads(), ids = sel.map((s) => s.id);
   const enemy = pickSquad(S, cx, cy, 1) || pickBld(S, g, 1);
-  if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); return; }
+  if (enemy && sel.length) { command(0, { type: 'attack', ids, target: enemy.id }); fxMarker(enemy.x, enemy.z, 0xff5a4f); ack(ids); return; }
   const node = pickNode(S, g);
-  if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); return; }
+  if (node && sel.some((s) => s.slot === 'worker')) { command(0, { type: 'gather', ids, node: node.id }); fxMarker(node.x, node.z, 0xf5b83a); ack(ids); return; }
   const ob = pickBld(S, g, 0);
   if (ob) { select({ type: 'bld', id: ob.id }); return; }
-  if (sel.length) { command(0, { type: 'move', ids, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x9dff78); return; }
+  if (sel.length) { command(0, { type: 'move', ids, x: g.x, z: g.z }); fxMarker(g.x, g.z, 0x9dff78); ack(ids); return; }
   select(null);
 }
 

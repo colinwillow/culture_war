@@ -1,10 +1,10 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=2';
-import { walkH } from '../map/layout.js?v=2';
-import { FC } from '../render/models.js?v=2';
-import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=2';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=3';
+import { walkH } from '../map/layout.js?v=3';
+import { FC } from '../render/models.js?v=3';
+import { updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=3';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -79,7 +79,25 @@ function fxFireworks(x, z, r) {
   fxRing(x, z, 1, r, 0xf5b83a, 0.6);
   for (let i = 0; i < 34; i++) { const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 7; fxSpark(x, 3, z, CONF[i % CONF.length], new THREE.Vector3(Math.cos(a) * s, 4 + Math.random() * 5, Math.sin(a) * s), 1.1); }
 }
-export function fxMarker(x, z, c) { fxRing(x, z, 2.2, 0.4, c, 0.45, 0.14); }
+/** Order marker: ring closes in, four chevrons slide onto the spot, an arrow bounces down onto it. */
+export function fxMarker(x, z, c) {
+  fxRing(x, z, 2.2, 0.4, c, 0.45, 0.14);
+  const g0 = gy(x, z, 0.15), m = basic(c, 1);
+  const root = new THREE.Group(); root.position.set(x, g0, z);
+  for (let i = 0; i < 4; i++) {
+    const ch = new THREE.Group(); ch.rotation.y = (i * Math.PI) / 2;
+    const arm = new THREE.Group(); ch.add(arm); // chevron lies flat, its point aimed at the centre
+    for (const sgn of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.55), m); b.position.set(sgn * 0.18, 0, 0.2); b.rotation.y = sgn * 0.75; arm.add(b); }
+    root.add(ch);
+  }
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 4), m); cone.rotation.x = Math.PI; root.add(cone);
+  addFx(root, 0.75, (o, k) => {
+    for (let i = 0; i < 4; i++) o.children[i].children[0].position.z = 1.8 * (1 - k) + 0.2;
+    const b = Math.abs(Math.cos(k * Math.PI * 2.5)) * (1 - k);
+    cone.position.y = 0.6 + b * 1.6;
+    m.opacity = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+  });
+}
 export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */

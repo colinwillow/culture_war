@@ -11,7 +11,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Items
 - [x] (B2) FX: hit sparks + dust puffs on melee hits, muzzle flash + tracer on ranged, coin pop on deposit (pooled, cheap)
-- [ ] Units: selected squad gets a bounce/cheer on command; move-order ground marker (animated chevrons)
+- [x] (B3) Units: selected squad gets a bounce/cheer on command; move-order ground marker (animated chevrons)
 - [ ] Map: animated city life — pedestrians-free ambient: swaying trees, blinking traffic lights, steam vents, birds
 - [ ] Logic: squads auto-acquire nearby enemies when idle (aggro radius) and return to post; no chasing across the map
 - [ ] UI: train queue shown as icons with progress rings on the barracks/HQ panel; tap to cancel (refund)

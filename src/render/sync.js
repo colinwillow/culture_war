@@ -1,14 +1,14 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=2';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=2';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=2';
-import { TICK } from '../config/factions.js?v=2';
-import { walkH } from '../map/layout.js?v=2';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=2';
-import { Q, pl } from '../sim/sim.js?v=2';
-import { UI } from '../ui/state.js?v=2';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=2';
-import { lerpAngle } from '../util/math.js?v=2';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=3';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=3';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=3';
+import { TICK } from '../config/factions.js?v=3';
+import { walkH } from '../map/layout.js?v=3';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=3';
+import { Q, pl } from '../sim/sim.js?v=3';
+import { UI } from '../ui/state.js?v=3';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=3';
+import { lerpAngle } from '../util/math.js?v=3';
 
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
@@ -78,6 +78,9 @@ function makeNodeObj(n) {
 
 export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
 export function squadObj(id) { return R.sq.get(id); }
+/** Squads answer an order with a little hop, so a command visibly lands. */
+export function ack(ids) { for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; } }
+const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 - i * 0.04; return k > 0 && k < 1 ? Math.sin(k * Math.PI) * 0.4 : 0; };
 
 export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
@@ -119,6 +122,7 @@ export function syncRender(S, alpha, dt, time) {
         }
         A.mixer.update(dt * (s.stun > 0 ? 0.25 : 1));
         m.position.z = m.userData.bz + o.lunge * 2.5;
+        m.position.y = m.userData.by + hop(o, i);
       }
       o.atk = false;
     } else for (let i = 0; i < o.members.length; i++) {
@@ -130,13 +134,14 @@ export function syncRender(S, alpha, dt, time) {
       if (s.def.flies) y += Math.sin(time * 3 + i) * 0.3;
       else if (moving && s.def.vehicle) y += Math.abs(Math.sin(time * 16)) * 0.1;
       else if (moving) y += Math.abs(Math.sin(time * bs + i * 1.3)) * 0.08;
-      m.position.y = y; m.scale.y = s.sit ? 0.55 : 1; m.position.z = m.userData.bz + o.lunge * 2.5;
+      m.position.y = y + hop(o, i); m.scale.y = s.sit ? 0.55 : 1; m.position.z = m.userData.bz + o.lunge * 2.5;
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
       if (s.def.flies) m.children[0].rotation.z = Math.sin(time * 6) * 0.15;
       m.rotation.x = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather' ? Math.sin(time * 10) * 0.25 : 0;
     }
     if (o.lunge > 0) o.lunge = Math.max(0, o.lunge - dt);
+    if (o.ack > 0) o.ack -= dt;
     if (alive < o.lastAlive) for (let k = 0; k < o.lastAlive - alive; k++) fxDeath(x, z, s.f);
     o.lastAlive = alive;
     o.sel.visible = selIds.has(s.id);
