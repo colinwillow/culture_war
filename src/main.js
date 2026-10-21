@@ -1,20 +1,20 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=33';
-import { buildWorld, updateWorld } from './render/world.js?v=33';
-import { syncRender, clearRender, bump } from './render/sync.js?v=33';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=33';
-import { newSim, getSim, step } from './sim/sim.js?v=33';
-import { TICK } from './config/factions.js?v=33';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=33';
-import { initInput, lockPageZoom } from './input/input.js?v=33';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=33';
-import { resetUI } from './ui/state.js?v=33';
-import { fillIcons, svg } from './ui/icons.js?v=33';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=33';
-import { updateMinimap } from './ui/minimap.js?v=33';
-import { loadChars } from './render/chars.js?v=33';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=34';
+import { buildWorld, updateWorld } from './render/world.js?v=34';
+import { syncRender, clearRender, bump } from './render/sync.js?v=34';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=34';
+import { newSim, getSim, step } from './sim/sim.js?v=34';
+import { TICK } from './config/factions.js?v=34';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=34';
+import { initInput, lockPageZoom } from './input/input.js?v=34';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=34';
+import { resetUI } from './ui/state.js?v=34';
+import { fillIcons, svg } from './ui/icons.js?v=34';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=34';
+import { updateMinimap } from './ui/minimap.js?v=34';
+import { loadChars } from './render/chars.js?v=34';
 
-export const BUILD = 33; // written by `npm run bump`
+export const BUILD = 34; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -38,15 +38,25 @@ function start(f) {
   clearRender(); clearFx(); clearAlert();
   newSim(f, (Date.now() & 0xffffff) + 1);
   resetUI(); resetHUD();
-  menu.hidden = true; endEl.hidden = true; running = true;
+  menu.hidden = true; endEl.hidden = true; running = true; setPause(false);
   resetCam(); refreshHUD();
 }
 document.querySelectorAll('.pick').forEach((b) => b.addEventListener('pointerup', () => start(b.dataset.f)));
-document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; });
+document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; setPause(false); });
 
+// Pause: freezes the sim and every animation (dt 0) but keeps drawing; tap the dim to resume. Auto-pauses when the
+// phone switches away from the tab.
+let paused = false;
+const pauseDim = document.getElementById('pauseDim'), pauseBtn = document.getElementById('pauseBtn');
+function setPause(on) { paused = on && running; pauseDim.hidden = !paused; }
+pauseBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(true); });
+pauseBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+pauseDim.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(false); });
+pauseDim.addEventListener('pointerdown', (e) => e.stopPropagation());
+document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
 let last = performance.now(), acc = 0, hudT = 0;
 function frame(now) {
-  const dt = Math.min(0.1, (now - last) / 1000);
+  const dt = paused ? 0 : Math.min(0.1, (now - last) / 1000);
   last = now;
   const time = now / 1000, S = getSim();
   if (S && running && !S.over) {

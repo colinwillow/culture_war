@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B34 (overnight loop): pause: round pause button top-right freezes the sim and every animation and dims the screen behind a big play icon; tap anywhere on the dim to resume; the game also auto-pauses when you switch away from the tab
 - B33 (overnight loop): parade puppet rebuilt with a separate head (eyes + red mouth) and floppy arms on shoulder pivots - arms swing out of phase, head bobs/tilts/looks around (bigger while walking), both arms flop down onto the target on a hit; fireworks cart leaves a lingering grey smoke cloud after each launch
 - B32 (overnight loop): camera shake: a building collapsing, a Fourth of July barrage landing and each monster truck slam kick the view; strength fades with distance from where you're looking and dies out in a fraction of a second
 - B31 (overnight loop): victory cheer: ~1.6 s after a squad's last swing, if no enemy is left within 12 m it hops three times; Activists throw confetti, Backwoods fling their caps into the air (they bounce on the ground)
