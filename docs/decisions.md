@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B19 (overnight loop): end screen stats: four icon rows (kills, cash earned, buildings built, buildings razed), your blue bar vs their red bar growing in one after another, numbers pop in at the bar ends; sim now tracks per-player stats
 - B17 (overnight loop): deaths + hit flash: box units get knocked back and up, tumble, bounce and sink (vehicles flip heavier); a wiped-out squad's last bodies finish falling instead of vanishing; every damaged member (box or real character) squash-pops with a red spark
 - B16 (overnight loop): powers pass: Fourth of July fires 6 rockets on high arcs with spark trails, then aerial star shells bloom over the target; mud bog bubbles and spits the whole time; Parade fires confetti cannons from every squad; Pie leaves a whipped-cream splat with flying cream
 - B15 (overnight loop): smarter computer: after ~70 s it sends a third of its workers to the richest contested truck on its half with an escort squad guarding it; badly hurt squads retreat home. New rule for BOTH sides: squads standing by their own HQ/depot with no enemy near heal 4%/s (green sparkles)

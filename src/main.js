@@ -1,19 +1,19 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera } from './render/scene.js?v=17';
-import { buildWorld, updateWorld } from './render/world.js?v=17';
-import { syncRender, clearRender, bump } from './render/sync.js?v=17';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=17';
-import { newSim, getSim, step } from './sim/sim.js?v=17';
-import { TICK } from './config/factions.js?v=17';
-import { applyCam, resetCam, onResize } from './camera/camera.js?v=17';
-import { initInput, lockPageZoom } from './input/input.js?v=17';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=17';
-import { resetUI } from './ui/state.js?v=17';
-import { fillIcons, svg } from './ui/icons.js?v=17';
-import { updateMinimap } from './ui/minimap.js?v=17';
-import { loadChars } from './render/chars.js?v=17';
+import { renderer, scene, camera } from './render/scene.js?v=19';
+import { buildWorld, updateWorld } from './render/world.js?v=19';
+import { syncRender, clearRender, bump } from './render/sync.js?v=19';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=19';
+import { newSim, getSim, step } from './sim/sim.js?v=19';
+import { TICK } from './config/factions.js?v=19';
+import { applyCam, resetCam, onResize } from './camera/camera.js?v=19';
+import { initInput, lockPageZoom } from './input/input.js?v=19';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=19';
+import { resetUI } from './ui/state.js?v=19';
+import { fillIcons, svg } from './ui/icons.js?v=19';
+import { updateMinimap } from './ui/minimap.js?v=19';
+import { loadChars } from './render/chars.js?v=19';
 
-export const BUILD = 17; // written by `npm run bump`
+export const BUILD = 19; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -61,6 +61,12 @@ function frame(now) {
     running = false;
     const won = S.over.winner === 0, ic = document.getElementById('endIcon');
     ic.innerHTML = svg(won ? 'trophy' : 'skull'); ic.className = 'big' + (won ? '' : ' lose');
+    // Stats: per row an icon, then your bar (blue) and theirs (red), growing in one after another.
+    const rows = [['skull', 'kills'], ['coin', 'earned'], ['home', 'built'], ['tower', 'razed']], a = S.players[0].st, e = S.players[1].st;
+    document.getElementById('stats').innerHTML = rows.map(([ic, k], i) => {
+      const mx = Math.max(1, a[k], e[k]);
+      return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;
+    }).join('');
     setTimeout(() => (endEl.hidden = false), 900);
   }
   hudT -= dt;

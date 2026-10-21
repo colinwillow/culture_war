@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=17';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=17';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=17';
-import { mulberry32 } from '../util/math.js?v=17';
-import { aiStep } from './ai.js?v=17';
+} from '../config/factions.js?v=19';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=19';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=19';
+import { mulberry32 } from '../util/math.js?v=19';
+import { aiStep } from './ai.js?v=19';
 
 let S = null;
 export const getSim = () => S;
@@ -21,7 +21,7 @@ export const pl = (i) => S.players[i];
 export const fac = (p) => FACTIONS[p.f];
 
 function mkPlayer(i, f, side) {
-  return { i, f, side, cash: START_CASH, meter: 0, incomeT: 0, parade: 0, hqx: BASES[i].x, hqz: BASES[i].z };
+  return { i, f, side, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, hqx: BASES[i].x, hqz: BASES[i].z };
 }
 
 export function newSim(pf, seed = 12345) {
@@ -208,14 +208,14 @@ function hitSquad(t, dmg, area, attacker, cap = 5) {
     let rem = dmg;
     for (let i = 0; i < t.members.length && rem > 0; i++) if (t.members[i] > 0) { const take = Math.min(t.members[i], rem); t.members[i] -= take; rem -= take; if (t.members[i] <= 0) { t.members[i] = 0; killed++; } }
   }
-  if (killed) credit(attacker, killed);
+  if (killed) { credit(attacker, killed); pl(1 - t.owner).st.kills += killed; }
   if (aliveN(t) === 0) killSquad(t);
   return killed;
 }
 function killSquad(t) {
   t.dead = true;
   const i = S.squads.indexOf(t); if (i >= 0) S.squads.splice(i, 1);
-  if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner }); }
+  if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); pl(t.owner).st.earned += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner }); }
 }
 function hitBld(b, d) {
   if (b.dead) return;
@@ -224,6 +224,7 @@ function hitBld(b, d) {
     b.dead = true;
     const i = S.blds.indexOf(b); if (i >= 0) S.blds.splice(i, 1);
     markCircle(b.x, b.z, b.r, -1);
+    pl(1 - b.owner).st.razed++;
     S.events.push({ k: 'boom', x: b.x, z: b.z, r: b.r });
     if (b.kind === 'hq' && !S.over) S.over = { winner: 1 - b.owner };
   }
@@ -314,7 +315,7 @@ function updateWorker(s, dt) {
   if (t.state === 'return') {
     const d = nearestDepot(s);
     if (!d) return;
-    if (Math.hypot(d.x - s.x, d.z - s.z) < d.r + 1.8) { pl(s.owner).cash += s.carry; S.events.push({ k: 'deposit', x: d.x, z: d.z, owner: s.owner }); s.carry = 0; t.state = t.node && t.node.amount > 0 ? 'toNode' : 'find'; }
+    if (Math.hypot(d.x - s.x, d.z - s.z) < d.r + 1.8) { pl(s.owner).cash += s.carry; pl(s.owner).st.earned += s.carry; S.events.push({ k: 'deposit', x: d.x, z: d.z, owner: s.owner }); s.carry = 0; t.state = t.node && t.node.amount > 0 ? 'toNode' : 'find'; }
     else moveTo(s, d.x, d.z, dt);
   }
 }
@@ -393,7 +394,7 @@ export function step() {
   for (const s of S.squads) { s.px = s.x; s.pz = s.z; }
   for (const p of S.players) {
     p.incomeT += dt;
-    if (p.incomeT >= 10) { p.incomeT -= 10; p.cash += BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot'); S.events.push({ k: 'income', owner: p.i }); }
+    if (p.incomeT >= 10) { p.incomeT -= 10; { const inc = BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot'); p.cash += inc; p.st.earned += inc; } S.events.push({ k: 'income', owner: p.i }); }
     if (p.parade > 0) p.parade -= dt;
   }
   for (const b of [...S.blds]) {
@@ -402,7 +403,7 @@ export function step() {
     if (b.built < 1) {
       const bt = BLD[b.kind].build;
       b.built = Math.min(1, b.built + dt / bt); b.hp = Math.min(b.maxHp, b.hp + (b.maxHp * 0.9 * dt) / bt);
-      if (b.built >= 1) S.events.push({ k: 'done', x: b.x, z: b.z });
+      if (b.built >= 1) { S.events.push({ k: 'done', x: b.x, z: b.z }); pl(b.owner).st.built++; }
       continue;
     }
     if (b.up > 0) { b.up -= dt; if (b.up <= 0) { b.up = 0; b.level++; S.events.push({ k: 'levelup', x: b.x, z: b.z }); } continue; }
