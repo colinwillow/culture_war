@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=137';
-import { CAM } from '../camera/camera.js?v=137';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=137';
-import { hash } from '../util/math.js?v=137';
-import { emit } from '../fx/particles.js?v=137';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=141';
+import { CAM } from '../camera/camera.js?v=141';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=141';
+import { hash } from '../util/math.js?v=141';
+import { emit } from '../fx/particles.js?v=141';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -276,7 +276,7 @@ let lampHeads = null, windows = null;
 // sign and AC unit per storefront. syncCity() hides the floors the sim says are gone and drops the roof onto the new top.
 let city = null;
 function buildCity() {
-  const floors = [], bands = [], signs = [], acs = [], idx = [];
+  const floors = [], bands = [], signs = [], acs = [], idx = [], tags = [], awns = [];
   const parts = { flat: [], gable: [], dome: [], drum: [], tank: [], cone: [] }; // roof pieces by shape
   CITY.forEach((b, i) => {
     const fh = b.h / b.floors, first = floors.length, col = FACADES[Math.floor(b.c * FACADES.length)];
@@ -299,7 +299,13 @@ function buildCity() {
     if (b.style === 5) { add('drum', { x: b.x, y: b.h + 1, z: b.z, sx: Math.min(w, d) * 0.22, sy: 1.6, sz: Math.min(w, d) * 0.22 }); add('cone', { x: b.x, y: b.h + 3.4, z: b.z, sx: Math.min(w, d) * 0.22, sy: 3.2, sz: Math.min(w, d) * 0.22 }); }
     signs.push({ x: b.x, y: 2.4, z: b.z, sx: b.sx + 0.2, sy: 0.6, sz: b.sz + 0.2, c: SIGNS[Math.floor(b.sign * SIGNS.length)] });
     acs.push(b.ac ? { x: b.x + b.ac[0], y: b.h + 0.9, z: b.z + b.ac[1], sx: 1.4, sy: 1, sz: 1.2 } : { x: 0, y: -50, z: 0, sx: 0.001, sy: 0.001, sz: 0.001 });
-    idx.push({ first, n: b.floors, fh, shown: b.floors, rp });
+    // Graffiti (both long faces, ground floor) and a shop awning (one long face): hidden until the sim says so.
+    const longX = b.sx >= b.sz, TAGC = [0xff5ad1, 0x7ee05b, 0x5ae0ff, 0xf5b83a, 0x7a3fd1];
+    for (const sd of [1, -1]) tags.push(longX ? { x: b.x + (b.ac ? 0.3 : -0.3), y: fh * 0.55, z: b.z + sd * (b.sz / 2 + 0.07), sx: b.sx * 0.6, sy: fh * 0.45, sz: 0.04, c: TAGC[(i + (sd > 0 ? 0 : 2)) % 5] }
+      : { x: b.x + sd * (b.sx / 2 + 0.07), y: fh * 0.55, z: b.z, sx: 0.04, sy: fh * 0.45, sz: b.sz * 0.6, c: TAGC[(i + (sd > 0 ? 0 : 2)) % 5] });
+    awns.push(longX ? { x: b.x, y: fh * 0.82, z: b.z + (b.z > 0 ? -1 : 1) * (b.sz / 2 + 0.6), sx: b.sx * 0.8, sy: 0.15, sz: 1.2, c: [0xd64545, 0x2cc2ad, 0xf2b632, 0x3d6fd6][i % 4] }
+      : { x: b.x + (b.x > 0 ? -1 : 1) * (b.sx / 2 + 0.6), y: fh * 0.82, z: b.z, sx: 1.2, sy: 0.15, sz: b.sz * 0.8, c: [0xd64545, 0x2cc2ad, 0xf2b632, 0x3d6fd6][i % 4] });
+    idx.push({ first, n: b.floors, fh, shown: b.floors, rp, tag: false, shop: false });
   });
   const fl = instanced(unitBox, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
   windows = wb; windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
@@ -312,7 +318,11 @@ function buildCity() {
     parts[k].forEach((it, j) => { setPart(im, j, it, 0); });
     scene.add(im); roofIM[k] = im;
   }
-  city = { fl, wb, roofIM, parts, signs: instanced(unitBox, 0, signs, true), acs: instanced(unitBox, 0x8f939a, acs), floors, bands, acList: acs, signList: signs, idx };
+  const tagIM = instanced(unitBox, 0, tags, true), awnIM = instanced(unitBox, 0, awns, true);
+  tagIM.material = new THREE.MeshBasicMaterial({ color: 0xffffff }); // paint reads bright even in shade
+  for (let j = 0; j < tags.length; j++) tagIM.setMatrixAt(j, _hide);
+  for (let j = 0; j < awns.length; j++) awnIM.setMatrixAt(j, _hide);
+  city = { tagIM, awnIM, tags, awns, fl, wb, roofIM, parts, signs: instanced(unitBox, 0, signs, true), acs: instanced(unitBox, 0x8f939a, acs), floors, bands, acList: acs, signList: signs, idx };
 }
 const _roofE = new THREE.Euler();
 function setPart(im, j, it, yOff) {
@@ -327,6 +337,9 @@ export function syncCity(S) {
   let dirty = false;
   CITY.forEach((b, i) => {
     const want = S && S.city ? S.city[i].fl : b.floors, d = city.idx[i];
+    const sc = S && S.city ? S.city[i] : null, tag = !!(sc && sc.tag && want > 0), shop = !!(sc && sc.shop && want > 0);
+    if (tag !== d.tag) { d.tag = tag; for (const k of [0, 1]) tag ? setBox(city.tagIM, i * 2 + k, city.tags[i * 2 + k]) : city.tagIM.setMatrixAt(i * 2 + k, _hide); city.tagIM.instanceMatrix.needsUpdate = true; }
+    if (shop !== d.shop) { d.shop = shop; shop ? setBox(city.awnIM, i, city.awns[i]) : city.awnIM.setMatrixAt(i, _hide); city.awnIM.instanceMatrix.needsUpdate = true; }
     if (want === d.shown) return;
     for (let f = 0; f < d.n; f++) {
       if (f < want) { setBox(city.fl, d.first + f, city.floors[d.first + f]); setBox(city.wb, d.first + f, city.bands[d.first + f]); }

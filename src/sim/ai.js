@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=137';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command } from './sim.js?v=137';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=141';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command } from './sim.js?v=141';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -109,8 +109,12 @@ export function aiStep(S, dt, pi = 1) {
     }
     if (role === 'b') {
       // two workers keep patching the most-wrecked storefront nearest home; the army guards wherever the city was last hit
-      const hurt = S.city.filter((b) => b.hp < b.maxHp).sort((a, b) => (a.hp / a.maxHp + Math.hypot(a.x - p.hqx, a.z - p.hqz) / 200) - (b.hp / b.maxHp + Math.hypot(b.x - p.hqx, b.z - p.hqz) / 200))[0];
-      if (hurt && p.cash > 60) workersOf(p).filter((w) => w.order.type === 'repair').length < 2 && workersOf(p).filter((w) => w.order.type !== 'repair' && !w.carry).slice(0, 1).forEach((w) => setOrder(w, { type: 'repair', b: hurt }));
+      // jobs in order: rebuild missing floors first, then scrub tags, then open shops - nearest to home within each
+      const safe = (b) => !S.squads.some((o) => o.owner !== pi && o.slot !== 'worker' && Math.hypot(o.x - b.x, o.z - b.z) < 12); // no point scrubbing under fire
+      const near = (a, b) => Math.hypot(a.x - p.hqx, a.z - p.hqz) - Math.hypot(b.x - p.hqx, b.z - p.hqz);
+      const hurt = S.city.filter((b) => b.hp < b.maxHp).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp + near(a, b) / 200)[0]
+        || S.city.filter((b) => b.tag && safe(b)).sort(near)[0] || S.city.filter((b) => !b.shop && safe(b)).sort(near)[0];
+      if (hurt && p.cash > 60) workersOf(p).filter((w) => w.order.type === 'repair').length < 3 && workersOf(p).filter((w) => w.order.type !== 'repair' && !w.carry).slice(0, 1).forEach((w) => setOrder(w, { type: 'repair', b: hurt }));
       const hot = S.down.hot;
       if (hot && S.t - hot.t < 20) mine.forEach((s) => { if (s.order.type === 'idle' && Math.hypot(s.x - hot.x, s.z - hot.z) > 10) setOrder(s, { type: 'amove', x: hot.x + (S.rng() - 0.5) * 6, z: hot.z + (S.rng() - 0.5) * 6 }); });
     } else {
@@ -118,7 +122,7 @@ export function aiStep(S, dt, pi = 1) {
       for (const s of mine) {
         if (s.order.type !== 'idle' && !(s.order.type === 'move' && !s.escortFor)) continue;
         let best = null, bd = 1e9;
-        for (const b of S.city) { if (b.hp <= 0) continue; const d = Math.hypot(b.x - s.x, b.z - s.z); if (d < bd) { bd = d; best = b; } }
+        for (const b of S.city) { if (b.hp <= 0) continue; const d = Math.hypot(b.x - s.x, b.z - s.z) - (b.shop ? 25 : 0); if (d < bd) { bd = d; best = b; } } // shops first: there is loot in them
         if (best) setOrder(s, { type: 'attack', target: best });
       }
     }

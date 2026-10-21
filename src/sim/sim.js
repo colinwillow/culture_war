@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=137';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=137';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=137';
-import { mulberry32 } from '../util/math.js?v=137';
-import { aiStep } from './ai.js?v=137';
+} from '../config/factions.js?v=141';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=141';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=141';
+import { mulberry32 } from '../util/math.js?v=141';
+import { aiStep } from './ai.js?v=141';
 
 let S = null;
 export const getSim = () => S;
@@ -84,7 +84,7 @@ export const aliveN = (s) => { let n = 0; for (const h of s.members) if (h > 0) 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
 const sqR = (def, slot) => (def.n > 1 ? 1.3 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1);
 const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || S.city.find((b) => b.id === id) || null;
-const FLOOR_HP = 100;
+const FLOOR_HP = 120;
 // Floors standing for a city storefront's hp: a floor is gone once its slice of hp is fully gone.
 const floorsFor = (b) => Math.max(0, Math.min(b.floors, Math.ceil(b.hp / FLOOR_HP - 1e-6)));
 
@@ -207,7 +207,7 @@ function applyCmd(c) {
     case 'stance': ownSquads(p.i, c.ids).forEach((s) => { if (s.slot !== 'worker') { s.hold = !!c.hold; if (s.hold && s.order.type === 'idle') s.post = { x: s.x, z: s.z }; } }); break;
     case 'garrison': { const b = byId(c.tower); if (b && b.owner === p.i && b.kind === 'tower' && b.built >= 1 && !b.garrison) { const q = ownSquads(p.i, c.ids).find((s) => !s.def.vehicle && !s.def.flies && s.slot !== 'worker' && s.slot !== 'hero' && !s.gar); if (q) { setOrder(q, { type: 'enter', tower: b }); b.garrison = q.id; } } break; }
     case 'eject': { const b = byId(c.id); if (b && b.owner === p.i && b.garrison) ejectTower(b); break; }
-    case 'repair': { const b = byId(c.id); if (b && (b.owner === p.i || b.city) && b.built >= 1 && b.hp < b.maxHp) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
+    case 'repair': { const b = byId(c.id); if (b && (b.owner === p.i || b.city) && b.built >= 1 && (b.hp < b.maxHp || b.tag || (b.city && S.down && !b.shop))) ownSquads(p.i, c.ids).forEach((s) => { if (s.slot === 'worker') setOrder(s, { type: 'repair', b }); }); break; }
     case 'recruit': { // Downtown: tap a drifter. Builders give a job (worker, 50), wreckers hand over a spray can (fighter, 40).
       const d = S.drift && S.drift.find((q) => q.id === c.id), D = S.down;
       if (!d || !D) break;
@@ -288,6 +288,10 @@ function killSquad(t) {
 function hitBld(b, d, by) {
   if (b.city) { // a storefront: floors come off from the top, the ground floor last; rubble stays and can be rebuilt
     if (b.hp <= 0) return;
+    if (S.down && by !== undefined && S.down.role[by] === 'w') {
+      if (b.shop) { b.shop = false; const p = pl(by); p.cash += 30; p.st.earned += 30; S.events.push({ k: 'looted', ci: b.ci, x: b.x, z: b.z, owner: by }); } // smash-and-grab
+      if (!b.tag) { b.tag = true; b.work = 0; S.events.push({ k: 'tagged', ci: b.ci, x: b.x, z: b.z }); }
+    }
     b.hp = Math.max(0, b.hp - d);
     const fl = floorsFor(b);
     while (b.fl > fl) {
@@ -400,9 +404,16 @@ function updateWorker(s, dt) {
   // Repair: walk to the building, then patch it up at 25 hp/s per worker for 1 cash per 10 hp; back to work when done.
   if (o.type === 'repair') {
     const b = o.b, p = pl(s.owner);
-    if ((b.dead && !b.city) || b.hp >= b.maxHp || p.cash < 1) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; return; }
+    const cityJob = b.city && (b.hp < b.maxHp || b.tag || (S.down && S.down.role[s.owner] === 'b' && !b.shop));
+    if ((b.dead && !b.city) || (b.city ? !cityJob : b.hp >= b.maxHp) || p.cash < 1) { setOrder(s, { type: 'idle' }); s.task = { state: 'find' }; return; }
     if (Math.hypot(b.x - s.x, b.z - s.z) > b.r + 2.2) { moveTo(s, b.x, b.z, dt); return; }
     s.heading = Math.atan2(b.x - s.x, b.z - s.z);
+    if (b.city && b.hp >= b.maxHp) { // standing again: scrub the paint off (3 s), then open it up as a shop (4 s, 60 cash)
+      s.gatherT = 1; b.work = (b.work || 0) + dt;
+      if (b.tag && b.work >= 3) { b.tag = false; b.work = 0; S.events.push({ k: 'scrub', ci: b.ci, x: b.x, z: b.z }); }
+      else if (!b.tag && b.work >= 4 && p.cash >= 60) { p.cash -= 60; b.shop = true; b.work = 0; S.events.push({ k: 'shopopen', ci: b.ci, x: b.x, z: b.z, owner: s.owner }); }
+      return;
+    }
     const hp = Math.min(b.maxHp - b.hp, 25 * dt);
     b.hp += hp; p.cash -= hp / 10;
     if (b.city) { // a storefront goes back up a whole floor at a time, once that floor's hp is fully paid for
@@ -565,7 +576,13 @@ function stepDown(dt) {
   const wi = D.role.indexOf('w'), bi = D.role.indexOf('b');
   // City taxes: every 10 s the builders collect more the more of the city is standing.
   D.taxT = (D.taxT || 0) + dt;
-  if (D.taxT >= 10) { D.taxT -= 10; const p = pl(bi), inc = Math.round(40 * D.meter); p.cash += inc; p.st.earned += inc; S.events.push({ k: 'income', owner: bi }); }
+  if (D.taxT >= 10) {
+    D.taxT -= 10;
+    const shops = S.city.filter((b) => b.shop).length, tags = S.city.filter((b) => b.tag).length;
+    const pb = pl(bi), ib = Math.round(50 * D.meter) + shops * 6, pw = pl(wi), iw = tags * 3; // shops pay the builders, tagged blocks pay the wreckers
+    pb.cash += ib; pb.st.earned += ib; pw.cash += iw; pw.st.earned += iw;
+    S.events.push({ k: 'income', owner: bi });
+  }
   if (D.meter <= D.lose) S.over = { winner: wi, down: true };
   else if (D.meter >= D.win) S.over = { winner: bi, down: true };
   else if (S.t >= D.limit) S.over = { winner: D.meter >= D.hold ? bi : wi, down: true };

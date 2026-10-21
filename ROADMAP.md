@@ -166,6 +166,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B131) Step 2: city meter + Downtown mode - one side Wreckers, one side Builders (picked from the existing factions); the meter swings with floors standing; timer win
 - [x] (B133) City look: storefronts in different shapes (setback towers, gables, domes, water towers, spires, L-plans) so blocks are easy to tell apart (Colin)
 - [x] (B137) Step 3: drifters - neutral street people; cash/jobs turn them into rebuild workers, neglect or wreckage turns them into wreckers
-- [ ] Step 4: wrecker/builder verbs - loot a storefront for cash, tag it; upgrade City Hall, open shops, give jobs
+- [x] (B141) Step 4a: tags, shops, looting
+- [ ] Step 4b: City Hall (builders) / Hideout (wreckers) - each side upgrades its HQ for side-specific perks
 - [ ] Step 5: Colin's building kit pieces (weirdport models/building_kit) replace the floor slabs
 - [ ] Later: hex city layout (Catan-like blocks, bending streets, real chokepoints)

@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=137';
-import { walkH } from '../map/layout.js?v=137';
-import { getSim, command } from '../sim/sim.js?v=137';
-import { UI, select, selSquads } from '../ui/state.js?v=137';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=137';
-import { fxMarker } from '../fx/fx.js?v=137';
-import { ack } from '../render/sync.js?v=137';
+import { THREE, camera, canvas } from '../render/scene.js?v=141';
+import { walkH } from '../map/layout.js?v=141';
+import { getSim, command } from '../sim/sim.js?v=141';
+import { UI, select, selSquads } from '../ui/state.js?v=141';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=141';
+import { fxMarker } from '../fx/fx.js?v=141';
+import { ack } from '../render/sync.js?v=141';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -63,7 +63,7 @@ function onTap(cx, cy) {
   const cb = S.city && S.city.find((b) => Math.abs(g.x - b.x) < b.sx / 2 + 0.6 && Math.abs(g.z - b.z) < b.sz / 2 + 0.6);
   if (cb && sel.length) {
     const workers = sel.filter((s) => s.slot === 'worker'), fighters = sel.filter((s) => s.slot !== 'worker');
-    if (workers.length && cb.hp < cb.maxHp) { command(0, { type: 'repair', ids: workers.map((s) => s.id), id: cb.id }); fxMarker(cb.x, cb.z, 0xf2c232); ack(ids); }
+    if (workers.length && (cb.hp < cb.maxHp || cb.tag || (S.down && S.down.role[0] === 'b' && !cb.shop))) { command(0, { type: 'repair', ids: workers.map((s) => s.id), id: cb.id }); fxMarker(cb.x, cb.z, 0xf2c232); ack(ids); }
     if (fighters.length && cb.hp > 0) { command(0, { type: 'attack', ids: fighters.map((s) => s.id), target: cb.id }); fxMarker(cb.x, cb.z, 0xff5a4f); ack(ids, true); }
     if (workers.length || fighters.length) return;
   }
