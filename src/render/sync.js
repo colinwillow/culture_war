@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=38';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=38';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=38';
-import { emit } from '../fx/particles.js?v=38';
-import { TICK } from '../config/factions.js?v=38';
-import { walkH } from '../map/layout.js?v=38';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=38';
-import { Q, pl } from '../sim/sim.js?v=38';
-import { UI } from '../ui/state.js?v=38';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=38';
-import { lerpAngle } from '../util/math.js?v=38';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=39';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=39';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=39';
+import { emit } from '../fx/particles.js?v=39';
+import { TICK } from '../config/factions.js?v=39';
+import { walkH } from '../map/layout.js?v=39';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=39';
+import { Q, pl } from '../sim/sim.js?v=39';
+import { UI } from '../ui/state.js?v=39';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=39';
+import { lerpAngle } from '../util/math.js?v=39';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -125,6 +125,26 @@ function fling(m, dt, heavy) {
   m.rotation.x += u.fs.x * dt; m.rotation.z += u.fs.z * dt; m.rotation.y += u.fs.y * dt;
   if (u.deadT < 0.4) m.position.y -= (0.4 - u.deadT) * 2 * dt * 3; // sink into the ground at the end
   return true;
+}
+// Activists' Rally: a pink link between every pair of rallied Activist squads standing within 8 m (the sim's radius).
+// One LineSegments for everything, rebuilt each frame; opacity pulses so the bond reads as alive.
+const RL_MAX = 120, rlPos = new Float32Array(RL_MAX * 6);
+const rlGeo = new THREE.BufferGeometry(); rlGeo.setAttribute('position', new THREE.BufferAttribute(rlPos, 3).setUsage(THREE.DynamicDrawUsage));
+const rallyLines = new THREE.LineSegments(rlGeo, new THREE.LineBasicMaterial({ color: 0xe85d9a, transparent: true, opacity: 0.7, depthWrite: false }));
+rallyLines.frustumCulled = false; scene.add(rallyLines);
+function updateRallyLines(S, time) {
+  let n = 0;
+  const a = S.squads.filter((q) => q.rally > 0 && !q.gar);
+  for (let i = 0; i < a.length && n < RL_MAX; i++) for (let j = i + 1; j < a.length && n < RL_MAX; j++) {
+    const p = a[i], q = a[j];
+    if (p.owner !== q.owner || Math.hypot(p.x - q.x, p.z - q.z) >= 8) continue;
+    const k = n * 6, lift = 0.35 + 0.15 * Math.sin(time * 4 + i);
+    rlPos[k] = p.x; rlPos[k + 1] = walkH(p.x, p.z) + lift; rlPos[k + 2] = p.z;
+    rlPos[k + 3] = q.x; rlPos[k + 4] = walkH(q.x, q.z) + lift; rlPos[k + 5] = q.z;
+    n++;
+  }
+  rlGeo.setDrawRange(0, n * 2); rlGeo.attributes.position.needsUpdate = true;
+  rallyLines.material.opacity = 0.45 + 0.35 * Math.abs(Math.sin(time * 3));
 }
 /** Squads answer an order with a little hop, so a command visibly lands. */
 export function ack(ids) { for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; } }
@@ -292,6 +312,7 @@ export function syncRender(S, alpha, dt, time) {
     }
     if (par) { o.confT -= dt; if (o.confT <= 0) { o.confT = 0.5; fxConfetti(x, z, 4); } }
   }
+  updateRallyLines(S, time);
   for (const [id, o] of R.sq) if (!seen.has(id)) { R.sq.delete(id); o.bar.g.visible = o.sel.visible = o.team.visible = false; corpses.push({ o, t: 1.6 }); }
   for (let ci = corpses.length - 1; ci >= 0; ci--) {
     const c = corpses[ci]; c.t -= dt;

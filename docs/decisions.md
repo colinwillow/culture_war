@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B39 (overnight loop): Rally made visible: thin pink lines link every pair of Activist squads close enough to rally each other (same 8 m as the bonus), gently pulsing and bobbing - more lines = bigger damage bonus
 - B38 (overnight loop): Junkyard made visible: a destroyed monster truck or fireworks cart leaves a charred, tilted husk with its wheels knocked off, smoking (flames at first) for ~20 s before it sinks away - next to the existing coin pop for the 50% scrap refund
 - B37 (overnight loop): food trucks open for business: a box vendor in a paper hat leans out of the side hatch, bobbing and looking around; the awning flaps; the grill puffs steam - all of it stops once the truck sells out
 - B35 (overnight loop): difficulty: 1/2/3-star picker above the team buttons (remembered on the phone). Easy: computer earns 70%, first wave at 30 cp, caps at 32. Normal: as before. Hard: 135% income, first wave at 14 cp, waves grow to 60
