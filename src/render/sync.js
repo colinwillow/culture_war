@@ -1,14 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=7';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=7';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=7';
-import { TICK } from '../config/factions.js?v=7';
-import { walkH } from '../map/layout.js?v=7';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=7';
-import { Q, pl } from '../sim/sim.js?v=7';
-import { UI } from '../ui/state.js?v=7';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=7';
-import { lerpAngle } from '../util/math.js?v=7';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=8';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=8';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=8';
+import { emit } from '../fx/particles.js?v=8';
+import { TICK } from '../config/factions.js?v=8';
+import { walkH } from '../map/layout.js?v=8';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=8';
+import { Q, pl } from '../sim/sim.js?v=8';
+import { UI } from '../ui/state.js?v=8';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=8';
+import { lerpAngle } from '../util/math.js?v=8';
 
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
@@ -138,6 +139,23 @@ export function syncRender(S, alpha, dt, time) {
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
       if (s.def.flies) m.children[0].rotation.z = Math.sin(time * 6) * 0.15;
+      // Vehicles: wheels roll with ground speed, the chassis rides its springs, dust kicks out behind.
+      const ud = m.userData;
+      if (ud.wheels) {
+        const v = Math.hypot(s.x - s.px, s.z - s.pz) / TICK;
+        for (const w of ud.wheels) w.rotation.x += (v * dt) / (w.geometry.parameters.radiusTop || 0.5);
+        if (ud.chassis) {
+          const ch = ud.chassis, k = Math.min(1, v / 5);
+          ch.position.y = (Math.sin(time * 11 + i) * 0.12 + Math.sin(time * 17.3) * 0.06) * k + (o.lunge > 0 ? 0.25 : 0);
+          ch.rotation.x = Math.sin(time * 7.1) * 0.06 * k - (o.lunge > 0 ? 0.15 : 0);
+          ch.rotation.z = Math.sin(time * 5.3 + 1) * 0.05 * k;
+        }
+        if (ud.pedal && legs) { const c = time * (4 + v * 2); legs[0].rotation.x = Math.sin(c) * 0.9; legs[1].rotation.x = -Math.sin(c) * 0.9; }
+        if (ud.dust && v > 0.8 && Math.random() < dt * 14 * ud.dust) {
+          const bx = x - Math.sin(o.yaw) * 1.6 * ud.dust + (Math.random() - 0.5), bz = z - Math.cos(o.yaw) * 1.6 * ud.dust + (Math.random() - 0.5), g0 = walkH(bx, bz);
+          emit({ x: bx, y: g0 + 0.3, z: bz, vx: (Math.random() - 0.5) * 1.5, vy: 0.6 + Math.random(), vz: (Math.random() - 0.5) * 1.5, c: 0xb9a57e, s: 0.45 * ud.dust, life: 0.9, g: -0.3, drag: 2, grow: 2.6 });
+        }
+      }
       m.rotation.x = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather' ? Math.sin(time * 10) * 0.25 : 0;
     }
     if (o.lunge > 0) o.lunge = Math.max(0, o.lunge - dt);

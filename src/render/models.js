@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=7';
+import { THREE, box, cyl, mat } from './scene.js?v=8';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -17,7 +17,13 @@ function humanoid(C, shirt, hat) {
   g.userData.legs = [l, r];
   return g;
 }
-function wheel(r, w, x, y, z, c = 0x222222) { const m = cyl(r, r, w, c, x, y, z, 14); m.rotation.z = Math.PI / 2; return m; }
+// A wheel spins about its axle via rotation.x (sync.js); the hub bar is what makes the spin readable.
+function wheel(r, w, x, y, z, c = 0x222222) {
+  const m = cyl(r, r, w, c, x, y, z, 14); m.rotation.z = Math.PI / 2;
+  if (r > 0.25) m.add(box(r * 1.7, w * 1.08, r * 0.28, 0xb8b8b8));
+  return m;
+}
+const tagWheels = (g) => { g.userData.wheels = g.children.filter((c) => c.geometry && c.geometry.type === 'CylinderGeometry' && Math.abs(c.rotation.z - Math.PI / 2) < 1e-6); return g; };
 
 /** One member of a squad (a squad of 5 farmers = 5 of these). */
 export function makeMember(f, slot) {
@@ -30,12 +36,17 @@ export function makeMember(f, slot) {
     else if (slot === 'ranged') { g = humanoid(C, 0x6b7a3a, 0xf28b2c); g.add(box(0.08, 0.08, 1, 0x333333, 0.32, 0.95, 0.45)); }
     else if (slot === 'cav') {
       g = new THREE.Group();
-      g.add(box(1.8, 0.75, 2.6, C.main, 0, 1.7), box(1.3, 0.6, 1.2, C.dark, 0, 2.35, -0.2), box(0.2, 0.2, 0.9, 0xdddddd, -0.6, 1.45, 1.35), box(0.2, 0.2, 0.9, 0xdddddd, 0.6, 1.45, 1.35));
-      for (const [x, z] of [[1, 0.9], [-1, 0.9], [1, -0.9], [-1, -0.9]]) g.add(wheel(0.8, 0.55, x, 0.8, z), wheel(0.3, 0.6, x, 0.8, z, 0x999999));
+      const body = new THREE.Group(); // rides the suspension (sync.js bobs + pitches it)
+      body.add(box(1.8, 0.75, 2.6, C.main, 0, 1.7), box(1.3, 0.6, 1.2, C.dark, 0, 2.35, -0.2), box(0.2, 0.2, 0.9, 0xdddddd, -0.6, 1.45, 1.35), box(0.2, 0.2, 0.9, 0xdddddd, 0.6, 1.45, 1.35));
+      for (const x of [-0.95, 0.95]) for (const z of [0.9, -0.9]) body.add(box(0.12, 0.7, 0.12, 0x888888, x * 0.8, 1.15, z)); // shocks
+      g.add(body); g.userData.chassis = body; g.userData.dust = 1.2;
+      for (const [x, z] of [[1, 0.9], [-1, 0.9], [1, -0.9], [-1, -0.9]]) g.add(wheel(0.8, 0.55, x, 0.8, z));
+      tagWheels(g);
     } else if (slot === 'siege') {
       g = new THREE.Group();
       g.add(box(1.5, 0.5, 1.9, C.dark, 0, 0.45));
       for (const [x, z] of [[0.75, 0.7], [-0.75, 0.7], [0.75, -0.7], [-0.75, -0.7]]) g.add(wheel(0.3, 0.2, x, 0.3, z));
+      tagWheels(g); g.userData.dust = 0.6;
       for (let i = -1; i <= 1; i++) { const t = cyl(0.17, 0.17, 1.4, i === 0 ? 0xd63c3c : 0x3d6fd6, i * 0.38, 1.1, 0.1, 8); t.rotation.x = -0.6; g.add(t); }
     } else {
       g = new THREE.Group();
@@ -46,7 +57,7 @@ export function makeMember(f, slot) {
     else if (slot === 'pike') { g = humanoid(C, C.main, C.hair); g.add(box(0.05, 1.5, 0.05, 0xcccccc, 0.3, 1.1, 0), box(0.8, 0.55, 0.05, 0xf4f1de, 0.3, 1.95, 0)); }
     else if (slot === 'melee') { g = humanoid(C, C.main, C.alt); }
     else if (slot === 'ranged') { g = humanoid(C, C.dark, C.hair); const m = cyl(0.08, 0.26, 0.5, C.alt, 0.3, 1.05, 0.4, 10); m.rotation.x = Math.PI / 2; g.add(m); }
-    else if (slot === 'cav') { g = humanoid(C, C.main, C.hair); g.position.y = 0.35; g.add(box(0.1, 0.45, 1.2, 0x333333, 0, 0.1, 0)); for (const z of [0.5, -0.5]) g.add(wheel(0.33, 0.08, 0, -0.02, z, 0x111111)); }
+    else if (slot === 'cav') { g = humanoid(C, C.main, C.hair); g.position.y = 0.35; g.add(box(0.1, 0.45, 1.2, 0x333333, 0, 0.1, 0)); for (const z of [0.5, -0.5]) g.add(wheel(0.33, 0.08, 0, -0.02, z, 0x111111)); tagWheels(g); g.userData.pedal = true; }
     else if (slot === 'siege') {
       g = new THREE.Group();
       g.add(box(1, 2.3, 0.8, C.alt, 0, 1.35));
