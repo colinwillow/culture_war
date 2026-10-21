@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=98';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=98';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=98';
-import { mulberry32 } from '../util/math.js?v=98';
-import { aiStep } from './ai.js?v=98';
+} from '../config/factions.js?v=100';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=100';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=100';
+import { mulberry32 } from '../util/math.js?v=100';
+import { aiStep } from './ai.js?v=100';
 
 let S = null;
 export const getSim = () => S;
@@ -35,6 +35,8 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     ai: { t: 0, wave: [30, 20, 14][diff], waveMax: [32, 45, 60][diff] },
     mode,
     // King of the Hill: the middle overpass. Holding it alone (no enemy fighters on it) fills your bar; full = win.
+    // Resource Race: first to EARN this much (income + deposits + scrap; spending doesn't count against you) wins.
+    race: mode === 'race' ? { goal: 2500 } : null,
     hill: mode === 'hill' ? { x: 0, z: 0, r: 7, prog: [0, 0], holder: -1, contested: false, win: 90 } : null,
   };
   S.players[1].inc = [0.7, 1, 1.35][diff];
@@ -519,6 +521,7 @@ export function step() {
     if (p.party > 0) p.party -= dt;
   }
   if (S.hill && !S.over) stepHill(dt);
+  if (S.race && !S.over) for (const p of S.players) if (p.st.earned >= S.race.goal) { S.over = { winner: p.i, race: true }; break; }
   for (const b of [...S.blds]) {
     if (b.dead) continue;
     const p = pl(b.owner);

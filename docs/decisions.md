@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B100 (overnight loop): Resource Race: third mode button (coin); first side to EARN 2500 (income + deposits + scrap; spending doesn't count) wins, HQ kill still wins too; the HUD chip shows a gold coin and both sides' earned bars. Portrait menu puts the three mode buttons on their own row under the stars. AI-vs-AI race test ended at 166 s (2500 vs 2020)
 - B98 (overnight loop): End screen rematch: two big round buttons - home (back to the menu) and a gold replay that starts a new match straight away with the same faction, mode and difficulty (fresh seed, so the opponent and weather are re-rolled)
 - B97 (overnight loop): The Tycoon's own ability Hush Money: the nearest enemy squad (not a hero or worker) within 6 m takes a bribe and stands down 3 s (14 s cooldown) - a briefcase arcs over and bursts into a coin + bill spray with a gold ring. Old Money hero no longer borrows the bullhorn
 - B96 (overnight loop): Match intro: each match opens over the enemy HQ and the camera arcs up over the city and down onto your base in ~2.5 s (eased, turning to your usual heading); any tap skips straight home. The sim runs underneath
