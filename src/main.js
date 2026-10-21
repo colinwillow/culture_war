@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=97';
-import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=97';
-import { syncRender, clearRender, bump } from './render/sync.js?v=97';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=97';
-import { newSim, getSim, step } from './sim/sim.js?v=97';
-import { TICK } from './config/factions.js?v=97';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=97';
-import { initInput, lockPageZoom } from './input/input.js?v=97';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=97';
-import { resetUI } from './ui/state.js?v=97';
-import { fillIcons, svg } from './ui/icons.js?v=97';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=97';
-import { updateMinimap } from './ui/minimap.js?v=97';
-import { isMuted, setMuted } from './fx/sfx.js?v=97';
-import { loadChars } from './render/chars.js?v=97';
-import { FC } from './render/models.js?v=97';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=98';
+import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=98';
+import { syncRender, clearRender, bump } from './render/sync.js?v=98';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=98';
+import { newSim, getSim, step } from './sim/sim.js?v=98';
+import { TICK } from './config/factions.js?v=98';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=98';
+import { initInput, lockPageZoom } from './input/input.js?v=98';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=98';
+import { resetUI } from './ui/state.js?v=98';
+import { fillIcons, svg } from './ui/icons.js?v=98';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=98';
+import { updateMinimap } from './ui/minimap.js?v=98';
+import { isMuted, setMuted } from './fx/sfx.js?v=98';
+import { loadChars } from './render/chars.js?v=98';
+import { FC } from './render/models.js?v=98';
 
-export const BUILD = 97; // written by `npm run bump`
+export const BUILD = 98; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -36,7 +36,9 @@ resetCam();
 
 const menu = document.getElementById('menu'), endEl = document.getElementById('end');
 let running = false;
+let lastF = null;
 function start(f) {
+  lastF = f;
   clearRender(); clearFx(); clearAlert();
   const seed = (Date.now() & 0xffffff) + 1;
   newSim(f, seed, diff, mode);
@@ -67,6 +69,8 @@ const showMode = () => modeBtns.forEach((b) => b.classList.toggle('on', b.datase
 modeBtns.forEach((b) => b.addEventListener('pointerup', () => { mode = b.dataset.m; showMode(); try { localStorage.setItem('cw-mode', mode); } catch (e) {} }));
 showMode();
 document.querySelectorAll('.pick').forEach((b) => b.addEventListener('pointerup', () => start(b.dataset.f)));
+// Rematch: same faction, mode and difficulty, straight back in (a fresh seed, so a new opponent may be drawn).
+document.getElementById('rematch').addEventListener('pointerup', () => { if (lastF) start(lastF); });
 document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; setPause(false); });
 
 // Pause: freezes the sim and every animation (dt 0) but keeps drawing; tap the dim to resume. Auto-pauses when the

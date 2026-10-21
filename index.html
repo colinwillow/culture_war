@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
-<link rel="stylesheet" href="./src/ui/style.css?v=97">
+<link rel="stylesheet" href="./src/ui/style.css?v=98">
 <!-- No build step needed: GitHub Pages serves this file straight from main, so bare 'three' imports resolve here. -->
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.min.js", "three/examples/jsm/": "./vendor/three/jsm/" } }
@@ -34,7 +34,7 @@
 <div id="box"></div>
 <div id="holdRing" hidden></div>
 <div id="menu" class="overlay">
-  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B97</b></span></h1>
+  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B98</b></span></h1>
   <div class="diff" id="diff"><button type="button" data-d="0" aria-label="Easy"><span class="ic" data-i="star"></span></button><button type="button" data-d="1" class="on" aria-label="Normal"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><button type="button" data-d="2" aria-label="Hard"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><i class="sep"></i><button type="button" class="mode" data-m="vs" aria-label="Versus"><span class="ic" data-i="home"></span></button><button type="button" class="mode" data-m="hill" aria-label="King of the Hill"><span class="ic" data-i="flag"></span></button></div>
   <div class="picks">
     <button class="pick" data-f="bw" type="button"><span class="ic" data-i="truck"></span>Backwoods<small>FEWER · TOUGHER</small></button>
@@ -48,7 +48,7 @@
 <div id="end" class="overlay" hidden>
   <div class="big" id="endIcon"></div>
   <div id="stats"></div>
-  <button class="again" id="again" type="button" aria-label="Play again"><span class="ic" data-i="replay"></span></button>
+  <div class="endBtns"><button class="again" id="again" type="button" aria-label="Menu"><span class="ic" data-i="home"></span></button><button class="again" id="rematch" type="button" aria-label="Rematch"><span class="ic" data-i="replay"></span></button></div>
 </div>
 <div id="bootErr" hidden></div>
 <div id="devInfo" hidden></div>
@@ -63,6 +63,6 @@
   setTimeout(function () { if (!window.__cwBooted) show('Game script did not start (old cached file? wait a few minutes and reload)'); }, 8000);
 })();
 </script>
-<script type="module" src="./src/main.js?v=97" onerror="__cwLoadFail()"></script>
+<script type="module" src="./src/main.js?v=98" onerror="__cwLoadFail()"></script>
 </body>
 </html>

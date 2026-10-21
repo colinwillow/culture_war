@@ -116,7 +116,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 11 (added 13:26 UTC by the loop, same rules)
 - [x] (B97) Units: The Tycoon's own ability "Hush Money" — the nearest enemy squad within 6 m pockets a briefcase of cash and stands down (3 s stun), a coin spray; Old Money hero stops borrowing the bullhorn
-- [ ] UI: end screen rematch — a second big button that replays the same faction + mode + difficulty straight away
+- [x] (B98) UI: end screen rematch — a second big button that replays the same faction + mode + difficulty straight away
 - [ ] Logic: Resource Race mode — third mode button (coin icon); first to earn 2500 wins; HUD bars like the hill
 - [ ] FX: faction death flourishes — Old Money drops bills, Nerds lose their glasses, Street Crew a sneaker, Hard Hats a hard hat bounces
 - [ ] Map: pedestrians — a few render-only civilians walk the sidewalks and run away from fights

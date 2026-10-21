@@ -170,3 +170,6 @@ body.show-mute #muteBtn { display: grid; }
 #hillMe { color: #7fd1ff; } #hillThem { color: #ff5a4f; }
 .hillc.h0 .ic { color: #7fd1ff; } .hillc.h1 .ic { color: #ff5a4f; } .hillc.hc .ic { animation: hillFlick .3s steps(2) infinite; }
 @keyframes hillFlick { 50% { color: #ff5a4f; } }
+
+.endBtns { display: flex; gap: 22px; justify-content: center; flex-basis: 100%; }
+#rematch { border-color: var(--gold); color: var(--gold); }
