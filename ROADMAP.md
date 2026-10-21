@@ -53,7 +53,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B42) FX: tower shots get faction flavour — Deer Stand fires a slug with a puff of smoke, Banner Tower throws a paint balloon splat
 
 ## Batch 4 (added 11:03 UTC by the loop, same rules)
-- [ ] Units: Backwoods hero Screech — the bald eagle's stun cry gets a visible shockwave (expanding sound rings + feathers) and stunned squads wobble
+- [x] (B43) Units: Backwoods hero Screech — the bald eagle's stun cry gets a visible shockwave (expanding sound rings + feathers) and stunned squads wobble
 - [ ] UI: tap-and-hold on empty ground = select all your army squads on screen (big friendly gesture; hold ring fills under the finger)
 - [ ] Map: overpass traffic — little cars also drive the city avenues (render only), stopping at the red lights
 - [ ] FX: worker gather sparkle — while a worker is on shift a chef-hat steam puff / cash register 'ka-ching' coin flips up every second

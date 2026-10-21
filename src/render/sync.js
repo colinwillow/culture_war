@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=42';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=42';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=42';
-import { emit } from '../fx/particles.js?v=42';
-import { TICK } from '../config/factions.js?v=42';
-import { walkH } from '../map/layout.js?v=42';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=42';
-import { Q, pl } from '../sim/sim.js?v=42';
-import { UI } from '../ui/state.js?v=42';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=42';
-import { lerpAngle } from '../util/math.js?v=42';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=43';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=43';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=43';
+import { emit } from '../fx/particles.js?v=43';
+import { TICK } from '../config/factions.js?v=43';
+import { walkH } from '../map/layout.js?v=43';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=43';
+import { Q, pl } from '../sim/sim.js?v=43';
+import { UI } from '../ui/state.js?v=43';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=43';
+import { lerpAngle } from '../util/math.js?v=43';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -291,6 +291,8 @@ export function syncRender(S, alpha, dt, time) {
     o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;
     o.bar.g.quaternion.copy(camera.quaternion);
     o.stun.visible = s.stun > 0 && s.stun <= 2.5; o.stun.rotation.z = time * 6;
+    // Dazed: a stunned squad wobbles drunkenly on the spot until it shakes it off.
+    o.body.rotation.z = o.stun.visible ? Math.sin(time * 9) * 0.12 : 0; o.body.rotation.x = o.stun.visible ? Math.cos(time * 7) * 0.08 : 0;
     o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; const kit = o.members[0].userData.cash;
     o.carry.visible = s.carry > 0 && !kit;
     if (kit) {
