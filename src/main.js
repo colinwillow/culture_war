@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=114';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=114';
-import { syncRender, clearRender, bump } from './render/sync.js?v=114';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=114';
-import { newSim, getSim, step } from './sim/sim.js?v=114';
-import { TICK } from './config/factions.js?v=114';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=114';
-import { initInput, lockPageZoom } from './input/input.js?v=114';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=114';
-import { resetUI } from './ui/state.js?v=114';
-import { fillIcons, svg } from './ui/icons.js?v=114';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=114';
-import { updateMinimap } from './ui/minimap.js?v=114';
-import { isMuted, setMuted } from './fx/sfx.js?v=114';
-import { loadChars } from './render/chars.js?v=114';
-import { FC } from './render/models.js?v=114';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=115';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=115';
+import { syncRender, clearRender, bump } from './render/sync.js?v=115';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=115';
+import { newSim, getSim, step } from './sim/sim.js?v=115';
+import { TICK } from './config/factions.js?v=115';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=115';
+import { initInput, lockPageZoom } from './input/input.js?v=115';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=115';
+import { resetUI } from './ui/state.js?v=115';
+import { fillIcons, svg } from './ui/icons.js?v=115';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=115';
+import { updateMinimap } from './ui/minimap.js?v=115';
+import { isMuted, setMuted } from './fx/sfx.js?v=115';
+import { loadChars } from './render/chars.js?v=115';
+import { FC } from './render/models.js?v=115';
 
-export const BUILD = 114; // written by `npm run bump`
+export const BUILD = 115; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -157,6 +157,9 @@ function frame(now) {
     ic.innerHTML = svg(won ? 'trophy' : 'skull'); ic.className = 'big' + (won ? '' : ' lose');
     // Stats: per row an icon, then your bar (blue) and theirs (red), growing in one after another.
     const rows = [['skull', 'kills'], ['coin', 'earned'], ['home', 'built'], ['tower', 'razed']], a = S.players[0].st, e = S.players[1].st;
+    const FIC = { bw: 'truck', ac: 'megaphone', hh: 'hardhat', om: 'coin', sc: 'music', nd: 'wifi' };
+    const badge = (pi) => { const f = S.players[pi].f, c = '#' + new THREE.Color(FC[f].main).getHexString(); return `<span class="fb ${S.over.winner === pi ? 'win' : 'lose'}" style="background:${c}">${svg(FIC[f] || 'star')}</span>`; };
+    document.getElementById('vsRow').innerHTML = badge(0) + '<i class="vs"></i>' + badge(1);
     document.getElementById('stats').innerHTML = rows.map(([ic, k], i) => {
       const mx = Math.max(1, a[k], e[k]);
       return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;

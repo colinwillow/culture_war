@@ -180,3 +180,10 @@ body.show-mute #muteBtn { display: grid; }
 #gfxBtn svg { width: 22px; height: 22px; }
 #gfxBtn.low { color: var(--muted); }
 body.show-mute #gfxBtn { display: grid; }
+/* End screen: your faction vs theirs, the winner's badge bigger and the loser's greyed. */
+#vsRow { display: flex; align-items: center; gap: 14px; flex-basis: 100%; justify-content: center; }
+#vsRow .fb { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; border: 3px solid #fff; color: #17170f; box-shadow: 0 4px 0 rgba(0,0,0,.5); transition: transform .4s; }
+#vsRow .fb svg { width: 30px; height: 30px; }
+#vsRow .fb.win { transform: scale(1.35); }
+#vsRow .fb.lose { filter: grayscale(.8) brightness(.7); }
+#vsRow .vs { width: 26px; height: 3px; background: var(--muted); border-radius: 2px; }
