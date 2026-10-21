@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=52';
-import { UI, select, selSquads } from './state.js?v=52';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=52';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=52';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=52';
-import { camera } from '../render/scene.js?v=52';
-import { walkH } from '../map/layout.js?v=52';
-import { THREE } from '../render/scene.js?v=52';
-import { showHint } from './hint.js?v=52';
+import { svg } from './icons.js?v=55';
+import { UI, select, selSquads } from './state.js?v=55';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=55';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=55';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=55';
+import { camera } from '../render/scene.js?v=55';
+import { walkH } from '../map/layout.js?v=55';
+import { THREE } from '../render/scene.js?v=55';
+import { showHint } from './hint.js?v=55';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -104,6 +104,10 @@ function cmdSpec() {
     { id: 'army', name: 'Select army', icon: 'people', noCost: true, cls: 'sm army', tap: () => { const army = S.squads.filter((s) => s.owner === 0 && s.slot !== 'worker'); if (!army.length) return false; select({ type: 'sq', ids: army.map((s) => s.id) }); focus(army[0].x, army[0].z); } },
     { id: 'home', name: 'Go home', icon: 'home', noCost: true, cls: 'sm', tap: () => { const hq = hqOf(p); if (!hq) return false; focus(hq.x, hq.z - 10); select({ type: 'bld', id: hq.id }); } },
   ];
+  // Hero button: appears once your hero is on the field; the fill shows its health, stars its level. Tap = select + fly to it.
+  const hero = S.squads.find((s) => s.owner === 0 && s.slot === 'hero');
+  if (hero) out.push({ id: 'hero', name: F.units.hero.name, icon: 'hero', noCost: true, cls: 'sm herob', gauge: hero.members[0] / hero.mhp, badge: hero.rank ? '\u2605'.repeat(hero.rank) : '',
+    on: UI.sel && UI.sel.type === 'sq' && UI.sel.ids.length === 1 && UI.sel.ids[0] === hero.id, tap: () => { select({ type: 'sq', ids: [hero.id] }); focus(hero.x, hero.z); } });
   F.powers.forEach((pw, i) => {
     const ready = Q.powerReady(p, i);
     out.push({ id: 'pw-' + pw.id, name: pw.name, icon: pw.icon, noCost: true, cls: 'sm', gauge: Math.min(1, p.meter / pw.cost), ready, armed: UI.armed === i, dis: !ready && p.meter >= pw.cost,
