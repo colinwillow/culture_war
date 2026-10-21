@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B49 (overnight loop): Bike Collective bikes: spoked wheels, a pink diamond frame (top/down/seat tubes, chain stay, fork), saddle, handlebars and a gold bell that flashes on every hit; riders pedal and lean into turns like cyclists
 - B48 (overnight loop): cash chip reacts: it pops up with a green glow whenever money comes in (deposits, income, refunds, scrap) and dips with a red glow when you spend (training, building, upgrades, repairs)
 - B47 (overnight loop): repair: select workers and tap one of your damaged buildings - they walk over and hammer away (swing animation + yellow sparks), +25 hp/s each for 1 cash per 10 hp, then go back to work when it's full or you run dry. Made it an order rather than automatic so it never quietly eats your economy
 - B46 (overnight loop): ka-ching: while a worker is on shift at a food truck, a gold coin flips up off them about once a second with a white glint, so a working truck reads as earning at a glance

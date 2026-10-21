@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=48';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=48';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=48';
-import { emit } from '../fx/particles.js?v=48';
-import { TICK } from '../config/factions.js?v=48';
-import { walkH } from '../map/layout.js?v=48';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=48';
-import { Q, pl } from '../sim/sim.js?v=48';
-import { UI } from '../ui/state.js?v=48';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=48';
-import { lerpAngle } from '../util/math.js?v=48';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=49';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=49';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=49';
+import { emit } from '../fx/particles.js?v=49';
+import { TICK } from '../config/factions.js?v=49';
+import { walkH } from '../map/layout.js?v=49';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=49';
+import { Q, pl } from '../sim/sim.js?v=49';
+import { UI } from '../ui/state.js?v=49';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=49';
+import { lerpAngle } from '../util/math.js?v=49';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -113,6 +113,7 @@ function squash(m, dt) {
   if (f > 0.13) { m.getWorldPosition(_wp); emit({ x: _wp.x, y: _wp.y + 1, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 2, vz: (Math.random() - 0.5) * 3, c: 0xff4a3c, s: 0.14, life: 0.3, g: 12 }); }
 }
 const _wp = new THREE.Vector3();
+const BELL_ON = new THREE.MeshBasicMaterial({ color: 0xfff6b0 }), BELL_OFF = mat(0xf5b83a);
 /** Ragdoll-lite death for box placeholders: knocked back and up, tumbling, then sinks out. Returns visibility. */
 function fling(m, dt, heavy) {
   const u = m.userData;
@@ -252,6 +253,11 @@ export function syncRender(S, alpha, dt, time) {
           ch.position.y = (Math.sin(time * 11 + i) * 0.12 + Math.sin(time * 17.3) * 0.06) * k + (o.lunge > 0 ? 0.25 : 0);
           ch.rotation.x = Math.sin(time * 7.1) * 0.06 * k - (o.lunge > 0 ? 0.15 : 0);
           ch.rotation.z = Math.sin(time * 5.3 + 1) * 0.05 * k;
+        }
+        if (ud.pedal) { // lean into turns like a cyclist; ring the bell (flash) on each hit
+          const dy = Math.atan2(Math.sin(s.heading - o.yaw), Math.cos(s.heading - o.yaw));
+          m.rotation.z += (Math.max(-0.35, Math.min(0.35, -dy * 1.2)) - m.rotation.z) * Math.min(1, dt * 6);
+          if (ud.bell) { ud.bell.material = o.lunge > 0 && Math.sin(time * 60) > 0 ? BELL_ON : BELL_OFF; ud.bell.scale.setScalar(o.lunge > 0 ? 1.6 : 1); }
         }
         if (ud.pedal && legs) { const c = time * (4 + v * 2); legs[0].rotation.x = Math.sin(c) * 0.9; legs[1].rotation.x = -Math.sin(c) * 0.9; }
         if (ud.dust && v > 0.8 && Math.random() < dt * 14 * ud.dust) {

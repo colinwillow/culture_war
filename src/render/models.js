@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=48';
+import { THREE, box, cyl, mat } from './scene.js?v=49';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -71,7 +71,20 @@ export function makeMember(f, slot) {
     else if (slot === 'pike') { g = humanoid(C, C.main, C.hair); g.add(box(0.05, 1.5, 0.05, 0xcccccc, 0.3, 1.1, 0), box(0.8, 0.55, 0.05, 0xf4f1de, 0.3, 1.95, 0)); }
     else if (slot === 'melee') { g = humanoid(C, C.main, C.alt); }
     else if (slot === 'ranged') { g = humanoid(C, C.dark, C.hair); const m = cyl(0.08, 0.26, 0.5, C.alt, 0.3, 1.05, 0.4, 10); m.rotation.x = Math.PI / 2; g.add(m); }
-    else if (slot === 'cav') { g = humanoid(C, C.main, C.hair); g.position.y = 0.35; g.add(box(0.1, 0.45, 1.2, 0x333333, 0, 0.1, 0)); for (const z of [0.5, -0.5]) g.add(wheel(0.33, 0.08, 0, -0.02, z, 0x111111)); tagWheels(g); g.userData.pedal = true; }
+    else if (slot === 'cav') {
+      // Bike Collective: rider on a real-looking bike - two spoked wheels, a diamond frame, saddle, bars and a bell.
+      g = humanoid(C, C.main, C.hair); g.position.y = 0.35;
+      for (const z of [0.55, -0.55]) g.add(wheel(0.33, 0.06, 0, -0.02, z, 0x111111));
+      const fr = (len, x, y, z, rx) => { const m = box(0.06, len, 0.06, C.alt, x, y, z); m.rotation.x = rx; g.add(m); };
+      fr(0.95, 0, 0.32, 0.02, Math.PI / 2);       // top tube
+      fr(0.75, 0, 0.12, 0.22, -0.95);             // down tube to the bottom bracket
+      fr(0.55, 0, 0.1, -0.2, 0.25);               // seat tube
+      fr(0.6, 0, -0.02, -0.37, Math.PI / 2 - 0.2); // chain stay
+      fr(0.5, 0, 0.15, 0.52, -0.25);              // fork
+      g.add(box(0.5, 0.05, 0.05, 0x222222, 0, 0.48, 0.5), box(0.18, 0.06, 0.28, 0x222222, 0, 0.42, -0.25));
+      const bell = box(0.1, 0.1, 0.1, 0xf5b83a, 0.18, 0.53, 0.5); g.add(bell); g.userData.bell = bell;
+      g.userData.wheels = g.children.filter((c) => c.geometry && c.geometry.type === 'CylinderGeometry'); g.userData.pedal = true;
+    }
     else if (slot === 'siege') {
       // Parade puppet: a tall body, a big paper-mache head (eyes ride on it) and two floppy arms hung from shoulder pivots.
       g = new THREE.Group();
