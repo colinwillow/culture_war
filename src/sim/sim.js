@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=129';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=129';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=129';
-import { mulberry32 } from '../util/math.js?v=129';
-import { aiStep } from './ai.js?v=129';
+} from '../config/factions.js?v=131';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=131';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=131';
+import { mulberry32 } from '../util/math.js?v=131';
+import { aiStep } from './ai.js?v=131';
 
 let S = null;
 export const getSim = () => S;
@@ -37,6 +37,8 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     // King of the Hill: the middle overpass. Holding it alone (no enemy fighters on it) fills your bar; full = win.
     // Resource Race: first to EARN this much (income + deposits + scrap; spending doesn't count against you) wins.
     race: mode === 'race' ? { goal: 2500 } : null,
+    // Downtown: one side wrecks the city, the other keeps it standing. meter = share of all floors still up.
+    down: mode === 'down-w' || mode === 'down-b' ? { role: mode === 'down-w' ? ['w', 'b'] : ['b', 'w'], meter: 1, start: 0, total: 0, limit: 480, lose: 0.35, win: 0.97, hold: 0.6, hot: null } : null,
     // Capture and Hold: three flags (the middle overpass + one park on each side). Fighters of one side alone at a flag
     // swing it over in ~6 s; every second, the side holding MORE flags drains the other's 300-point counter by the margin.
     cap: mode === 'cap' ? { pts: [[0, 0], [-18, 29], [18, -29]].map(([x, z]) => ({ x, z, r: 6, prog: 0, owner: -1 })), score: [300, 300], max: 300, t: 0 } : null,
@@ -56,6 +58,11 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     else spawnSquad(p, 'melee', p.hqx, p.hqz - p.side * 12);
   }
   if (mode === 'hero') S.duel = true;
+  if (S.down) { // the city starts already battered: about a third of the floors are missing (rubble on some blocks)
+    for (const b of S.city) { const k = S.rng(); const lost = k < 0.12 ? b.floors : k < 0.5 ? Math.floor(S.rng() * b.floors * 0.7) : 0; b.fl = b.floors - lost; b.hp = b.fl * FLOOR_HP; b.dead = b.fl === 0; }
+    S.down.total = S.city.reduce((a, b) => a + b.floors, 0);
+    S.down.meter = S.down.start = S.city.reduce((a, b) => a + b.fl, 0) / S.down.total;
+  }
   return S;
 }
 
@@ -76,7 +83,7 @@ export const aliveN = (s) => { let n = 0; for (const h of s.members) if (h > 0) 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
 const sqR = (def, slot) => (def.n > 1 ? 1.3 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1);
 const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || S.city.find((b) => b.id === id) || null;
-const FLOOR_HP = 150;
+const FLOOR_HP = 100;
 // Floors standing for a city storefront's hp: a floor is gone once its slice of hp is fully gone.
 const floorsFor = (b) => Math.max(0, Math.min(b.floors, Math.ceil(b.hp / FLOOR_HP - 1e-6)));
 
@@ -269,12 +276,15 @@ function killSquad(t) {
   const i = S.squads.indexOf(t); if (i >= 0) S.squads.splice(i, 1);
   if (t.f === 'bw' && t.def.vehicle) { pl(t.owner).cash += Math.round(t.def.cost * 0.5); pl(t.owner).st.earned += Math.round(t.def.cost * 0.5); S.events.push({ k: 'scrap', x: t.x, z: t.z, owner: t.owner, slot: t.slot, h: t.heading }); }
 }
-function hitBld(b, d) {
+function hitBld(b, d, by) {
   if (b.city) { // a storefront: floors come off from the top, the ground floor last; rubble stays and can be rebuilt
     if (b.hp <= 0) return;
     b.hp = Math.max(0, b.hp - d);
     const fl = floorsFor(b);
-    while (b.fl > fl) { b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors }); }
+    while (b.fl > fl) {
+      b.fl--; S.events.push({ k: 'chunk', ci: b.ci, x: b.x, z: b.z, fl: b.fl, floors: b.floors });
+      if (S.down) { S.down.hot = { x: b.x, z: b.z, t: S.t }; if (by !== undefined && S.down.role[by] === 'w') { const p = pl(by); p.cash += 20; p.st.earned += 20; S.events.push({ k: 'deposit', x: b.x, z: b.z, owner: by }); } } // looting a floor pays the wreckers
+    }
     if (b.hp <= 0) { b.dead = true; S.events.push({ k: 'boom', x: b.x, z: b.z, r: b.r * 0.6 }); }
     return;
   }
@@ -293,7 +303,7 @@ function hitBld(b, d) {
 function attack(s, t) {
   const ph = perHit(s, t), n = aliveN(s);
   let total;
-  if (t.isBld) { total = ph * n; hitBld(t, total); }
+  if (t.isBld) { total = ph * n; hitBld(t, total, s.owner); }
   else if (s.def.area) { total = ph * Math.min(5, aliveN(t)); hitSquad(t, ph, true, s); }
   else { total = ph * n; hitSquad(t, total, false, s); }
   if (!t.isBld && s.f === 'ac' && s.slot === 'ranged') t.debuff = 5;
@@ -521,6 +531,17 @@ function resolvePending(pd) {
     S.events.push({ k: 'wreckboom', x: pd.x, z: pd.z, r: pd.r });
   }
 }
+function stepDown(dt) {
+  const D = S.down;
+  D.meter = S.city.reduce((a, b) => a + b.fl, 0) / D.total;
+  const wi = D.role.indexOf('w'), bi = D.role.indexOf('b');
+  // City taxes: every 10 s the builders collect more the more of the city is standing.
+  D.taxT = (D.taxT || 0) + dt;
+  if (D.taxT >= 10) { D.taxT -= 10; const p = pl(bi), inc = Math.round(40 * D.meter); p.cash += inc; p.st.earned += inc; S.events.push({ k: 'income', owner: bi }); }
+  if (D.meter <= D.lose) S.over = { winner: wi, down: true };
+  else if (D.meter >= D.win) S.over = { winner: bi, down: true };
+  else if (S.t >= D.limit) S.over = { winner: D.meter >= D.hold ? bi : wi, down: true };
+}
 function stepCap(dt) {
   const c = S.cap;
   for (const f of c.pts) {
@@ -570,6 +591,7 @@ export function step() {
   if (S.hill && !S.over) stepHill(dt);
   if (S.cap && !S.over) stepCap(dt);
   if (S.duel && !S.over) for (const p of S.players) if (!S.squads.some((q) => q.owner === p.i && q.slot === 'hero' && aliveN(q) > 0)) { S.over = { winner: 1 - p.i, duel: true }; break; }
+  if (S.down && !S.over) stepDown(dt);
   if (S.race && !S.over) for (const p of S.players) if (p.st.earned >= S.race.goal) { S.over = { winner: p.i, race: true }; break; }
   for (const b of [...S.blds]) {
     if (b.dead) continue;

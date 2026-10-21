@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=129';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=129';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=131';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=131';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -100,6 +100,25 @@ export function aiStep(S, dt, pi = 1) {
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
   // King of the Hill: the army's job is the hill - go take it (or retake it) as soon as there is a squad or two to send,
   // and keep it there; full waves still go for the HQ.
+  if (S.down) { // Downtown
+    const role = S.down.role[pi];
+    if (role === 'b') {
+      // two workers keep patching the most-wrecked storefront nearest home; the army guards wherever the city was last hit
+      const hurt = S.city.filter((b) => b.hp < b.maxHp).sort((a, b) => (a.hp / a.maxHp + Math.hypot(a.x - p.hqx, a.z - p.hqz) / 200) - (b.hp / b.maxHp + Math.hypot(b.x - p.hqx, b.z - p.hqz) / 200))[0];
+      if (hurt && p.cash > 60) workersOf(p).filter((w) => w.order.type === 'repair').length < 2 && workersOf(p).filter((w) => w.order.type !== 'repair' && !w.carry).slice(0, 1).forEach((w) => setOrder(w, { type: 'repair', b: hurt }));
+      const hot = S.down.hot;
+      if (hot && S.t - hot.t < 20) mine.forEach((s) => { if (s.order.type === 'idle' && Math.hypot(s.x - hot.x, s.z - hot.z) > 10) setOrder(s, { type: 'amove', x: hot.x + (S.rng() - 0.5) * 6, z: hot.z + (S.rng() - 0.5) * 6 }); });
+    } else {
+      // wreckers: every idle fighter goes to smash the nearest storefront still standing
+      for (const s of mine) {
+        if (s.order.type !== 'idle' && !(s.order.type === 'move' && !s.escortFor)) continue;
+        let best = null, bd = 1e9;
+        for (const b of S.city) { if (b.hp <= 0) continue; const d = Math.hypot(b.x - s.x, b.z - s.z); if (d < bd) { bd = d; best = b; } }
+        if (best) setOrder(s, { type: 'attack', target: best });
+      }
+    }
+    return;
+  }
   if (S.duel) { // Hero vs Hero: the hero hunts the other hero (and goes home to heal when hurt - the retreat rule above)
     const me = mine.find((s) => s.slot === 'hero'), them = S.squads.find((s) => s.owner !== pi && s.slot === 'hero');
     if (me && them && me.order.type !== 'attack') setOrder(me, { type: 'attack', target: them });

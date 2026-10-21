@@ -204,3 +204,4 @@ body.show-mute #gfxBtn { display: grid; }
 .btn .badge ~ .lbl { }
 .diff button.mode { flex-direction: column; gap: 2px; height: 56px; }
 .diff button.mode small { font: 8px/1 var(--num); letter-spacing: .04em; }
+.hillc.down #hillMe { color: #f3efe2; } .hillc.down #hillThem { color: #9aa0a6; } .hillc.down.up .ic { color: #7ee05b; } .hillc.down.low .ic { color: #ff5a4f; }

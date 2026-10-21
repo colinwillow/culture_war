@@ -163,7 +163,8 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Downtown (Colin, Oct 21 2026 - see docs/design.md "Downtown")
 - [x] (B129) Step 1: breakable city - every storefront is a stack of floors that gets smashed off from the top (chunks tumble, dust, shake); workers rebuild floor by floor for cash. Tap a storefront with fighters = smash, with workers = rebuild
-- [ ] Step 2: city meter + Downtown mode - one side Wreckers, one side Builders (picked from the existing factions); the meter swings with floors standing; timer win
+- [x] (B131) Step 2: city meter + Downtown mode - one side Wreckers, one side Builders (picked from the existing factions); the meter swings with floors standing; timer win
+- [ ] City look: storefronts in different shapes (setback towers, gables, domes, water towers, spires, L-plans) so blocks are easy to tell apart (Colin)
 - [ ] Step 3: drifters - neutral street people; cash/jobs turn them into rebuild workers, neglect or wreckage turns them into wreckers
 - [ ] Step 4: wrecker/builder verbs - loot a storefront for cash, tag it; upgrade City Hall, open shops, give jobs
 - [ ] Step 5: Colin's building kit pieces (weirdport models/building_kit) replace the floor slabs
