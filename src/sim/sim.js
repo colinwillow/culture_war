@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=4';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=4';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=4';
-import { mulberry32 } from '../util/math.js?v=4';
-import { aiStep } from './ai.js?v=4';
+} from '../config/factions.js?v=5';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=5';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=5';
+import { mulberry32 } from '../util/math.js?v=5';
+import { aiStep } from './ai.js?v=5';
 
 let S = null;
 export const getSim = () => S;
@@ -160,12 +160,13 @@ function applyCmd(c) {
 }
 
 // ---------- Units ----------
+const AGGRO = 10, LEASH = 14; // idle guard radius / how far an idle squad will chase from its post
 export function spawnSquad(p, slot, x, z) {
   const def = fac(p).units[slot];
   const s = {
     id: S.nid++, owner: p.i, f: p.f, slot, def, x, z, px: x, pz: z, mhp: def.hp, members: new Array(def.n).fill(def.hp), r: sqR(def, slot),
     order: { type: 'idle' }, path: null, pathT: 0, cd: 0, kills: 0, rank: 0, stun: 0, debuff: 0, bull: 0, sit: false, abil: 4,
-    heading: p.side > 0 ? Math.PI : 0, rally: 0, dead: false, carry: 0, gatherT: 0, task: null,
+    heading: p.side > 0 ? Math.PI : 0, post: { x, z }, rally: 0, dead: false, carry: 0, gatherT: 0, task: null,
   };
   S.squads.push(s);
   return s;
@@ -326,10 +327,20 @@ function updateSquad(s, dt) {
   if (s.sit) return;
   const o = s.order;
   let t = null;
-  if (o.type === 'move') { if (moveTo(s, o.x, o.z, dt)) setOrder(s, { type: 'idle' }); return; }
-  if (o.type === 'attack') { if (o.target && !o.target.dead) t = o.target; else setOrder(s, { type: 'idle' }); }
-  if (!t) t = nearestEnemy(s, Math.max(s.def.range + 3, 8));
-  if (!t) { if (o.type === 'amove' && moveTo(s, o.x, o.z, dt)) setOrder(s, { type: 'idle' }); return; }
+  if (o.type === 'move') { if (moveTo(s, o.x, o.z, dt)) { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } return; }
+  if (o.type === 'attack') { if (o.target && !o.target.dead) t = o.target; else { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } }
+  // Walking home after a leash break: only fight back at point-blank, never get pulled out again.
+  if (o.type === 'return') {
+    t = nearestEnemy(s, s.def.range + 0.5);
+    if (!t) { if (moveTo(s, s.post.x, s.post.z, dt)) setOrder(s, { type: 'idle' }); return; }
+  }
+  // Idle squads guard their post: they pick fights that come within AGGRO, but break off past LEASH and go back.
+  if (!t) {
+    t = nearestEnemy(s, Math.max(s.def.range + 4, AGGRO));
+    const away = Math.hypot(s.x - s.post.x, s.z - s.post.z);
+    if (o.type === 'idle' && (t ? away > LEASH && dist(s, t) > s.def.range : away > 3)) { setOrder(s, { type: 'return' }); return; }
+  }
+  if (!t) { if (o.type === 'amove' && moveTo(s, o.x, o.z, dt)) { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } return; }
   if (dist(s, t) > s.def.range) chase(s, t, dt);
   else { s.heading = Math.atan2(t.x - s.x, t.z - s.z); if (s.cd <= 0) { s.cd = 1; attack(s, t); } }
 }

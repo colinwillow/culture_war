@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B5 (overnight loop): idle squads guard a post: engage within 10 m, break off past a 14 m leash and walk back (only fighting back point-blank on the way)
 - B4 (overnight loop): city life: trees sway, traffic lights cycle at intersections, manholes puff steam, bird flocks circle the parks
 - B3 (overnight loop): order marker (chevrons slide in, arrow bounces onto the spot) and ordered squads answer with a hop
 - B2 (overnight loop): pooled particles (`src/fx/particles.js`, one InstancedMesh): melee sparks + dust, muzzle flash + tracer slug, coin fountain on deposit.
