@@ -1,20 +1,21 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=61';
-import { buildWorld, updateWorld } from './render/world.js?v=61';
-import { syncRender, clearRender, bump } from './render/sync.js?v=61';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=61';
-import { newSim, getSim, step } from './sim/sim.js?v=61';
-import { TICK } from './config/factions.js?v=61';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=61';
-import { initInput, lockPageZoom } from './input/input.js?v=61';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=61';
-import { resetUI } from './ui/state.js?v=61';
-import { fillIcons, svg } from './ui/icons.js?v=61';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=61';
-import { updateMinimap } from './ui/minimap.js?v=61';
-import { loadChars } from './render/chars.js?v=61';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=62';
+import { buildWorld, updateWorld } from './render/world.js?v=62';
+import { syncRender, clearRender, bump } from './render/sync.js?v=62';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=62';
+import { newSim, getSim, step } from './sim/sim.js?v=62';
+import { TICK } from './config/factions.js?v=62';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=62';
+import { initInput, lockPageZoom } from './input/input.js?v=62';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=62';
+import { resetUI } from './ui/state.js?v=62';
+import { fillIcons, svg } from './ui/icons.js?v=62';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=62';
+import { updateMinimap } from './ui/minimap.js?v=62';
+import { isMuted, setMuted } from './fx/sfx.js?v=62';
+import { loadChars } from './render/chars.js?v=62';
 
-export const BUILD = 61; // written by `npm run bump`
+export const BUILD = 62; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -55,12 +56,18 @@ document.getElementById('again').addEventListener('pointerup', () => { endEl.hid
 // phone switches away from the tab.
 let paused = false;
 const pauseDim = document.getElementById('pauseDim'), pauseBtn = document.getElementById('pauseBtn');
-function setPause(on) { paused = on && running; pauseDim.hidden = !paused; }
+// Mute: a speaker button shown on the menu and while paused (never over the battlefield).
+const muteBtn = document.getElementById('muteBtn');
+const drawMute = () => { muteBtn.innerHTML = svg(isMuted() ? 'mute' : 'sound'); document.body.classList.toggle('show-mute', !running || paused); };
+muteBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); setMuted(!isMuted()); drawMute(); });
+muteBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+function setPause(on) { paused = on && running; pauseDim.hidden = !paused; drawMute(); }
 pauseBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(true); });
 pauseBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 pauseDim.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(false); });
 pauseDim.addEventListener('pointerdown', (e) => e.stopPropagation());
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); });
+drawMute();
 let last = performance.now(), acc = 0, hudT = 0;
 function frame(now) {
   const dt = paused ? 0 : Math.min(0.1, (now - last) / 1000);

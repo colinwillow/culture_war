@@ -1,11 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=61';
-import { walkH } from '../map/layout.js?v=61';
-import { shake } from '../camera/camera.js?v=61';
-import { FC } from '../render/models.js?v=61';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=61';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=62';
+import { walkH } from '../map/layout.js?v=62';
+import { sfx } from './sfx.js?v=62';
+import { shake, CAM } from '../camera/camera.js?v=62';
+import { FC } from '../render/models.js?v=62';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=62';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -214,8 +215,18 @@ export function fxMarker(x, z, c) {
 export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
+const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', spawn: 'blip', repair: 'tap' };
+function playFor(ev) {
+  let name = SND[ev.k];
+  if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
+  if (!name) return;
+  const x = ev.tx ?? ev.x, z = ev.tz ?? ev.z, d = x === undefined ? 0 : Math.hypot(x - CAM.tx, z - CAM.tz);
+  sfx(name, Math.max(0, 1 - d / (40 + CAM.dist * 0.6)));
+}
 export function handleEvents(S, bump) {
   for (const ev of S.events) {
+    playFor(ev);
     switch (ev.k) {
       case 'shot':
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
