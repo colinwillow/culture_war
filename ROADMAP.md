@@ -51,3 +51,15 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B40) UI: build-radius preview — while placing, a soft ring around each of your buildings shows where you are allowed to build
 - [x] (B41) Map: pigeons in the parks scatter (fly up and away) when a squad walks through them, then settle back
 - [x] (B42) FX: tower shots get faction flavour — Deer Stand fires a slug with a puff of smoke, Banner Tower throws a paint balloon splat
+
+## Batch 4 (added 11:03 UTC by the loop, same rules)
+- [ ] Units: Backwoods hero Screech — the bald eagle's stun cry gets a visible shockwave (expanding sound rings + feathers) and stunned squads wobble
+- [ ] UI: tap-and-hold on empty ground = select all your army squads on screen (big friendly gesture; hold ring fills under the finger)
+- [ ] Map: overpass traffic — little cars also drive the city avenues (render only), stopping at the red lights
+- [ ] FX: worker gather sparkle — while a worker is on shift a chef-hat steam puff / cash register 'ka-ching' coin flips up every second
+- [ ] Logic: building repair — idle workers near a damaged own building fix it slowly (hammer sparks), costs a trickle of cash
+- [ ] UI: income ticker — the cash chip briefly flashes green and bumps when money comes in, red when spent
+- [ ] Placeholder: Bike Collective rides real bikes — frame triangle, handlebars, bell flash on attack; rider leans into turns
+- [ ] FX: projectile variety — Shotgun Hunters spray 3 pellets, Megaphone Crew fires visible sound-wave arcs
+- [ ] Map: weather — light drifting clouds casting moving soft shadow patches over the city (cheap: 3 big transparent decals)
+- [ ] UI: hero portrait button — a big round hero button appears once your hero exists; tap = select + jump to hero
