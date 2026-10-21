@@ -1,16 +1,16 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=85';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=85';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=85';
-import { emit } from '../fx/particles.js?v=85';
-import { bark } from '../fx/sfx.js?v=85';
-import { TICK } from '../config/factions.js?v=85';
-import { walkH } from '../map/layout.js?v=85';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=85';
-import { Q, pl, getSim } from '../sim/sim.js?v=85';
-import { UI } from '../ui/state.js?v=85';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=85';
-import { lerpAngle } from '../util/math.js?v=85';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=86';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=86';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=86';
+import { emit } from '../fx/particles.js?v=86';
+import { bark } from '../fx/sfx.js?v=86';
+import { TICK } from '../config/factions.js?v=86';
+import { walkH } from '../map/layout.js?v=86';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=86';
+import { Q, pl, getSim } from '../sim/sim.js?v=86';
+import { UI } from '../ui/state.js?v=86';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=86';
+import { lerpAngle } from '../util/math.js?v=86';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -160,6 +160,7 @@ const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 -
 
 export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
+  hillRender(S, time);
   const seen = new Set();
   for (const s of S.squads) {
     seen.add(s.id);
@@ -547,7 +548,25 @@ export function syncRender(S, alpha, dt, time) {
   if (R.zone) R.zone.children.forEach((c) => { if (c.userData.spin) c.rotation.y = time * 0.05; });
 }
 
+// King of the Hill marker: a glowing ring + flag on the middle overpass, tinted to the holder, flickering when contested.
+function hillRender(S, time) {
+  if (!S.hill) { if (R.hill) { disposeObj(R.hill.g); R.hill = null; } return; }
+  if (!R.hill) {
+    const g = new THREE.Group(), h = S.hill, y = walkH(h.x, h.z);
+    const ring = ringMesh(h.r - 0.5, h.r, 0xffffff, 0.8), fill = new THREE.Mesh(new THREE.CircleGeometry(h.r - 0.5, 40), basic(0xffffff, 0.12));
+    fill.rotation.x = -Math.PI / 2; fill.position.y = 0.08;
+    const pole = box(0.12, 4, 0.12, 0xdddddd, 0, 2, 0), flag = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.9), basic(0xffffff, 0.95));
+    flag.position.set(0.72, 3.5, 0);
+    g.add(ring, fill, pole, flag); g.position.set(h.x, y, h.z); scene.add(g);
+    R.hill = { g, ring, fill, flag };
+  }
+  const h = S.hill, o = R.hill, c = h.contested ? (Math.sin(time * 18) > 0 ? 0x7fd1ff : 0xff5a4f) : h.holder === 0 ? 0x7fd1ff : h.holder === 1 ? 0xff5a4f : 0xf3efe2;
+  o.ring.material.color.setHex(c); o.fill.material.color.setHex(c); o.flag.material.color.setHex(c);
+  o.fill.material.opacity = 0.1 + (h.holder >= 0 ? 0.08 + Math.sin(time * 4) * 0.05 : 0);
+  o.flag.rotation.y = Math.sin(time * 3) * 0.3; o.flag.scale.x = 1 + Math.sin(time * 7) * 0.08;
+}
 export function clearRender() {
+  if (R.hill) { disposeObj(R.hill.g); R.hill = null; }
   for (const o of R.sq.values()) disposeObj(o.root);
   for (const o of R.bl.values()) { disposeObj(o.root); if (o.flag) { disposeObj(o.flag); disposeObj(o.dots); } }
   for (const o of R.nodes.values()) disposeObj(o.g);

@@ -161,3 +161,11 @@ body.show-mute #muteBtn { display: grid; }
 #devInfo { position: fixed; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); z-index: 9; font: 11px/1.2 monospace; color: #fff; background: rgba(0,0,0,.55); padding: 3px 6px; border-radius: 6px; pointer-events: none; }
 #devInfo[hidden] { display: none; }
 #build { cursor: pointer; pointer-events: auto; }
+
+/* King of the Hill: your bar (blue) over theirs (red) next to the flag; the flag pulses with whoever holds the hill. */
+.hillc .hb { display: flex; flex-direction: column; gap: 3px; width: 70px; }
+.hillc .hb i { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); position: relative; overflow: hidden; }
+.hillc .hb i::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--w, 0%); background: currentColor; }
+#hillMe { color: #7fd1ff; } #hillThem { color: #ff5a4f; }
+.hillc.h0 .ic { color: #7fd1ff; } .hillc.h1 .ic { color: #ff5a4f; } .hillc.hc .ic { animation: hillFlick .3s steps(2) infinite; }
+@keyframes hillFlick { 50% { color: #ff5a4f; } }

@@ -1,15 +1,15 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=85';
-import { UI, select, selSquads } from './state.js?v=85';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=85';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=85';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=85';
-import { camera } from '../render/scene.js?v=85';
-import { walkH } from '../map/layout.js?v=85';
-import { THREE } from '../render/scene.js?v=85';
-import { showHint } from './hint.js?v=85';
+import { svg } from './icons.js?v=86';
+import { UI, select, selSquads } from './state.js?v=86';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf } from '../sim/sim.js?v=86';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=86';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=86';
+import { camera } from '../render/scene.js?v=86';
+import { walkH } from '../map/layout.js?v=86';
+import { THREE } from '../render/scene.js?v=86';
+import { showHint } from './hint.js?v=86';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -138,6 +138,13 @@ export function refreshHUD() {
   const used = cpUsed(p), cap = cpCap(p);
   document.querySelector('#cp b').textContent = used + '/' + cap;
   document.getElementById('cp').classList.toggle('full', used >= cap);
+  const hc = document.getElementById('hillChip');
+  hc.style.display = S.hill ? '' : 'none';
+  if (S.hill) {
+    document.getElementById('hillMe').style.setProperty('--w', S.hill.prog[0] * 100 + '%');
+    document.getElementById('hillThem').style.setProperty('--w', S.hill.prog[1] * 100 + '%');
+    hc.className = 'chip hillc' + (S.hill.contested ? ' hc' : S.hill.holder >= 0 ? ' h' + S.hill.holder : '');
+  }
   document.getElementById('meterFill').style.width = Math.round(p.meter) + '%';
 }
 let lastCash = null;
