@@ -50,4 +50,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B39) FX: Activists Rally — thin pulsing lines link nearby Activist squads while the rally bonus is active
 - [x] (B40) UI: build-radius preview — while placing, a soft ring around each of your buildings shows where you are allowed to build
 - [x] (B41) Map: pigeons in the parks scatter (fly up and away) when a squad walks through them, then settle back
-- [ ] FX: tower shots get faction flavour — Deer Stand fires a slug with a puff of smoke, Banner Tower throws a paint balloon splat
+- [x] (B42) FX: tower shots get faction flavour — Deer Stand fires a slug with a puff of smoke, Banner Tower throws a paint balloon splat

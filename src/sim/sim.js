@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=41';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=41';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=41';
-import { mulberry32 } from '../util/math.js?v=41';
-import { aiStep } from './ai.js?v=41';
+} from '../config/factions.js?v=42';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=42';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=42';
+import { mulberry32 } from '../util/math.js?v=42';
+import { aiStep } from './ai.js?v=42';
 
 let S = null;
 export const getSim = () => S;
@@ -460,7 +460,7 @@ export function step() {
         const gar = b.kind === 'tower' && b.garrison, rng = b.kind === 'hq' ? 10 : BLD.tower.range + (gar ? 4 : 0), dmg = b.kind === 'hq' ? 15 : BLD.tower.dmg * (gar ? 1.5 : 1);
         let t = null, bd = rng;
         for (const o of S.squads) { if (o.owner === b.owner || o.gar) continue; const d = dist(b, o); if (d < bd) { bd = d; t = o; } }
-        if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq' }); hitSquad(t, dmg, false, null); }
+        if (t) { b.cd = 1; S.events.push({ k: 'shot', x: b.x, z: b.z, tx: t.x, tz: t.z, y0: b.kind === 'hq' ? 4 : 5, f: b.f, slot: 'hq', bk: b.kind, to: t.owner }); hitSquad(t, dmg, false, null); }
       }
     }
   }

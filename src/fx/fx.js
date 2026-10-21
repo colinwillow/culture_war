@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=41';
-import { walkH } from '../map/layout.js?v=41';
-import { shake } from '../camera/camera.js?v=41';
-import { FC } from '../render/models.js?v=41';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=41';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=42';
+import { walkH } from '../map/layout.js?v=42';
+import { shake } from '../camera/camera.js?v=42';
+import { FC } from '../render/models.js?v=42';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=42';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -138,6 +138,19 @@ function fxWreck(x, z, big, h) {
     }
   });
 }
+/** Banner Tower: lobs a paint balloon that bursts into a bright splat (decal fades after a few seconds). */
+const PAINT = [0xe85d9a, 0x2cc2ad, 0xf5b83a, 0x6fc3ff];
+function paintBalloon(x, z, tx, tz) {
+  const c = PAINT[(Math.random() * PAINT.length) | 0];
+  fxArc(x, z, tx, tz, c, () => {
+    const g0 = gy(tx, tz, 0.12), m = basic(c, 0.85), g = new THREE.Group();
+    const d = new THREE.Mesh(new THREE.CircleGeometry(0.9, 14), m); d.rotation.x = -Math.PI / 2; g.add(d);
+    for (let i = 0; i < 5; i++) { const a = Math.random() * 6.28, b = new THREE.Mesh(new THREE.CircleGeometry(0.2 + Math.random() * 0.2, 8), m); b.rotation.x = -Math.PI / 2; b.position.set(Math.cos(a) * 1.3, 0.005, Math.sin(a) * 1.3); g.add(b); }
+    g.position.set(tx, g0, tz); g.rotation.y = Math.random() * 6;
+    addFx(g, 4, (o, k) => { m.opacity = k > 0.6 ? (1 - k) / 0.4 * 0.85 : 0.85; });
+    for (let i = 0; i < 10; i++) emit({ x: tx, y: g0 + 0.6, z: tz, vx: (Math.random() - 0.5) * 6, vy: 2 + Math.random() * 3, vz: (Math.random() - 0.5) * 6, c, s: 0.2, life: 0.6, g: 14, floor: g0 });
+  });
+}
 /** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
 function fxRubble(x, z, r) {
   const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
@@ -178,6 +191,11 @@ export function handleEvents(S, bump) {
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
         else if (ev.f === 'ac' && ev.slot === 'ranged') { fxLine(ev.x, ev.z, ev.tx, ev.tz, 1, 0xe85d9a); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
+        else if (ev.bk === 'tower' && ev.f === 'ac') paintBalloon(ev.x, ev.z, ev.tx, ev.tz);
+        else if (ev.bk === 'tower' && ev.f === 'bw') { // Deer Stand: a heavy slug and a fat puff of gunsmoke off the stand
+          burstShot(ev.x, gy(ev.x, ev.z, 5), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, 0xffe9a8);
+          for (let k = 0; k < 4; k++) emit({ x: ev.x + (ev.tx - ev.x) * 0.06, y: gy(ev.x, ev.z, 5), z: ev.z + (ev.tz - ev.z) * 0.06, vx: (Math.random() - 0.5), vy: 0.6 + Math.random() * 0.5, vz: (Math.random() - 0.5), c: 0xcfcfcf, s: 0.6, life: 1.3, g: -0.2, drag: 1.5, grow: 2.5 });
+        }
         else { const y0 = ev.y0 || 1.25; burstShot(ev.x, gy(ev.x, ev.z, y0), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, ev.slot === 'hq' ? 0xffffff : 0xfff2a8); }
         bump(ev.id); break;
       case 'hit':
