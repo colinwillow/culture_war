@@ -37,6 +37,18 @@
   <div class="big" id="endIcon"></div>
   <button class="again" id="again" type="button" aria-label="Play again"><span class="ic" data-i="replay"></span></button>
 </div>
-<script type="module" src="./src/main.js"></script>
+<div id="bootErr" hidden></div>
+<script>
+// No console on a phone: if the game script fails to start, print why on the menu instead of leaving dead buttons.
+(function () {
+  var box = document.getElementById('bootErr');
+  function show(msg) { box.hidden = false; box.textContent += msg + '\n'; }
+  window.addEventListener('error', function (e) { show('ERROR ' + e.message + (e.filename ? ' @ ' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno : '')); });
+  window.addEventListener('unhandledrejection', function (e) { show('ERROR ' + (e.reason && e.reason.message || e.reason)); });
+  window.__cwLoadFail = function () { show('ERROR could not load src/main.js'); };
+  setTimeout(function () { if (!window.__cwBooted) show('Game script did not start (old cached file? wait a few minutes and reload)'); }, 8000);
+})();
+</script>
+<script type="module" src="./src/main.js" onerror="__cwLoadFail()"></script>
 </body>
 </html>
