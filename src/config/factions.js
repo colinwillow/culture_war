@@ -83,6 +83,7 @@ export const FACTIONS = {
   // Old Money (Elite): tiny squads of 3, expensive, each member worth two of anyone else's.
   om: {
     name: 'Old Money',
+    traits: { cash: 1.2, inc: 1.4 }, // trust fund: starts with 20% more cash and 40% more passive income
     bldNames: { hq: 'The Mansion', depot: 'Bank Vault', barracks: 'Country Club', tower: 'Guard Booth' },
     units: {
       worker: { name: 'Butler', n: 1, hp: 70, dmg: 3, range: 1, speed: 4.5, cost: 70, build: 8, cp: 1 },

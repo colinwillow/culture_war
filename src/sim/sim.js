@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=75';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=75';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=75';
-import { mulberry32 } from '../util/math.js?v=75';
-import { aiStep } from './ai.js?v=75';
+} from '../config/factions.js?v=76';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=76';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=76';
+import { mulberry32 } from '../util/math.js?v=76';
+import { aiStep } from './ai.js?v=76';
 
 let S = null;
 export const getSim = () => S;
@@ -35,6 +35,7 @@ export function newSim(pf, seed = 12345, diff = 1) {
     ai: { t: 0, wave: [30, 20, 14][diff], waveMax: [32, 45, 60][diff] },
   };
   S.players[1].inc = [0.7, 1, 1.35][diff];
+  for (const p of S.players) { const tr = fac(p).traits || {}; p.cash = Math.round(p.cash * (tr.cash || 1)); p.inc *= tr.inc || 1; } // Old Money: a trust fund
   for (const [x, z] of NODES) S.nodes.push({ id: S.nid++, x, z, amount: NODE_AMOUNT });
   for (const p of S.players) {
     addBld(p, 'hq', p.hqx, p.hqz, true);
