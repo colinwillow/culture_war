@@ -46,7 +46,8 @@ The sim never touches three.js or the DOM. Everything else reads the sim and tal
 | `src/sim/ai.js` | Computer opponent (runs inside the tick) | sim internals |
 | `src/render/scene.js` | three.js renderer/scene/camera + mesh helpers | — |
 | `src/render/world.js` | Static city meshes + ambient freeway traffic | reads layout |
-| `src/render/models.js` | **Placeholder unit/building/business models — swap point for real art** | returns THREE.Group |
+| `src/render/models.js` | **Placeholder unit/building/business models** (fallback + vehicles/heroes/buildings) | returns THREE.Group |
+| `src/render/chars.js` | **Colin's real characters**: `CHARS` (files), `CAST` (who plays which unit + hand prop), `CLIPS` (donor clips retargeted onto every Mixamo rig) | `makeChar(f, slot, i)`, `play(g, state)` |
 | `src/render/sync.js` | Mirrors sim state into meshes each frame; placement ghost | reads sim + UI state |
 | `src/fx/fx.js` | Visual effects, driven by `S.events` | `handleEvents(S, bump)` |
 | `src/camera/camera.js` | RTS camera, ghost cam (pitch flattens as you zoom in) | — |
@@ -59,7 +60,7 @@ Rules that keep this multiplayer-ready (lockstep):
   Commands apply at the start of the next tick.
 - New mechanic = sim change + `S.events.push({k: '...'})` + a case in `fx/handleEvents`.
 
-## Current state (greybox 03)
+## Current state (greybox 04)
 - Backwoods vs Activists, one city map, Versus vs computer. Win by destroying the enemy HQ.
 - City map: 120 x 200 m, rotationally symmetric. Sunken freeway across the middle, crossable only at 3 overpasses.
   Each base sits behind a wall of buildings with 2 openings (one avenue is a dead end). Parks and a parking lot are
@@ -70,9 +71,19 @@ Rules that keep this multiplayer-ready (lockstep):
 - Squads, counter loop, ranks, power meter, faction powers (Mud Bog, Fourth of July, Parade, Pie in the Face).
 - One-finger drag pans; hold-then-drag box selects; pinch zoom + twist rotate; eye button = ghost cam.
 
+## Real characters (greybox 04)
+- GLBs live in `public/models/characters/` (copied from the weirdport repo), Draco decoder in `public/draco/`.
+- Most of the cast has no clips of its own. Clips come from three DONOR files (`fat_biker_02` idle/walk/run/hit/fall,
+  `contruction_worker` swings, `dummy_officer` shoot) and are retargeted by bone name (same method as weirdport's
+  `retarget`: rotation tracks shared, one constant rotation at the Hips, Hips travel dropped because the sim moves units).
+- Height is measured off the raw skin GEOMETRY, never `Box3.setFromObject`/`matrixWorld` (armature carries 0.01).
+- Props are attached to `mixamorig_RightHand` and point model-forward at bind.
+- Everything falls back to the box placeholders if loading fails (the single-file artifact build cannot fetch GLBs).
+- `fat_trump.glb` from weirdport is deliberately NOT used: no real people / politicians (App Store rule above).
+
 ## Next steps Colin has asked about
 - More passes on UI (generated button art), map feel, unit visuals/animation, attack effects (mostly code-driven particles).
-- Bring in his real character models (swap `models.js`; Mixamo rigs; GLB + Draco).
+- More real models: vehicles (monster truck, bikes), heroes, buildings; other factions from the weirdport cast.
 - Fill out the other launch factions: Nerds, Old Money, Street Crew, Hard Hats (template = Backwoods).
 - Game modes (Versus, Capture and Hold, King of the Hill, Resource Race, Hero vs Hero). Multiplayer later.
 - Possible later: possess a unit in first/third person. Alien-races edition on the same engine.

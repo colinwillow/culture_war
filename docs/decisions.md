@@ -2,6 +2,14 @@
 
 Newest first. Colin's feedback in his words where it matters.
 
+## Greybox 04 (Oct 21, 2026)
+- **Real characters in.** Colin: borrow the example models from the weirdport repo so this starts looking like a game.
+  Backwoods: hick (workers, pitchfork farmers, shotgun hunters), fat bikers (bar brawlers). Activists: fat activist,
+  hippie, hipster (gig workers, sign wavers, picket line, megaphone crew). Vehicles, bikes and heroes still placeholders.
+- Animation states: idle / walk / run (by ground speed), attack swing/stab/shoot on each hit event, hit flinch, fall on death.
+- The Trump model is not used (no real politicians, App Store 1.1.1). Secret service / firefighter / officer / construction
+  worker are candidates for Old Money and Hard Hats.
+
 ## Greybox 03 (Oct 20, 2026)
 - Moved into this repo, split into modules (see CLAUDE.md). Sim is deterministic and command-driven for future multiplayer.
 - **Placement confirm/cancel now float next to the building ghost** (Colin: the yes/no should be up next to where the building is being placed, not in the lower corner).

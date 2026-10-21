@@ -27,6 +27,8 @@ export function ringMesh(r0, r1, c, o) { const m = new THREE.Mesh(new THREE.Ring
 export function disposeObj(o) {
   scene.remove(o);
   o.traverse((n) => {
+    if (n.isSkinnedMesh) n.skeleton.dispose();
+    if (n.userData.shared) return; // character clones share geometry/material with their prototype
     if (n.geometry) n.geometry.dispose();
     if (n.material && !cached.has(n.material) && n.material.dispose) n.material.dispose();
   });

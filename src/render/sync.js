@@ -1,6 +1,8 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
 import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js';
 import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js';
+import { makeChar, charsReady, play, CAST } from './chars.js';
+import { TICK } from '../config/factions.js';
 import { walkH } from '../map/layout.js';
 import { NODE_AMOUNT, BLD } from '../config/factions.js';
 import { Q, pl } from '../sim/sim.js';
@@ -25,12 +27,18 @@ function setBar(bar, f, color) {
 function makeSquadObj(s) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]];
-  const members = offs.map(([ox, oz]) => { const m = makeMember(s.f, s.slot); const y = s.def.flies ? 3.8 : 0; m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; body.add(m); return m; });
+  const members = offs.map(([ox, oz], i) => {
+    const m = makeChar(s.f, s.slot, i) || makeMember(s.f, s.slot); const y = s.def.flies ? 3.8 : 0;
+    m.position.set(ox, y, oz); m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
+  });
+  const real = !!members[0].userData.anim;
+  // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
+  const wait = !real && !!(CAST[s.f] && CAST[s.f][s.slot]);
   const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.25));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.08; root.add(team);
   const sel = ringMesh(s.r + 0.45, s.r + 0.72, 0xffffff, 0.95); sel.visible = false; root.add(sel);
   const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
-  const h = new THREE.Box3().setFromObject(body).max.y;
+  const h = real ? 1.85 : new THREE.Box3().setFromObject(body).max.y;
   const bar = makeBar(Math.max(1.4, s.r * 1.5)); bar.g.position.y = h + 0.7; root.add(bar.g);
   const stun = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 6, 14), mat(0xffe14d)); stun.rotation.x = Math.PI / 2; stun.position.y = h + 0.25; stun.visible = false; root.add(stun);
   const pie = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat(0xfff8ec)); pie.scale.y = 0.6; pie.position.y = h + 0.05; pie.visible = false; root.add(pie);
@@ -39,7 +47,7 @@ function makeSquadObj(s) {
   for (let i = 0; i < 2; i++) { const d = box(0.2, 0.2, 0.2, 0xf5b83a, (i - 0.5) * 0.32, 0, 0); d.visible = false; rank.add(d); }
   root.add(rank);
   scene.add(root);
-  return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, yaw: s.heading, lunge: 0, lastAlive: s.def.n, confT: 0 };
+  return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
 }
 function makeBldObj(b) {
   const root = new THREE.Group(), mesh = bldMesh(b.kind, b.f); root.add(mesh);
@@ -68,7 +76,7 @@ function makeNodeObj(n) {
   return { g, ring, coin: g.userData.coin };
 }
 
-export function bump(id) { const o = R.sq.get(id); if (o) o.lunge = 0.15; }
+export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
 export function squadObj(id) { return R.sq.get(id); }
 
 export function syncRender(S, alpha, dt, time) {
@@ -77,6 +85,7 @@ export function syncRender(S, alpha, dt, time) {
   for (const s of S.squads) {
     seen.add(s.id);
     let o = R.sq.get(s.id);
+    if (o && o.wait && charsReady()) { const keep = o.lastAlive; disposeObj(o.root); o = null; R.sq.delete(s.id); o = makeSquadObj(s); o.lastAlive = keep; R.sq.set(s.id, o); }
     if (!o) { o = makeSquadObj(s); R.sq.set(s.id, o); }
     const x = s.px + (s.x - s.px) * alpha, z = s.pz + (s.z - s.pz) * alpha;
     o.root.position.set(x, walkH(x, z), z);
@@ -84,7 +93,35 @@ export function syncRender(S, alpha, dt, time) {
     const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
     const par = pl(s.owner).parade > 0, bs = par ? 18 : s.bull > 0 ? 14 : 10;
     let alive = 0;
-    for (let i = 0; i < o.members.length; i++) {
+    if (o.real) {
+      const v = Math.hypot(s.x - s.px, s.z - s.pz) / TICK;
+      const gather = s.slot === 'worker' && s.gatherT > 0 && s.task && s.task.state === 'gather';
+      for (let i = 0; i < o.members.length; i++) {
+        const m = o.members[i], A = m.userData.anim, live = s.members[i] > 0;
+        A.lock -= dt;
+        if (!live) {
+          if (m.userData.deadT === undefined) { m.userData.deadT = 1.8; play(m, 'die', true); }
+          m.userData.deadT -= dt;
+          m.visible = m.userData.deadT > 0;
+          if (m.visible) A.mixer.update(dt);
+          continue;
+        }
+        alive++;
+        if (s.members[i] < m.userData.hp - 0.5 && !o.atk) play(m, 'hit');
+        m.userData.hp = s.members[i];
+        if (o.atk) play(m, A.atk, true);
+        else if (gather && A.lock <= 0) play(m, A.atk);
+        else if (A.lock <= 0) {
+          const st = v < 0.15 ? 'idle' : v < 1.8 ? 'walk' : 'run';
+          play(m, st);
+          // Clip speed follows ground speed so feet roughly match (refs are guesses: walk 1.2, run 3.0 m/s).
+          if (st !== 'idle') A.actions[st].setEffectiveTimeScale(Math.min(1.8, Math.max(0.6, v / (st === 'walk' ? 1.2 : 3.0))));
+        }
+        A.mixer.update(dt * (s.stun > 0 ? 0.25 : 1));
+        m.position.z = m.userData.bz + o.lunge * 2.5;
+      }
+      o.atk = false;
+    } else for (let i = 0; i < o.members.length; i++) {
       const m = o.members[i], live = s.members[i] > 0;
       m.visible = live;
       if (!live) continue;

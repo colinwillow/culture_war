@@ -11,11 +11,13 @@ import { initInput, lockPageZoom } from './input/input.js';
 import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js';
 import { resetUI } from './ui/state.js';
 import { fillIcons, svg } from './ui/icons.js';
+import { loadChars } from './render/chars.js';
 
 lockPageZoom();
 fillIcons();
 buildWorld();
 initInput();
+loadChars();
 
 function resize() {
   renderer.setSize(window.innerWidth, window.innerHeight, false);
