@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B93 (overnight loop): Power aiming preview: while a targeted power is armed, a pulsing ring + soft fill of its real radius (mud 8, cones 7, wreck 5, takeover 7, jet 3, fireworks 7, mixtape 7, wifi 8) sits at the screen centre and then follows the finger, in your faction colour; gone when the power fires or is cancelled
 - B92 (overnight loop): The Streamer's own ability Go Live: when enemy infantry is within 6 m, every such squad stops to stare at the phone (2 s stun, 16 s cooldown) - a live-red ring off the Streamer and white camera-flash pops over each stunned squad. Nerds hero no longer borrows the bullhorn
 - B91 (overnight loop): Docs: CLAUDE.md Current state + docs/design.md rewritten for what exists at B91 - 6 factions with a traits/powers/hero-ability table, King of the Hill, time of day, AI garrisons, balance tool usage
 - B90 (overnight loop): 6-faction balance (tools/balance.cjs now takes a seed count; 5 seeds = 50 games each): start bw 18 ac 19 hh 23 om 29 sc 37 nd 23 -> Street Crew infantry pulled back (Sneakerheads 44hp/5dmg, Breakdancers 48/6), Old Money trust fund trimmed (cash x1.1, income x1.2), Backwoods infantry cheaper/tougher (Pitchfork 95 cost 70hp, Brawlers 112 cost 95hp) -> bw 24 ac 22 hh 28 om 22 sc 28 nd 26 (of 50)
