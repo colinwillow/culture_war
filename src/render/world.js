@@ -1,9 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=94';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=94';
-import { hash } from '../util/math.js?v=94';
-import { emit } from '../fx/particles.js?v=94';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=95';
+import { CAM } from '../camera/camera.js?v=95';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=95';
+import { hash } from '../util/math.js?v=95';
+import { emit } from '../fx/particles.js?v=95';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -301,7 +302,33 @@ export function setDusk(k) {
   if (lampHeads) lampHeads.material.emissive.setRGB(1 * k, 0.85 * k, 0.45 * k);
   if (windows) windows.material.emissive.setRGB(0.5 * k, 0.36 * k, 0.12 * k);
 }
+// Rain: 500 thin streaks in a box that follows the camera target, each landing with a tiny splash. One draw call.
+let rain = null;
+export function setRain(on) {
+  if (!on) { if (rain) { rain.im.visible = false; rain.on = false; } setOvercast(0); return; }
+  if (!rain) {
+    const N = 500, im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.03, 0.9, 0.03), new THREE.MeshBasicMaterial({ color: 0xcfe2f2, transparent: true, opacity: 0.45, depthWrite: false }), N);
+    im.frustumCulled = false; scene.add(im);
+    rain = { im, N, drops: Array.from({ length: N }, () => ({ x: (Math.random() - 0.5) * 80, y: Math.random() * 30, z: (Math.random() - 0.5) * 80 })) };
+  }
+  rain.on = true; rain.im.visible = true; setOvercast(1);
+}
+function updateRain(dt) {
+  if (!rain || !rain.on) return;
+  Q.identity(); Sv.set(1, 1, 1);
+  rain.drops.forEach((d, i) => {
+    d.y -= dt * 22; d.x += dt * 2;
+    const wx = CAM.tx + d.x, wz = CAM.tz + d.z, gy = walkH(wx, wz);
+    if (d.y < gy) {
+      if (i % 6 === 0) emit({ x: wx, y: gy + 0.05, z: wz, vx: (Math.random() - 0.5), vy: 1.2, vz: (Math.random() - 0.5), c: 0xdbe8f2, s: 0.08, life: 0.25, g: 9 });
+      d.y = gy + 20 + Math.random() * 10; d.x = (Math.random() - 0.5) * 80; d.z = (Math.random() - 0.5) * 80;
+    }
+    M.compose(V.set(wx, d.y, wz), Q, Sv); rain.im.setMatrixAt(i, M);
+  });
+  rain.im.instanceMatrix.needsUpdate = true;
+}
 export function updateWorld(dt, S) {
+  updateRain(dt);
   updateLife(dt, S);
   if (!traffic) return;
   const { im, cars, lights } = traffic;

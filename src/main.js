@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=94';
-import { buildWorld, updateWorld, setDusk } from './render/world.js?v=94';
-import { syncRender, clearRender, bump } from './render/sync.js?v=94';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=94';
-import { newSim, getSim, step } from './sim/sim.js?v=94';
-import { TICK } from './config/factions.js?v=94';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=94';
-import { initInput, lockPageZoom } from './input/input.js?v=94';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=94';
-import { resetUI } from './ui/state.js?v=94';
-import { fillIcons, svg } from './ui/icons.js?v=94';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=94';
-import { updateMinimap } from './ui/minimap.js?v=94';
-import { isMuted, setMuted } from './fx/sfx.js?v=94';
-import { loadChars } from './render/chars.js?v=94';
-import { FC } from './render/models.js?v=94';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=95';
+import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=95';
+import { syncRender, clearRender, bump } from './render/sync.js?v=95';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=95';
+import { newSim, getSim, step } from './sim/sim.js?v=95';
+import { TICK } from './config/factions.js?v=95';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=95';
+import { initInput, lockPageZoom } from './input/input.js?v=95';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=95';
+import { resetUI } from './ui/state.js?v=95';
+import { fillIcons, svg } from './ui/icons.js?v=95';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=95';
+import { updateMinimap } from './ui/minimap.js?v=95';
+import { isMuted, setMuted } from './fx/sfx.js?v=95';
+import { loadChars } from './render/chars.js?v=95';
+import { FC } from './render/models.js?v=95';
 
-export const BUILD = 94; // written by `npm run bump`
+export const BUILD = 95; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -38,7 +38,9 @@ const menu = document.getElementById('menu'), endEl = document.getElementById('e
 let running = false;
 function start(f) {
   clearRender(); clearFx(); clearAlert();
-  newSim(f, (Date.now() & 0xffffff) + 1, diff, mode);
+  const seed = (Date.now() & 0xffffff) + 1;
+  newSim(f, seed, diff, mode);
+  setRain(seed % 4 === 0); // about one match in four is rainy (render only)
   // Your faction's colour tints the HUD accents (power meter, command cards); friend/foe stays blue/red.
   const fc = new THREE.Color(FC[f].main), hx = (c) => '#' + c.getHexString(), root = document.documentElement.style;
   root.setProperty('--fc', hx(fc)); root.setProperty('--fc2', hx(fc.clone().lerp(new THREE.Color(0xffffff), 0.45)));

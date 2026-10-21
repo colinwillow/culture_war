@@ -31,11 +31,17 @@ export function followSun(x, z) {
 /** Time of day, k = 0 (morning) .. 1 (golden hour): the sun drops lower, warmer and longer-shadowed, the sky
  * and fog go peach, the sky fill dims. Only colours and one direction change, so it costs nothing per frame. */
 const DAY = { sun: new THREE.Color(0xffe0b0), dusk: new THREE.Color(0xff9c55), sky: new THREE.Color(0xa9c8de), skyD: new THREE.Color(0xf2b98e), hemi: new THREE.Color(0xdcecff), hemiD: new THREE.Color(0xffd2b0) };
+let lastTod = 0, overcast = 0;
+const GREY = new THREE.Color(0x8d969e);
+/** Rain: greys the sky/fog and dims the sun on top of the time of day (k 0..1). */
+export function setOvercast(k) { overcast = k; setTimeOfDay(lastTod); }
 export function setTimeOfDay(k) {
+  lastTod = k;
   sun.color.copy(DAY.sun).lerp(DAY.dusk, k); sun.intensity = 1.25 - 0.1 * k;
   SUN_OFF.set(30 + 25 * k, 60 - 18 * k, 22 + 14 * k);
   scene.background.copy(DAY.sky).lerp(DAY.skyD, k); scene.fog.color.copy(scene.background);
   hemi.color.copy(DAY.hemi).lerp(DAY.hemiD, k); hemi.intensity = 0.85 - 0.08 * k;
+  if (overcast > 0) { scene.background.lerp(GREY, 0.55 * overcast); scene.fog.color.copy(scene.background); sun.intensity *= 1 - 0.45 * overcast; }
 }
 /** Mark a subtree as shadow casters. */
 export function casts(o) { o.traverse((n) => { if (n.isMesh) n.castShadow = true; }); return o; }
