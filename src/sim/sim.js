@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=62';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=62';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=62';
-import { mulberry32 } from '../util/math.js?v=62';
-import { aiStep } from './ai.js?v=62';
+} from '../config/factions.js?v=63';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=63';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=63';
+import { mulberry32 } from '../util/math.js?v=63';
+import { aiStep } from './ai.js?v=63';
 
 let S = null;
 export const getSim = () => S;
@@ -263,6 +263,7 @@ function speedMult(s) {
   for (const z of S.zones) if ((z.kind === 'mud' || z.kind === 'cones') && z.owner !== s.owner && !s.def.flies && Math.hypot(z.x - s.x, z.z - s.z) < z.r) m *= z.kind === 'mud' ? 0.5 : 0.35; // Road Closed: enemies squeeze through the cones
   if (pl(s.owner).parade > 0) m *= 1.3;
   if (s.bull > 0) m *= 1.25;
+  if (s.ot > 0) m *= 1.2;
   return m;
 }
 function stepToward(s, x, z, dt) {
@@ -294,6 +295,15 @@ function heroAbility(s) {
   if (s.f === 'bw') {
     const near = S.squads.filter((o) => o.owner !== s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 5 + o.r);
     if (near.length) { near.forEach((o) => (o.stun = Math.max(o.stun, 2))); s.abil = 20; S.events.push({ k: 'screech', x: s.x, z: s.z }); }
+  } else if (s.f === 'hh') {
+    // The Foreman's Overtime whistle: when there's work nearby (a building going up or training) or a fight,
+    // squads within 9 m move 20% faster and buildings within 12 m build/train twice as fast, for 10 s.
+    const blds = S.blds.filter((b) => b.owner === s.owner && Math.hypot(b.x - s.x, b.z - s.z) < 12 + b.r);
+    if (nearestEnemy(s, 6) || blds.some((b) => b.built < 1 || b.queue.length)) {
+      S.squads.forEach((o) => { if (o.owner === s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 9) o.ot = 10; });
+      blds.forEach((b) => (b.ot = 10));
+      s.abil = 22; S.events.push({ k: 'overtime', x: s.x, z: s.z });
+    }
   } else if (nearestEnemy(s, 4)) {
     S.squads.forEach((o) => { if (o.owner === s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 8) o.bull = 10; });
     s.abil = 25; S.events.push({ k: 'bullhorn', x: s.x, z: s.z });
@@ -374,6 +384,7 @@ function updateSquad(s, dt) {
   }
   if (s.debuff > 0) s.debuff -= dt;
   if (s.bull > 0) s.bull -= dt;
+  if (s.ot > 0) s.ot -= dt;
   if (s.abil > 0) s.abil -= dt;
   if (s.stun > 0) { s.stun -= dt; return; }
   if (s.slot === 'worker') { updateWorker(s, dt); return; }
@@ -451,6 +462,7 @@ export function step() {
   for (const b of [...S.blds]) {
     if (b.dead) continue;
     const p = pl(b.owner);
+    if (b.ot > 0) b.ot -= dt;
     // Hard Hats trait: finished buildings slowly patch themselves when no enemy is near.
     const sr = fac(p).traits && fac(p).traits.selfRepair;
     if (sr && b.built >= 1 && b.hp < b.maxHp && !S.squads.some((q) => q.owner !== b.owner && Math.hypot(q.x - b.x, q.z - b.z) < 14)) {
@@ -459,6 +471,7 @@ export function step() {
     }
     if (b.built < 1) {
       const bt = BLD[b.kind].build / ((fac(p).traits && fac(p).traits.buildMul) || 1);
+      if (b.ot > 0) b.built = Math.min(1, b.built + dt / bt); // Overtime: a second dose of progress
       b.built = Math.min(1, b.built + dt / bt); b.hp = Math.min(b.maxHp, b.hp + (b.maxHp * 0.9 * dt) / bt);
       if (b.built >= 1) { S.events.push({ k: 'done', x: b.x, z: b.z }); pl(b.owner).st.built++; }
       continue;
@@ -466,7 +479,7 @@ export function step() {
     if (b.up > 0) { b.up -= dt; if (b.up <= 0) { b.up = 0; b.level++; S.events.push({ k: 'levelup', x: b.x, z: b.z }); } continue; }
     if (b.queue.length) {
       const def = fac(p).units[b.queue[0]];
-      b.prodT += dt;
+      b.prodT += dt * (b.ot > 0 ? 2 : 1);
       if (b.prodT >= def.build) {
         b.prodT = 0;
         const slot = b.queue.shift();

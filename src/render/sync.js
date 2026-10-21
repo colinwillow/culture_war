@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=62';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=62';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=62';
-import { emit } from '../fx/particles.js?v=62';
-import { TICK } from '../config/factions.js?v=62';
-import { walkH } from '../map/layout.js?v=62';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=62';
-import { Q, pl } from '../sim/sim.js?v=62';
-import { UI } from '../ui/state.js?v=62';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=62';
-import { lerpAngle } from '../util/math.js?v=62';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=63';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=63';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=63';
+import { emit } from '../fx/particles.js?v=63';
+import { TICK } from '../config/factions.js?v=63';
+import { walkH } from '../map/layout.js?v=63';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=63';
+import { Q, pl } from '../sim/sim.js?v=63';
+import { UI } from '../ui/state.js?v=63';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=63';
+import { lerpAngle } from '../util/math.js?v=63';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -308,8 +308,8 @@ export function syncRender(S, alpha, dt, time) {
     if (alive < o.lastAlive) for (let k = 0; k < o.lastAlive - alive; k++) fxDeath(x, z, s.f);
     o.lastAlive = alive;
     o.sel.visible = selIds.has(s.id);
-    o.team.material.opacity = 0.25 + s.rally * 2 + (s.bull > 0 ? 0.25 : 0);
-    o.team.material.color.setHex(s.bull > 0 ? 0xe85d9a : s.owner === 0 ? 0x7fd1ff : 0xff5a4f);
+    o.team.material.opacity = 0.25 + s.rally * 2 + (s.bull > 0 || s.ot > 0 ? 0.25 : 0);
+    o.team.material.color.setHex(s.bull > 0 ? 0xe85d9a : s.ot > 0 ? 0xf2c232 : s.owner === 0 ? 0x7fd1ff : 0xff5a4f);
     let tot = 0; for (const h of s.members) tot += h;
     setBar(o.bar, tot / (s.members.length * s.mhp));
     o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;

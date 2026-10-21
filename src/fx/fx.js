@@ -1,12 +1,12 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=62';
-import { walkH } from '../map/layout.js?v=62';
-import { sfx } from './sfx.js?v=62';
-import { shake, CAM } from '../camera/camera.js?v=62';
-import { FC } from '../render/models.js?v=62';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=62';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=63';
+import { walkH } from '../map/layout.js?v=63';
+import { sfx } from './sfx.js?v=63';
+import { shake, CAM } from '../camera/camera.js?v=63';
+import { FC } from '../render/models.js?v=63';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=63';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -216,7 +216,7 @@ export function fxDeath(x, z, f) { fxBits(x, z, FC[f].main, 3); }
 
 /** Drain this tick's sim events into effects. bump(id) makes a squad lunge. */
 const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom: 'boom', rank: 'chime', levelup: 'chime', done: 'chime',
-  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', spawn: 'blip', repair: 'tap' };
+  mud: 'sting', fwlaunch: 'whoosh', wrecklaunch: 'whoosh', parade: 'sting', pie: 'sting', cones: 'sting', screech: 'sting', bullhorn: 'sting', overtime: 'chime', spawn: 'blip', repair: 'tap' };
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
@@ -267,6 +267,11 @@ export function handleEvents(S, bump) {
         fxRing(ev.x, ev.z, 1, ev.r * 1.6, 0x8a8378, 0.6); fxBits(ev.x, ev.z, 0x6b655c, 14, 1, 8); shake(1.4, ev.x, ev.z);
         const g0 = gy(ev.x, ev.z);
         for (let i = 0; i < 24; i++) { const a = Math.random() * 6.28; emit({ x: ev.x + Math.cos(a), y: g0 + 0.4, z: ev.z + Math.sin(a), vx: Math.cos(a) * (4 + Math.random() * 3), vy: 1 + Math.random() * 2, vz: Math.sin(a) * (4 + Math.random() * 3), c: 0xb3a58a, s: 0.7, life: 1.4, g: -0.2, drag: 2, grow: 2.6 }); }
+        break;
+      }
+      case 'overtime': { // whistle: two yellow rings + a burst of little hard-hat-yellow sparks rising round the Foreman
+        fxRing(ev.x, ev.z, 0.5, 9, 0xf2c232, 0.6, 0.25); fxRing(ev.x, ev.z, 0.5, 12, 0xffffff, 0.8, 0.2);
+        for (let i = 0; i < 16; i++) { const a = (i / 16) * 6.28; emit({ x: ev.x + Math.cos(a) * 2, y: gy(ev.x, ev.z, 0.4), z: ev.z + Math.sin(a) * 2, vx: Math.cos(a) * 3, vy: 3, vz: Math.sin(a) * 3, c: i % 2 ? 0xf2c232 : 0xf28c28, s: 0.22, life: 0.9, g: 5 }); }
         break;
       }
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
