@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=71';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=71';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=71';
-import { emit } from '../fx/particles.js?v=71';
-import { TICK } from '../config/factions.js?v=71';
-import { walkH } from '../map/layout.js?v=71';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=71';
-import { Q, pl } from '../sim/sim.js?v=71';
-import { UI } from '../ui/state.js?v=71';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=71';
-import { lerpAngle } from '../util/math.js?v=71';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=72';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=72';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=72';
+import { emit } from '../fx/particles.js?v=72';
+import { TICK } from '../config/factions.js?v=72';
+import { walkH } from '../map/layout.js?v=72';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=72';
+import { Q, pl } from '../sim/sim.js?v=72';
+import { UI } from '../ui/state.js?v=72';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=72';
+import { lerpAngle } from '../util/math.js?v=72';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -260,6 +260,11 @@ export function syncRender(S, alpha, dt, time) {
           ch.position.y = (Math.sin(time * 11 + i) * 0.12 + Math.sin(time * 17.3) * 0.06) * k + (o.lunge > 0 ? 0.25 : 0);
           ch.rotation.x = Math.sin(time * 7.1) * 0.06 * k - (o.lunge > 0 ? 0.15 : 0);
           ch.rotation.z = Math.sin(time * 5.3 + 1) * 0.05 * k;
+          if (ud.hydro) { // lowrider hydraulics: parked it hops front/back to the beat, on a hit it bounces high
+            const bt = time * 4.2 + i, up = Math.max(0, Math.sin(bt)) * (1 - k);
+            ch.position.y += up * 0.45 + (o.lunge > 0 ? 0.55 : 0);
+            ch.rotation.x += Math.sin(bt * 0.5) * up * 0.22;
+          }
         }
         if (ud.forks) ud.forks.position.z = 1.0 + (o.lunge > 0 ? Math.sin((o.lunge / 0.15) * Math.PI) * 0.6 : 0);
         if (ud.pedal) { // lean into turns like a cyclist; ring the bell (flash) on each hit

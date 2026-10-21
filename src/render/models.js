@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=71';
+import { THREE, box, cyl, mat } from './scene.js?v=72';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -88,6 +88,15 @@ export function makeMember(f, slot) {
       g = humanoid(C, C.alt, 0xffffff); g.children[2].scale.set(1.15, 1.15, 1.15);
       g.add(box(0.3, 0.38, 0.04, 0x8a6a3e, 0.3, 0.95, 0.25), box(0.24, 0.28, 0.02, 0xffffff, 0.3, 0.97, 0.28));
     }
+  } else if (f === 'sc' && slot === 'cav') {
+    // Lowrider: long, low, purple with chrome trim and whitewall wheels. sync.js pumps the hydraulics (userData.hydro).
+    g = new THREE.Group();
+    const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.hydro = true; g.userData.dust = 0.5;
+    body.add(box(1.6, 0.45, 3.6, C.main, 0, 0.55, 0), box(1.4, 0.4, 1.6, C.main, 0, 0.98, -0.3), box(1.3, 0.32, 0.06, 0x9fd6ff, 0, 1.0, 0.52));
+    body.add(box(1.64, 0.06, 3.64, 0xd8d8d8, 0, 0.5, 0), box(1.5, 0.12, 0.08, 0xd8d8d8, 0, 0.5, 1.82), box(1.5, 0.12, 0.08, 0xd8d8d8, 0, 0.5, -1.82));
+    body.add(box(0.06, 0.04, 2.8, C.alt, 0.81, 0.7, 0), box(0.06, 0.04, 2.8, C.alt, -0.81, 0.7, 0)); // pinstripe
+    for (const [x, z] of [[0.75, 1.2], [-0.75, 1.2], [0.75, -1.2], [-0.75, -1.2]]) { g.add(wheel(0.3, 0.22, x, 0.3, z)); g.add(wheel(0.18, 0.24, x, 0.3, z, 0xf4f4f4)); }
+    tagWheels(g);
   } else if (f === 'bw') {
     if (slot === 'worker') { g = humanoid(C, 0x7a6a4a, 0x8a1f1f); g.add(box(0.7, 0.35, 0.6, 0x7a7a7a, 0, 0.45, 0.6), wheel(0.22, 0.1, 0, 0.22, 0.95), box(0.05, 0.05, 0.7, 0x5a3d26, 0.25, 0.55, 0.25), box(0.05, 0.05, 0.7, 0x5a3d26, -0.25, 0.55, 0.25)); }
     else if (slot === 'pike') { g = humanoid(C, 0x3d5a80, 0x6b4a2a); g.add(box(0.06, 1.9, 0.06, C.dark, 0.34, 1, 0.1), box(0.34, 0.07, 0.07, 0xcccccc, 0.34, 1.95, 0.1)); }

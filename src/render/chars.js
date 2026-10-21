@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=71';
+import { THREE } from './scene.js?v=72';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -21,12 +21,16 @@ const CHARS = {
   hippie: { file: 'fat_hippie.glb', h: 1.66 },
   hipster: { file: 'fat_hipster.glb', h: 1.68 },
   guard: { file: 'fat_secret_service.glb', h: 1.78 },
+  moussa: { file: 'moussa.glb', h: 1.78, own: { idle: 'idle_neutral', walk: 'walk_fwd_swagger', run: 'run_fwd' } },
+  jack: { file: 'jack.glb', h: 1.74 },
+  blonde: { file: 'beautiful_blonde.glb', h: 1.66 },
+  asian: { file: 'beautiful_asian.glb', h: 1.62, own: { walk: 'female_walk' } },
   builder: { file: 'contruction_worker.glb', h: 1.76, own: { idle: 'idle', walk: 'walk_fwd', swing: '1-handed_swing_01', stab: '2-handed-swing', hit: 'take_damage_01', die: 'hit_and_fall' } },
 };
 // Clip donors: our state name -> [donor key, clip name in that file].
 // fat_biker_02 is the sober civilian set on a fat rig (what most of the cast is); the construction worker
 // swings, the officer shoots.
-const DONORS = { biker2: 'fat_biker_02.glb', worker: 'contruction_worker.glb', officer: 'dummy_officer.glb' };
+const DONORS = { biker2: 'fat_biker_02.glb', worker: 'contruction_worker.glb', officer: 'dummy_officer.glb', moussa: 'moussa.glb' };
 const CLIPS = {
   idle: ['biker2', 'idle'],
   walk: ['biker2', 'walk_fwd'],
@@ -36,8 +40,13 @@ const CLIPS = {
   swing: ['worker', '1-handed_swing_01'],
   stab: ['worker', '2-handed-swing'],
   shoot: ['officer', 'shoot_pistol'],
+  // moussa's hip-hop set, retargeted onto everyone: Street Crew Breakdancers attack by dancing at you.
+  dance1: ['moussa', 'dance_hiphop_01'],
+  dance2: ['moussa', 'dance_hiphop_02'],
+  dance3: ['moussa', 'dance_hiphop_03'],
 };
-export const ONCE = new Set(['hit', 'die', 'swing', 'stab', 'shoot']);
+export const ONCE = new Set(['hit', 'die', 'swing', 'stab', 'shoot', 'dance1', 'dance2', 'dance3']);
+const DANCE = new Set(['dance1', 'dance2', 'dance3']);
 
 // Who plays which unit. Members of a squad cycle through the list. prop = what is in the right hand.
 // Slots not listed (vehicles, heroes, bikes) keep their placeholder.
@@ -66,6 +75,13 @@ export const CAST = {
     melee: { who: ['hippie', 'activist'], atk: 'swing' },
     ranged: { who: ['hipster', 'activist'], prop: 'megaphone', atk: 'shoot' },
   },
+  // Street Crew: a mixed crew (moussa, jack and the two women), everyone in sneakers. atk can be a list: one per member.
+  sc: {
+    worker: { who: ['jack', 'blonde'], atk: 'swing' },
+    pike: { who: ['moussa', 'blonde', 'jack', 'asian'], prop: 'sneaker', atk: 'swing' },
+    melee: { who: ['moussa', 'asian', 'jack', 'blonde'], atk: ['dance1', 'dance2', 'dance3'] },
+    ranged: { who: ['asian', 'moussa', 'blonde', 'jack'], prop: 'boombox', atk: 'shoot' },
+  },
 };
 
 const P = {}; // loaded prototypes: key -> { scene, scale, clips, hand }
@@ -76,7 +92,8 @@ const draco = new DRACOLoader();
 draco.setDecoderPath(ROOT + 'draco/');
 const loader = new GLTFLoader();
 loader.setDRACOLoader(draco);
-const load = (f) => loader.loadAsync(BASE + f);
+const LOADS = {}; // moussa is both a character and a clip donor: fetch each file once
+const load = (f) => LOADS[f] || (LOADS[f] = loader.loadAsync(BASE + f));
 
 // Rest pose: every bone's local rotation, plus the frame the Hips live in (its parents up to the model).
 // Two export families exist (Armature > Hips, Armature > root > Hips) with the same net rotation, so a
@@ -188,6 +205,11 @@ function prop(kind) {
   else if (kind === 'level') { bx(0.14, 0.14, 0.3, 0xf2c232, 0, 0, 0.12); bx(0.06, 0.06, 0.06, 0xff3030, 0, 0, 0.3); }
   else if (kind === 'mallet') { bx(0.04, 0.04, 1.2, 0xd9c8a0, 0, 0, 0.45); bx(0.28, 0.12, 0.12, 0xf4f1de, 0, 0, 1.05); }
   else if (kind === 'megaphone') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.2, 0.4, 10), M(0xe85d9a)); c.rotation.x = Math.PI / 2; c.position.z = 0.25; g.add(c); }
+  else if (kind === 'sneaker') { bx(0.12, 0.08, 0.3, 0xffffff, 0, 0, 0.18); bx(0.13, 0.03, 0.31, 0x7a3fd1, 0, -0.05, 0.18); bx(0.1, 0.1, 0.1, 0x7ee05b, 0, 0.07, 0.08); }
+  else if (kind === 'boombox') {
+    bx(0.5, 0.28, 0.14, 0x2a2a2a, 0, 0.18, 0.12); bx(0.4, 0.04, 0.04, 0x888888, 0, 0.35, 0.12);
+    for (const x of [-0.14, 0.14]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 12), M(0x7a3fd1)); c.rotation.x = Math.PI / 2; c.position.set(x, 0.18, 0.2); g.add(c); }
+  }
   else if (kind === 'sign') {
     bx(0.04, 0.04, 1.3, 0xcccccc, 0, 0, 0.45);
     bx(0.8, 0.05, 0.55, 0xf4f1de, 0, 0, 1.1); bx(0.5, 0.06, 0.1, 0xe85d9a, 0, 0, 1.15);
@@ -248,7 +270,7 @@ export function makeChar(f, slot, i) {
     actions[st] = a;
   }
   if (slot === 'worker') addCarry(g, f);
-  g.userData.anim = { mixer, actions, cur: null, atk: c.atk, lock: 0 };
+  g.userData.anim = { mixer, actions, cur: null, atk: Array.isArray(c.atk) ? c.atk[i % c.atk.length] : c.atk, lock: 0 };
   if (actions.idle) { actions.idle.play(); g.userData.anim.cur = 'idle'; mixer.update(Math.random() * 3); }
   return g;
 }
@@ -259,10 +281,11 @@ export function play(g, st, force) {
   if (!A || !A.actions[st]) return;
   if (A.cur === st && !ONCE.has(st)) return;
   if (A.lock > 0 && !force) return;
+  if (force && st === A.cur && DANCE.has(st) && A.lock > 0) return; // a dance runs its course: each hit does not restart it
   const next = A.actions[st], prev = A.cur && A.actions[A.cur];
   next.reset(); next.setEffectiveTimeScale(1); next.setEffectiveWeight(1);
   if (prev && prev !== next) next.crossFadeFrom(prev, 0.18, false);
   next.play();
   A.cur = st;
-  A.lock = ONCE.has(st) ? next.getClip().duration * 0.85 : 0;
+  A.lock = ONCE.has(st) ? Math.min(DANCE.has(st) ? 4 : 99, next.getClip().duration * 0.85) : 0;
 }
