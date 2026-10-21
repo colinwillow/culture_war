@@ -154,5 +154,5 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B121) Docs: final overnight touch-up — CLAUDE.md current state for Hero vs Hero, first-match nudges, menu backdrop; summary line in docs/decisions.md
 
 ## Batch 19 (added 14:28 UTC by the loop, same rules)
-- [ ] UI: game speed — a 1x/2x button on the pause screen (handy for playtesting on the phone), remembered
+- [x] (B122) UI: game speed — a 1x/2x button on the pause screen (handy for playtesting on the phone), remembered
 - [ ] FX: HQ in danger — when your HQ is under 40%, a soft red vignette pulses at the screen edges

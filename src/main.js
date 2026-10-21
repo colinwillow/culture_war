@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=121';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=121';
-import { syncRender, clearRender, bump } from './render/sync.js?v=121';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=121';
-import { newSim, getSim, step } from './sim/sim.js?v=121';
-import { TICK } from './config/factions.js?v=121';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=121';
-import { initInput, lockPageZoom } from './input/input.js?v=121';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=121';
-import { resetUI } from './ui/state.js?v=121';
-import { fillIcons, svg } from './ui/icons.js?v=121';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=121';
-import { updateMinimap } from './ui/minimap.js?v=121';
-import { isMuted, setMuted } from './fx/sfx.js?v=121';
-import { loadChars } from './render/chars.js?v=121';
-import { FC } from './render/models.js?v=121';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=122';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=122';
+import { syncRender, clearRender, bump } from './render/sync.js?v=122';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=122';
+import { newSim, getSim, step } from './sim/sim.js?v=122';
+import { TICK } from './config/factions.js?v=122';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=122';
+import { initInput, lockPageZoom } from './input/input.js?v=122';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=122';
+import { resetUI } from './ui/state.js?v=122';
+import { fillIcons, svg } from './ui/icons.js?v=122';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=122';
+import { updateMinimap } from './ui/minimap.js?v=122';
+import { isMuted, setMuted } from './fx/sfx.js?v=122';
+import { loadChars } from './render/chars.js?v=122';
+import { FC } from './render/models.js?v=122';
 
-export const BUILD = 121; // written by `npm run bump`
+export const BUILD = 122; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -106,6 +106,14 @@ muteBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 function setPause(on) { paused = on && running; pauseDim.hidden = !paused; drawMute(); }
 pauseBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(true); });
 pauseBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+// Game speed: 1x / 2x on the pause dim (for playtesting), remembered. The sim just takes two ticks per frame step.
+let speed = 1;
+try { speed = +(localStorage.getItem('cw-speed') || 1) === 2 ? 2 : 1; } catch (e) {}
+const speedBtn = document.getElementById('speedBtn');
+const drawSpeed = () => { speedBtn.textContent = speed + 'x'; };
+speedBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); speed = speed === 1 ? 2 : 1; drawSpeed(); try { localStorage.setItem('cw-speed', speed); } catch (er) {} });
+speedBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+drawSpeed();
 // Quit: the home button on the pause dim abandons the match and goes back to the menu.
 document.getElementById('quitBtn').addEventListener('pointerup', (e) => { e.stopPropagation(); running = false; setPause(false); cin = null; intro = null; endEl.hidden = true; menu.hidden = false; drawMute(); });
 pauseDim.addEventListener('pointerup', (e) => { e.stopPropagation(); setPause(false); });
@@ -151,9 +159,9 @@ function frame(now) {
   last = now;
   const time = now / 1000, S = getSim();
   if (S && running && !S.over) {
-    acc += dt;
+    acc += dt * speed;
     let n = 0;
-    while (acc >= TICK && n < 4) { step(); acc -= TICK; n++; }
+    while (acc >= TICK && n < 8) { step(); acc -= TICK; n++; }
     if (acc > TICK) acc = 0;
   }
   if (S) { noteAlerts(S); handleEvents(S, bump); syncRender(S, Math.min(1, acc / TICK), dt, time); }
