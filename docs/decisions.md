@@ -2,7 +2,21 @@
 
 Newest first. Colin's feedback in his words where it matters.
 
+## Overnight loop summary (Oct 21 2026, ~08:30-14:55 UTC, B2 -> B106)
+Colin asked: "keep developing it, UI, game logic, particle effects, map, placeholder 3D animated objects - on a loop until
+8 am". Every build below shipped to main UNVERIFIED on a phone (headless boot check + sim fast-forwards only).
+- Factions: 2 -> 6 playable (Hard Hats, Old Money, Street Crew, Nerds added), each with traits, two powers, its own hero
+  ability, placeholder vehicles/hero/buildings and base dressing; balanced AI-vs-AI to 22-28/50 each (tools/balance.cjs).
+- Modes: Versus, King of the Hill (middle overpass), Resource Race (first to earn 2500); 3 difficulties.
+- Feel: particles everywhere, synth audio + voice barks, time of day, rain, match intro fly-over, end swoop + victory
+  dance, hero entrance, death flourishes, pedestrians, city traffic/pigeons/clouds.
+- UI: minimap, command cards, queue, rally flags, under-attack arrow, hold-to-select-army, power aim ring, faction HUD
+  colour, pause/quit, rematch, dev readout (tap the B#).
+- Things to check first on the phone: unit/building scale with the new casts, whether the menu fits small phones
+  (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
+
 ## Greybox 04 (Oct 21, 2026)
+- B106 (overnight loop): Docs: overnight summary at the top of docs/decisions.md (what was built, what to check first on the phone) and CLAUDE.md current state brought to B106 (Resource Race, hero abilities, intro/rain/pedestrians/victory dance, pause quit, rematch)
 - B105 (overnight loop): Victory dance: when the match is decided, every surviving real character on the winning side dances on loop (moussa's three hip-hop clips, mixed per member) while the camera swoops; the losing side's survivors slump to the ground
 - B104 (overnight loop): Worker kit for the new factions: Street Crew Hustlers carry an orange sneaker box under the arm with cash poking out of the lid; Nerds' Tech Support wear a laptop messenger bag on the hip that bulges with cash (previously both pushed the Backwoods wheelbarrow)
 - B103 (overnight loop): Pause screen quit: a big round home button at the bottom of the pause dim abandons the match and returns to the menu (tap anywhere else still resumes)

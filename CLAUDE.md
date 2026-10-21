@@ -69,13 +69,14 @@ Rules that keep this multiplayer-ready (lockstep):
   Commands apply at the start of the next tick.
 - New mechanic = sim change + `S.events.push({k: '...'})` + a case in `fx/handleEvents`.
 
-## Current state (greybox 04, build B91 — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
+## Current state (greybox 04, build B106 — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
 - **6 playable factions** (menu: 2 columns portrait, one row landscape): Backwoods, Activists, Hard Hats (builder),
   Old Money (elite squads of 3, Trust Fund), Street Crew (rush, Hype meter, breakdancers attack by dancing), Nerds
   (tech: +30% towers, Wi-Fi Outage / Patch Notes). Opponent is random from the other five. Difficulty 1/2/3 stars.
   Per-faction traits live in `FACTIONS[f].traits`; `docs/design.md` has the table.
-- **Modes**: Versus (destroy the HQ) and King of the Hill (`S.hill`: middle overpass, 90 s held alone wins; ring + flag
-  + HUD bars). Toggle beside the stars, remembered in localStorage (`cw-mode`, `cw-diff`).
+- **Modes**: Versus (destroy the HQ), King of the Hill (`S.hill`: middle overpass, 90 s held alone wins; ring + flag
+  + HUD bars) and Resource Race (`S.race`: first to earn 2500). Toggle row beside/under the stars, remembered in
+  localStorage (`cw-mode`, `cw-diff`). Every hero has its own ability (`heroAbility` in sim.js).
 - Economy: workers auto-work food trucks (trucks tint to who works them); workers can be ordered to **repair** buildings.
 - Buildings: HQ, Depot, Barracks (3 levels), Tower (can be **garrisoned** by one squad: +range/+dmg; the AI does it
   too). Rally flags per production building. Production queue with tap-to-cancel refunds. Build-zone preview.
@@ -86,7 +87,9 @@ Rules that keep this multiplayer-ready (lockstep):
   under-attack edge arrow, hero button, pause (auto on tab switch), command cards. Orders get a voice bark.
 - Render/FX: pooled particles (`src/fx/particles.js`), one shadow sun following the camera, time of day
   (`setTimeOfDay`/`setDusk`), city life, construction/damage/collapse, per-faction projectiles/powers/buildings,
-  end-of-match camera swoop onto the fallen HQ (or the hill), hero entrance spotlight, faction-coloured HUD (`--fc`).
+  end-of-match camera swoop onto the fallen HQ (or the hill) + victory dance, match intro fly-over (tap skips), rain on
+  ~1 in 4 matches (`setRain`), pedestrians, hero entrance spotlight, death flourishes, faction-coloured HUD (`--fc`),
+  power aim ring. Pause screen has quit-to-menu; end screen has rematch.
 - Audio: WebAudio synth SFX + voice barks only (`src/fx/sfx.js`), mute toggle on menu/pause.
 - Test harness used by the loop: fast-forward with `import('./src/sim/sim.js?v=N')` + `step()` in a headless page;
   balance: `node tools/balance.cjs [seeds]` (AI vs AI round robin).
