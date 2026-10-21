@@ -18,6 +18,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B123 (overnight loop): HQ in danger: once your HQ is under 40% health a soft red glow pulses in from the screen edges, stronger and faster the lower it gets (no words); gone on the menu and when the HQ is healthy
 - B122 (overnight loop): Game speed: a gold 1x/2x button beside the quit button on the pause screen (for playtesting on the phone), remembered (cw-speed); 2x runs two sim ticks per frame step (cap raised 4 -> 8 per frame), measured exactly double the sim rate
 - B121 (overnight loop): Docs: final overnight touch-up - CLAUDE.md current state at B121 (Hero vs Hero, first-match nudges, menu orbit + long-press names, end badges) and the overnight summary in docs/decisions.md extended to B121
 - B120 (overnight loop): Menu long-press names (dev aid): holding any menu button (faction cards, difficulty stars, mode buttons, sound, graphics) for ~0.45 s shows its name in the tooltip bubble, and that press then does nothing (a normal tap still acts)

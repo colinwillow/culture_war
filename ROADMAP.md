@@ -155,4 +155,4 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 19 (added 14:28 UTC by the loop, same rules)
 - [x] (B122) UI: game speed — a 1x/2x button on the pause screen (handy for playtesting on the phone), remembered
-- [ ] FX: HQ in danger — when your HQ is under 40%, a soft red vignette pulses at the screen edges
+- [x] (B123) FX: HQ in danger — when your HQ is under 40%, a soft red vignette pulses at the screen edges

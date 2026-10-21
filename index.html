@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
-<link rel="stylesheet" href="./src/ui/style.css?v=122">
+<link rel="stylesheet" href="./src/ui/style.css?v=123">
 <!-- No build step needed: GitHub Pages serves this file straight from main, so bare 'three' imports resolve here. -->
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.min.js", "three/examples/jsm/": "./vendor/three/jsm/" } }
@@ -20,6 +20,7 @@
   <div class="chip meter"><i id="meterFill"></i><span class="ic" data-i="star"></span></div>
   <div class="chip hillc" id="hillChip" style="display:none"><span class="ic" data-i="flag"></span><div class="hb"><i id="hillMe"></i><i id="hillThem"></i></div></div>
 </div>
+<div id="danger"></div>
 <canvas id="mini"></canvas>
 <button type="button" id="pauseBtn" aria-label="Pause"><span class="ic" data-i="pause"></span></button>
 <div id="pauseDim" hidden><span class="ic" data-i="play"></span><button type="button" id="quitBtn" class="again" aria-label="Quit to menu"><span class="ic" data-i="home"></span></button><button type="button" id="speedBtn" class="again" aria-label="Game speed"></button></div>
@@ -35,7 +36,7 @@
 <div id="box"></div>
 <div id="holdRing" hidden></div>
 <div id="menu" class="overlay">
-  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B122</b></span></h1>
+  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B123</b></span></h1>
   <div class="diff" id="diff"><button type="button" data-d="0" aria-label="Easy"><span class="ic" data-i="star"></span></button><button type="button" data-d="1" class="on" aria-label="Normal"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><button type="button" data-d="2" aria-label="Hard"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><i class="sep"></i><button type="button" class="mode" data-m="vs" aria-label="Versus"><span class="ic" data-i="home"></span></button><button type="button" class="mode" data-m="hill" aria-label="King of the Hill"><span class="ic" data-i="flag"></span></button><button type="button" class="mode" data-m="cap" aria-label="Capture and Hold"><span class="ic" data-i="hold"></span></button><button type="button" class="mode" data-m="race" aria-label="Resource Race"><span class="ic" data-i="coin"></span></button><button type="button" class="mode" data-m="hero" aria-label="Hero vs Hero"><span class="ic" data-i="hero"></span></button></div>
   <div class="picks">
     <button class="pick" data-f="bw" type="button"><span class="ic" data-i="truck"></span>Backwoods<small>FEWER · TOUGHER</small></button>
@@ -65,6 +66,6 @@
   setTimeout(function () { if (!window.__cwBooted) show('Game script did not start (old cached file? wait a few minutes and reload)'); }, 8000);
 })();
 </script>
-<script type="module" src="./src/main.js?v=122" onerror="__cwLoadFail()"></script>
+<script type="module" src="./src/main.js?v=123" onerror="__cwLoadFail()"></script>
 </body>
 </html>
