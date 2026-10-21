@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=20';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=20';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=20';
-import { emit } from '../fx/particles.js?v=20';
-import { TICK } from '../config/factions.js?v=20';
-import { walkH } from '../map/layout.js?v=20';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=20';
-import { Q, pl } from '../sim/sim.js?v=20';
-import { UI } from '../ui/state.js?v=20';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=20';
-import { lerpAngle } from '../util/math.js?v=20';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=21';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=21';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=21';
+import { emit } from '../fx/particles.js?v=21';
+import { TICK } from '../config/factions.js?v=21';
+import { walkH } from '../map/layout.js?v=21';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=21';
+import { Q, pl } from '../sim/sim.js?v=21';
+import { UI } from '../ui/state.js?v=21';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=21';
+import { lerpAngle } from '../util/math.js?v=21';
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -47,10 +47,13 @@ function makeSquadObj(s) {
   const pie = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat(0xfff8ec)); pie.scale.y = 0.6; pie.position.y = h + 0.05; pie.visible = false; root.add(pie);
   const carry = box(0.5, 0.4, 0.5, 0xf5b83a, 0, h + 0.1, 0); carry.visible = false; root.add(carry);
   const rank = new THREE.Group(); rank.position.y = h + 1.05;
-  for (let i = 0; i < 2; i++) { const d = box(0.2, 0.2, 0.2, 0xf5b83a, (i - 0.5) * 0.32, 0, 0); d.visible = false; rank.add(d); }
+  const nPip = s.slot === 'hero' ? 5 : 2;
+  for (let i = 0; i < nPip; i++) { const d = box(0.2, 0.2, 0.2, 0xf5b83a, (i - (nPip - 1) / 2) * 0.32, 0, 0); d.rotation.z = Math.PI / 4; d.visible = false; rank.add(d); }
   root.add(rank);
+  // Veterans wear a second ring under the team disc: silver at rank 1, gold at 2; heroes' glows brighter per level.
+  const vet = ringMesh(s.r + 0.28, s.r + 0.42, 0xd8dde3, 0.9); vet.visible = false; root.add(vet);
   scene.add(root);
-  return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
+  return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, vet, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
 }
 function makeBldObj(b) {
   const root = new THREE.Group(), mesh = casts(bldMesh(b.kind, b.f)); root.add(mesh);
@@ -210,6 +213,13 @@ export function syncRender(S, alpha, dt, time) {
     o.stun.visible = s.stun > 0 && s.stun <= 2.5; o.stun.rotation.z = time * 6;
     o.pie.visible = s.stun > 2.5; o.shield.visible = s.sit; o.carry.visible = s.carry > 0;
     o.rank.children.forEach((c, i) => (c.visible = i < s.rank)); o.rank.quaternion.copy(camera.quaternion);
+    o.vet.visible = s.rank > 0;
+    if (s.rank > 0) {
+      const hero = s.slot === 'hero', top = hero ? s.rank >= 3 : s.rank >= 2;
+      o.vet.material.color.setHex(top ? 0xf5b83a : 0xd8dde3);
+      o.vet.material.opacity = hero ? 0.55 + 0.4 * Math.abs(Math.sin(time * (1 + s.rank * 0.6))) : 0.9;
+      if (hero) { const k = 1 + 0.06 * s.rank; o.body.scale.setScalar(k); o.vet.scale.setScalar(1 + 0.05 * Math.sin(time * 3)); }
+    }
     if (par) { o.confT -= dt; if (o.confT <= 0) { o.confT = 0.5; fxConfetti(x, z, 4); } }
   }
   for (const [id, o] of R.sq) if (!seen.has(id)) { R.sq.delete(id); o.bar.g.visible = o.sel.visible = o.team.visible = false; corpses.push({ o, t: 1.6 }); }

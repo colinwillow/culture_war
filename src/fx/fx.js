@@ -1,10 +1,10 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=20';
-import { walkH } from '../map/layout.js?v=20';
-import { FC } from '../render/models.js?v=20';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=20';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=21';
+import { walkH } from '../map/layout.js?v=21';
+import { FC } from '../render/models.js?v=21';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=21';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -171,7 +171,13 @@ export function handleEvents(S, bump) {
       case 'deposit': burstCoins(ev.x, gy(ev.x, ev.z, 2.5), ev.z, gy(ev.x, ev.z)); if (ev.owner === 0) fxCoin(ev.x, 3.5, ev.z); break;
       case 'gather': fxBits(ev.x, ev.z, 0xf5b83a, 3, 1.5, 3); break;
       case 'levelup': fxRing(ev.x, ev.z, 1, 5, 0xf5b83a, 0.7, 0.2); break;
-      case 'rank': fxRing(ev.x, ev.z, 0.5, 2.5, 0xf5b83a, 0.5, 0.3); break;
+      case 'rank': {
+        fxRing(ev.x, ev.z, 0.5, ev.hero ? 5 : 2.5, 0xf5b83a, 0.5, 0.3);
+        // Rank-up: a spiral of gold sparks climbs round the squad (taller and longer for a hero level).
+        const n = ev.hero ? 28 : 16, g0 = gy(ev.x, ev.z);
+        for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 4, r = ev.hero ? 1.6 : 1.1; emit({ x: ev.x + Math.cos(a) * r, y: g0 + 0.3 + i * 0.08, z: ev.z + Math.sin(a) * r, vx: -Math.sin(a) * 2, vy: 3 + (ev.hero ? 2 : 0), vz: Math.cos(a) * 2, c: i % 3 ? 0xf5b83a : 0xffffff, s: 0.2, life: 1.1, g: 2, drag: 1 }); }
+        break;
+      }
       case 'screech': fxRing(ev.x, ev.z, 1, 6, 0xffffff, 0.5, 3.8); fxRing(ev.x, ev.z, 0.5, 5, 0xffffff, 0.6, 0.2); break;
       case 'bullhorn': fxRing(ev.x, ev.z, 0.5, 8, 0xe85d9a, 0.6, 0.2); fxRing(ev.x, ev.z, 0.3, 5, 0xf5b83a, 0.5, 1.6); break;
       case 'pie': fxPie(ev.x, ev.z); break;

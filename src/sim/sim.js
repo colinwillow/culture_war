@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=20';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=20';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=20';
-import { mulberry32 } from '../util/math.js?v=20';
-import { aiStep } from './ai.js?v=20';
+} from '../config/factions.js?v=21';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=21';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=21';
+import { mulberry32 } from '../util/math.js?v=21';
+import { aiStep } from './ai.js?v=21';
 
 let S = null;
 export const getSim = () => S;
@@ -178,7 +178,7 @@ export function setOrder(s, o) {
   if (s.slot === 'worker' && o.type !== 'gather') s.task = null;
 }
 function perHit(s, t) {
-  let m = 1 + 0.2 * s.rank;
+  let m = 1 + (s.slot === 'hero' ? 0.12 : 0.2) * s.rank;
   if (s.rally) m *= 1 + s.rally;
   if (s.debuff > 0) m *= 0.8;
   if (s.bull > 0) m *= 1.25;
@@ -188,13 +188,16 @@ function perHit(s, t) {
   else if (COUNTER[s.slot] === t.slot) d *= 2;
   return d;
 }
+const HERO_LV = [4, 10, 18, 28, 40];
 function credit(a, k) {
   if (!a || a.dead) return;
   a.kills += k;
-  while (a.rank < 2 && a.kills >= [10, 25][a.rank]) {
-    a.rank++; a.mhp *= 1.2;
-    for (let i = 0; i < a.members.length; i++) if (a.members[i] > 0) a.members[i] *= 1.2;
-    S.events.push({ k: 'rank', x: a.x, z: a.z });
+  // Squads: 2 ranks (+20% each). Heroes level up to 5 times on fewer kills (+12% each) and grow a little.
+  const hero = a.slot === 'hero', T = hero ? HERO_LV : [10, 25], up = hero ? 1.12 : 1.2;
+  while (a.rank < T.length && a.kills >= T[a.rank]) {
+    a.rank++; a.mhp *= up;
+    for (let i = 0; i < a.members.length; i++) if (a.members[i] > 0) a.members[i] *= up;
+    S.events.push({ k: 'rank', x: a.x, z: a.z, hero, lv: a.rank });
   }
 }
 function hitSquad(t, dmg, area, attacker, cap = 5) {
