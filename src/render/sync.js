@@ -1,15 +1,17 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=76';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=76';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=76';
-import { emit } from '../fx/particles.js?v=76';
-import { TICK } from '../config/factions.js?v=76';
-import { walkH } from '../map/layout.js?v=76';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=76';
-import { Q, pl } from '../sim/sim.js?v=76';
-import { UI } from '../ui/state.js?v=76';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=76';
-import { lerpAngle } from '../util/math.js?v=76';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=77';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=77';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=77';
+import { emit } from '../fx/particles.js?v=77';
+import { TICK } from '../config/factions.js?v=77';
+import { walkH } from '../map/layout.js?v=77';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS } from '../config/factions.js?v=77';
+import { Q, pl, getSim } from '../sim/sim.js?v=77';
+import { UI } from '../ui/state.js?v=77';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=77';
+import { lerpAngle } from '../util/math.js?v=77';
+// Selection rings take your faction colour, washed toward white so they still pop on any ground.
+const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
@@ -39,7 +41,7 @@ function makeSquadObj(s) {
   const wait = !real && !!(CAST[s.f] && CAST[s.f][s.slot]);
   const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.25));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.08; root.add(team);
-  const sel = ringMesh(s.r + 0.45, s.r + 0.72, 0xffffff, 0.95); sel.visible = false; root.add(sel);
+  const sel = ringMesh(s.r + 0.45, s.r + 0.72, selCol(), 0.95); sel.visible = false; root.add(sel);
   const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
   const h = real ? 1.85 : new THREE.Box3().setFromObject(body).max.y;
   const bar = makeBar(Math.max(1.4, s.r * 1.5)); bar.g.position.y = h + 0.7; root.add(bar.g);
@@ -65,7 +67,7 @@ function makeBldObj(b) {
   for (const x of [-half, half]) for (const z of [-half, half]) scaff.add(box(0.12, 1, 0.12, 0xf2c232, x, 0.5, z));
   for (const y of [0.33, 0.66, 1]) { scaff.add(box(sw, 0.06, 0.25, 0xc9a24a, 0, y, half), box(sw, 0.06, 0.25, 0xc9a24a, 0, y, -half), box(0.25, 0.06, sw, 0xc9a24a, half, y, 0), box(0.25, 0.06, sw, 0xc9a24a, -half, y, 0)); }
   root.add(scaff);
-  const sel = ringMesh(b.r + 0.3, b.r + 0.6, 0xffffff, 0.95); sel.visible = false; root.add(sel);
+  const sel = ringMesh(b.r + 0.3, b.r + 0.6, selCol(), 0.95); sel.visible = false; root.add(sel);
   const team = new THREE.Mesh(new THREE.CircleGeometry(b.r + 0.2, 32), basic(b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.2));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.07; root.add(team);
   const h = new THREE.Box3().setFromObject(mesh).max.y;

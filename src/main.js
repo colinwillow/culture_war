@@ -1,21 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=76';
-import { buildWorld, updateWorld } from './render/world.js?v=76';
-import { syncRender, clearRender, bump } from './render/sync.js?v=76';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=76';
-import { newSim, getSim, step } from './sim/sim.js?v=76';
-import { TICK } from './config/factions.js?v=76';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=76';
-import { initInput, lockPageZoom } from './input/input.js?v=76';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=76';
-import { resetUI } from './ui/state.js?v=76';
-import { fillIcons, svg } from './ui/icons.js?v=76';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=76';
-import { updateMinimap } from './ui/minimap.js?v=76';
-import { isMuted, setMuted } from './fx/sfx.js?v=76';
-import { loadChars } from './render/chars.js?v=76';
+import { renderer, scene, camera, followSun, THREE } from './render/scene.js?v=77';
+import { buildWorld, updateWorld } from './render/world.js?v=77';
+import { syncRender, clearRender, bump } from './render/sync.js?v=77';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=77';
+import { newSim, getSim, step } from './sim/sim.js?v=77';
+import { TICK } from './config/factions.js?v=77';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=77';
+import { initInput, lockPageZoom } from './input/input.js?v=77';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=77';
+import { resetUI } from './ui/state.js?v=77';
+import { fillIcons, svg } from './ui/icons.js?v=77';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=77';
+import { updateMinimap } from './ui/minimap.js?v=77';
+import { isMuted, setMuted } from './fx/sfx.js?v=77';
+import { loadChars } from './render/chars.js?v=77';
+import { FC } from './render/models.js?v=77';
 
-export const BUILD = 76; // written by `npm run bump`
+export const BUILD = 77; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -38,6 +39,9 @@ let running = false;
 function start(f) {
   clearRender(); clearFx(); clearAlert();
   newSim(f, (Date.now() & 0xffffff) + 1, diff);
+  // Your faction's colour tints the HUD accents (power meter, command cards); friend/foe stays blue/red.
+  const fc = new THREE.Color(FC[f].main), hx = (c) => '#' + c.getHexString(), root = document.documentElement.style;
+  root.setProperty('--fc', hx(fc)); root.setProperty('--fc2', hx(fc.clone().lerp(new THREE.Color(0xffffff), 0.45)));
   resetUI(); resetHUD();
   menu.hidden = true; endEl.hidden = true; running = true; setPause(false);
   cin = null; resetCam(); refreshHUD();
