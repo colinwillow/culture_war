@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=107';
-import { CAM } from '../camera/camera.js?v=107';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=107';
-import { hash } from '../util/math.js?v=107';
-import { emit } from '../fx/particles.js?v=107';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=108';
+import { CAM } from '../camera/camera.js?v=108';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=108';
+import { hash } from '../util/math.js?v=108';
+import { emit } from '../fx/particles.js?v=108';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -304,7 +304,11 @@ export function setDusk(k) {
 }
 // Rain: 500 thin streaks in a box that follows the camera target, each landing with a tiny splash. One draw call.
 let rain = null;
+let low = false;
+/** LOW graphics: no rain, no pedestrians. */
+export function setLowWorld(v) { low = v; if (peds) { peds.body.visible = peds.head.visible = !v; } if (v) setRain(false); }
 export function setRain(on) {
+  if (low) on = false;
   if (!on) { if (rain) { rain.im.visible = false; rain.on = false; } setOvercast(0); return; }
   if (!rain) {
     const N = 500, im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.03, 0.9, 0.03), new THREE.MeshBasicMaterial({ color: 0xcfe2f2, transparent: true, opacity: 0.45, depthWrite: false }), N);
@@ -344,7 +348,8 @@ function buildPeds() {
   peds = { list, body, head };
 }
 function updatePeds(dt, S) {
-  if (!peds) buildPeds();
+  if (!peds) { buildPeds(); peds.body.visible = peds.head.visible = !low; }
+  if (low) return;
   const fights = S ? S.squads.filter((q) => q.slot !== 'worker' && S.squads.some((o) => o.owner !== q.owner && Math.abs(o.x - q.x) < 9 && Math.abs(o.z - q.z) < 9)) : [];
   peds.list.forEach((p, i) => {
     const f = fights.find((q) => Math.abs(q.x - p.x) < 14 && Math.abs(q.z - p.z) < 14);

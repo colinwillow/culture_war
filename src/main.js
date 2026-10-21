@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=107';
-import { buildWorld, updateWorld, setDusk, setRain } from './render/world.js?v=107';
-import { syncRender, clearRender, bump } from './render/sync.js?v=107';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=107';
-import { newSim, getSim, step } from './sim/sim.js?v=107';
-import { TICK } from './config/factions.js?v=107';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=107';
-import { initInput, lockPageZoom } from './input/input.js?v=107';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=107';
-import { resetUI } from './ui/state.js?v=107';
-import { fillIcons, svg } from './ui/icons.js?v=107';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=107';
-import { updateMinimap } from './ui/minimap.js?v=107';
-import { isMuted, setMuted } from './fx/sfx.js?v=107';
-import { loadChars } from './render/chars.js?v=107';
-import { FC } from './render/models.js?v=107';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=108';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=108';
+import { syncRender, clearRender, bump } from './render/sync.js?v=108';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=108';
+import { newSim, getSim, step } from './sim/sim.js?v=108';
+import { TICK } from './config/factions.js?v=108';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=108';
+import { initInput, lockPageZoom } from './input/input.js?v=108';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=108';
+import { resetUI } from './ui/state.js?v=108';
+import { fillIcons, svg } from './ui/icons.js?v=108';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=108';
+import { updateMinimap } from './ui/minimap.js?v=108';
+import { isMuted, setMuted } from './fx/sfx.js?v=108';
+import { loadChars } from './render/chars.js?v=108';
+import { FC } from './render/models.js?v=108';
 
-export const BUILD = 107; // written by `npm run bump`
+export const BUILD = 108; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -73,6 +73,19 @@ document.querySelectorAll('.pick').forEach((b) => b.addEventListener('pointerup'
 document.getElementById('rematch').addEventListener('pointerup', () => { if (lastF) start(lastF); });
 document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; setPause(false); });
 
+// Graphics: HIGH (default) or LOW (no shadows, pixel ratio 1, no rain or pedestrians) for slower phones; remembered.
+let lowGfx = false;
+try { lowGfx = localStorage.getItem('cw-low') === '1'; } catch (e) {}
+const gfxBtn = document.getElementById('gfxBtn');
+function applyGfx() {
+  sun.castShadow = !lowGfx;
+  renderer.setPixelRatio(lowGfx ? 1 : Math.min(window.devicePixelRatio || 1, 2)); resize();
+  setLowWorld(lowGfx);
+  gfxBtn.innerHTML = svg(lowGfx ? 'eye' : 'star'); gfxBtn.classList.toggle('low', lowGfx);
+}
+gfxBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); lowGfx = !lowGfx; try { localStorage.setItem('cw-low', lowGfx ? '1' : '0'); } catch (er) {} applyGfx(); });
+gfxBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+applyGfx();
 // Pause: freezes the sim and every animation (dt 0) but keeps drawing; tap the dim to resume. Auto-pauses when the
 // phone switches away from the tab.
 let paused = false;
