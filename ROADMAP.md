@@ -105,3 +105,11 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B88) Logic: NERDS faction data (Tech) — LARPers, cosplay knights, drone pilots (ranged), segway cav, giant mech-suit siege, the Streamer hero; powers Wi-Fi Outage (enemy stun) + Patch Notes (army buff)
 - [x] (B89) Units + Map: Nerds cast + placeholders, buildings (game shop HQ, server rack depot, LAN cafe barracks, antenna tower) + menu card + power visuals
 - [x] (B90) Logic: balance pass with 6 factions — B88 round robin (3 seeds, 30 games each): bw 12 ac 11 hh 13 om 17 sc 22 nd 14; pull Street Crew back toward mid-pack, maybe run 5 seeds for less noise
+
+## Batch 10 (added 13:11 UTC by the loop, same rules)
+- [ ] Docs: refresh CLAUDE.md "Current state" + docs/design.md for 6 factions, King of the Hill, time of day, AI garrisons, balance tool usage
+- [ ] Units: The Streamer's own ability "Go Live" — nearby enemies stop to stare at the phone (2 s stun) with camera-flash sparkles; the Nerds hero stops being a bullhorn copy
+- [ ] UI: power aiming preview — while aiming a targeted power, a ring of its real radius follows the finger in the faction colour
+- [ ] Map: Nerds base dressing — a cosplay photo-op cutout, a vending machine, cable spaghetti and a folding table with dice
+- [ ] FX: weather — some matches roll light rain (streaks, ground ripples, slightly darker sky); decided by the match seed
+- [ ] UI: match intro — the camera flies from the enemy HQ to yours in ~2.5 s at the start (tap to skip)
