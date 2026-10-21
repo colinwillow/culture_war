@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=64';
+import { THREE } from './scene.js?v=65';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -20,6 +20,7 @@ const CHARS = {
   activist: { file: 'fat_activist_01.glb', h: 1.6 },
   hippie: { file: 'fat_hippie.glb', h: 1.66 },
   hipster: { file: 'fat_hipster.glb', h: 1.68 },
+  guard: { file: 'fat_secret_service.glb', h: 1.78 },
   builder: { file: 'contruction_worker.glb', h: 1.76, own: { idle: 'idle', walk: 'walk_fwd', swing: '1-handed_swing_01', stab: '2-handed-swing', hit: 'take_damage_01', die: 'hit_and_fall' } },
 };
 // Clip donors: our state name -> [donor key, clip name in that file].
@@ -46,6 +47,12 @@ export const CAST = {
     pike: { who: ['hick'], prop: 'pitchfork', atk: 'stab' },
     melee: { who: ['biker1', 'biker2'], prop: 'bottle', atk: 'swing' },
     ranged: { who: ['hick'], prop: 'shotgun', atk: 'shoot' },
+  },
+  om: {
+    worker: { who: ['guard'], atk: 'swing' },
+    pike: { who: ['guard'], prop: 'mallet', atk: 'swing' },
+    melee: { who: ['guard'], atk: 'swing' },
+    ranged: { who: ['guard'], prop: 'shotgun', atk: 'shoot' },
   },
   hh: {
     worker: { who: ['builder'], atk: 'swing' },
@@ -179,6 +186,7 @@ function prop(kind) {
   else if (kind === 'nailgun') { bx(0.1, 0.18, 0.4, 0xf28c28, 0, 0, 0.18); bx(0.06, 0.06, 0.14, 0x333333, 0, 0.03, 0.42); bx(0.08, 0.2, 0.08, 0x333333, 0, -0.12, 0.02); }
   else if (kind === 'sledge') { bx(0.05, 0.05, 1.1, 0x6b4a2a, 0, 0, 0.35); bx(0.3, 0.18, 0.18, 0x555555, 0, 0, 0.9); }
   else if (kind === 'level') { bx(0.14, 0.14, 0.3, 0xf2c232, 0, 0, 0.12); bx(0.06, 0.06, 0.06, 0xff3030, 0, 0, 0.3); }
+  else if (kind === 'mallet') { bx(0.04, 0.04, 1.2, 0xd9c8a0, 0, 0, 0.45); bx(0.28, 0.12, 0.12, 0xf4f1de, 0, 0, 1.05); }
   else if (kind === 'megaphone') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.2, 0.4, 10), M(0xe85d9a)); c.rotation.x = Math.PI / 2; c.position.z = 0.25; g.add(c); }
   else if (kind === 'sign') {
     bx(0.04, 0.04, 1.3, 0xcccccc, 0, 0, 0.45);
@@ -195,7 +203,12 @@ function addCarry(g, f) {
   const M = (c) => new THREE.MeshLambertMaterial({ color: c });
   const bx = (p, w, h, d, c, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c)); m.position.set(x, y, z); p.add(m); return m; };
   const cash = new THREE.Group();
-  if (f !== 'ac') { // Backwoods and Hard Hats push wheelbarrows
+  if (f === 'om') { // Old Money butlers carry a black briefcase that fattens with cash
+    const bag = new THREE.Group(); bag.position.set(0.42, 0.75, 0.1); g.add(bag);
+    bx(bag, 0.12, 0.38, 0.5, 0x1a1a1a, 0, 0, 0); bx(bag, 0.06, 0.08, 0.16, 0xd9b44a, 0, 0.22, 0);
+    for (let i = 0; i < 2; i++) bx(cash, 0.1, 0.1, 0.16, 0x7cc46a, 0, 0.26, (i - 0.5) * 0.18);
+    bag.add(cash); g.userData.bag = bag;
+  } else if (f !== 'ac') { // Backwoods and Hard Hats push wheelbarrows
     const wb = new THREE.Group(); wb.position.set(0, 0, 0.75); g.add(wb);
     bx(wb, 0.62, 0.08, 0.7, 0x7a7a7a, 0, 0.42, 0.1); bx(wb, 0.62, 0.3, 0.06, 0x7a7a7a, 0, 0.55, 0.45); bx(wb, 0.06, 0.3, 0.7, 0x7a7a7a, 0.31, 0.55, 0.1); bx(wb, 0.06, 0.3, 0.7, 0x7a7a7a, -0.31, 0.55, 0.1);
     for (const x of [-0.22, 0.22]) bx(wb, 0.05, 0.05, 0.75, 0x5a3d26, x, 0.6, -0.4);

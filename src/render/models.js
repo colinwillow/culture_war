@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=64';
+import { THREE, box, cyl, mat } from './scene.js?v=65';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -32,7 +32,32 @@ const tagWheels = (g) => { g.userData.wheels = g.children.filter((c) => c.geomet
 export function makeMember(f, slot) {
   const C = FC[f];
   let g;
-  if (f === 'hh' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
+  if (f === 'om' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
+    if (slot === 'cav') {
+      // Golf cart: white tub, striped canopy on four posts, a bag of clubs on the back.
+      g = new THREE.Group();
+      const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.5;
+      body.add(box(1.3, 0.5, 2.2, 0xf4f1de, 0, 0.6, 0), box(1.2, 0.5, 0.5, 0x2f6b4f, 0, 1.0, -0.2), box(1.4, 0.08, 2.0, 0x2f6b4f, 0, 2.05, 0));
+      for (const x of [-0.6, 0.6]) for (const z of [0.7, -0.8]) body.add(box(0.06, 1.1, 0.06, 0xcccccc, x, 1.5, z));
+      body.add(box(0.35, 0.9, 0.35, 0x5a3a22, 0, 1.0, -1.15), box(0.08, 0.4, 0.08, 0xcccccc, 0.08, 1.6, -1.15), box(0.08, 0.4, 0.08, 0xcccccc, -0.08, 1.55, -1.1));
+      for (const [x, z] of [[0.6, 0.75], [-0.6, 0.75], [0.6, -0.75], [-0.6, -0.75]]) g.add(wheel(0.26, 0.2, x, 0.26, z));
+      tagWheels(g);
+    } else if (slot === 'siege') {
+      // Armoured limo: long black stretch, tinted windows, gold trim, little flags on the bonnet.
+      g = new THREE.Group();
+      const body = new THREE.Group(); g.add(body); g.userData.chassis = body; g.userData.dust = 0.6;
+      body.add(box(1.7, 0.7, 5.2, 0x111111, 0, 0.75, 0), box(1.5, 0.55, 3.2, 0x1d2b45, 0, 1.35, -0.3), box(1.72, 0.08, 5.22, 0xd9b44a, 0, 0.9, 0));
+      for (const x of [-0.7, 0.7]) body.add(box(0.04, 0.4, 0.04, 0xcccccc, x, 1.3, 2.4), box(0.28, 0.18, 0.02, 0xd9b44a, x + 0.14, 1.45, 2.4));
+      for (const [x, z] of [[0.85, 1.8], [-0.85, 1.8], [0.85, -1.8], [-0.85, -1.8]]) g.add(wheel(0.36, 0.3, x, 0.36, z));
+      tagWheels(g);
+    } else {
+      // The Tycoon: top hat, monocle, gold-topped cane.
+      g = humanoid(C, C.dark, 0x111111); g.children[2].scale.set(1.25, 1.1, 1.25);
+      g.add(box(0.26, 0.4, 0.26, 0x111111, 0, 1.72, 0), box(0.4, 0.04, 0.4, 0x111111, 0, 1.52, 0));
+      g.add(cyl(0.06, 0.06, 0.02, 0xd9b44a, 0.08, 1.3, 0.17, 10));
+      g.add(box(0.04, 0.9, 0.04, 0x3a2416, 0.36, 0.45, 0.15), box(0.08, 0.08, 0.08, 0xd9b44a, 0.36, 0.92, 0.15));
+    }
+  } else if (f === 'hh' && (slot === 'cav' || slot === 'siege' || slot === 'hero')) {
     if (slot === 'cav') {
       // Forklift: squat yellow body, cage, mast with two forks out front (forks jab forward on a hit via lunge).
       g = new THREE.Group();
