@@ -1,16 +1,17 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=16';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=16';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=16';
-import { emit } from '../fx/particles.js?v=16';
-import { TICK } from '../config/factions.js?v=16';
-import { walkH } from '../map/layout.js?v=16';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=16';
-import { Q, pl } from '../sim/sim.js?v=16';
-import { UI } from '../ui/state.js?v=16';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=16';
-import { lerpAngle } from '../util/math.js?v=16';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=17';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=17';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=17';
+import { emit } from '../fx/particles.js?v=17';
+import { TICK } from '../config/factions.js?v=17';
+import { walkH } from '../map/layout.js?v=17';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=17';
+import { Q, pl } from '../sim/sim.js?v=17';
+import { UI } from '../ui/state.js?v=17';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=17';
+import { lerpAngle } from '../util/math.js?v=17';
 
+const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
@@ -80,6 +81,29 @@ function makeNodeObj(n) {
 
 export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
 export function squadObj(id) { return R.sq.get(id); }
+/** Hit flash: a quick squash-and-stretch plus a red pop, readable without per-member materials. */
+function squash(m, dt) {
+  const f = m.userData.flashT;
+  if (!(f > 0)) return;
+  m.userData.flashT = f - dt;
+  const k = Math.sin((f / 0.16) * Math.PI);
+  m.scale.x *= 1 + 0.25 * k; m.scale.z *= 1 + 0.25 * k; m.scale.y *= 1 - 0.2 * k;
+  if (f > 0.13) { m.getWorldPosition(_wp); emit({ x: _wp.x, y: _wp.y + 1, z: _wp.z, vx: (Math.random() - 0.5) * 3, vy: 2, vz: (Math.random() - 0.5) * 3, c: 0xff4a3c, s: 0.14, life: 0.3, g: 12 }); }
+}
+const _wp = new THREE.Vector3();
+/** Ragdoll-lite death for box placeholders: knocked back and up, tumbling, then sinks out. Returns visibility. */
+function fling(m, dt, heavy) {
+  const u = m.userData;
+  if (u.deadT === undefined) { u.deadT = 1.3; u.fv = new THREE.Vector3((Math.random() - 0.5) * 3, heavy ? 3 : 5 + Math.random() * 2, heavy ? -1 : -2 - Math.random() * 2); u.fs = new THREE.Vector3((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 8); u.fy = m.position.y; }
+  if (u.deadT <= 0) return false;
+  u.deadT -= dt;
+  u.fv.y -= 18 * dt;
+  m.position.addScaledVector(u.fv, dt);
+  if (m.position.y < u.fy) { m.position.y = u.fy; u.fv.multiplyScalar(0.3); u.fv.y = Math.abs(u.fv.y); u.fs.multiplyScalar(0.5); }
+  m.rotation.x += u.fs.x * dt; m.rotation.z += u.fs.z * dt; m.rotation.y += u.fs.y * dt;
+  if (u.deadT < 0.4) m.position.y -= (0.4 - u.deadT) * 2 * dt * 3; // sink into the ground at the end
+  return true;
+}
 /** Squads answer an order with a little hop, so a command visibly lands. */
 export function ack(ids) { for (const id of ids) { const o = R.sq.get(id); if (o) o.ack = 0.45; } }
 const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 - i * 0.04; return k > 0 && k < 1 ? Math.sin(k * Math.PI) * 0.4 : 0; };
@@ -112,7 +136,8 @@ export function syncRender(S, alpha, dt, time) {
           continue;
         }
         alive++;
-        if (s.members[i] < m.userData.hp - 0.5 && !o.atk) play(m, 'hit');
+        if (s.members[i] < m.userData.hp - 0.5) { m.userData.flashT = 0.16; if (!o.atk) play(m, 'hit'); }
+        m.scale.set(1, 1, 1); squash(m, dt);
         m.userData.hp = s.members[i];
         if (o.atk) play(m, A.atk, true);
         else if (gather && A.lock <= 0) play(m, A.atk);
@@ -129,14 +154,16 @@ export function syncRender(S, alpha, dt, time) {
       o.atk = false;
     } else for (let i = 0; i < o.members.length; i++) {
       const m = o.members[i], live = s.members[i] > 0;
-      m.visible = live;
-      if (!live) continue;
+      if (!live) { m.visible = fling(m, dt, s.def.vehicle); continue; }
+      m.visible = true;
       alive++;
+      if (s.members[i] < (m.userData.hp ?? s.members[i]) - 0.5) m.userData.flashT = 0.16;
+      m.userData.hp = s.members[i];
       let y = m.userData.by;
       if (s.def.flies) y += Math.sin(time * 3 + i) * 0.3;
       else if (moving && s.def.vehicle) y += Math.abs(Math.sin(time * 16)) * 0.1;
       else if (moving) y += Math.abs(Math.sin(time * bs + i * 1.3)) * 0.08;
-      m.position.y = y + hop(o, i); m.scale.y = s.sit ? 0.55 : 1; m.position.z = m.userData.bz + o.lunge * 2.5;
+      m.position.y = y + hop(o, i); m.scale.set(1, s.sit ? 0.55 : 1, 1); squash(m, dt); m.position.z = m.userData.bz + o.lunge * 2.5;
       const legs = m.userData.legs;
       if (legs) { const sw = moving ? Math.sin(time * bs + i * 1.3) * 0.7 : 0; legs[0].rotation.x = sw; legs[1].rotation.x = -sw; }
       const eg = m.userData.eagle;
@@ -185,7 +212,12 @@ export function syncRender(S, alpha, dt, time) {
     o.rank.children.forEach((c, i) => (c.visible = i < s.rank)); o.rank.quaternion.copy(camera.quaternion);
     if (par) { o.confT -= dt; if (o.confT <= 0) { o.confT = 0.5; fxConfetti(x, z, 4); } }
   }
-  for (const [id, o] of R.sq) if (!seen.has(id)) { disposeObj(o.root); R.sq.delete(id); }
+  for (const [id, o] of R.sq) if (!seen.has(id)) { R.sq.delete(id); o.bar.g.visible = o.sel.visible = o.team.visible = false; corpses.push({ o, t: 1.6 }); }
+  for (let ci = corpses.length - 1; ci >= 0; ci--) {
+    const c = corpses[ci]; c.t -= dt;
+    for (const m of c.o.members) { if (m.userData.anim) { if (m.userData.deadT === undefined) { m.userData.deadT = 1.6; play(m, 'die', true); } m.userData.anim.mixer.update(dt); } else if (m.visible) m.visible = fling(m, dt, false); }
+    if (c.t <= 0) { disposeObj(c.o.root); corpses.splice(ci, 1); }
+  }
 
   const seenB = new Set();
   for (const b of S.blds) {
@@ -319,5 +351,6 @@ export function clearRender() {
   if (R.ghost) disposeObj(R.ghost.g);
   R.ghost = null;
   for (const d of dying) disposeObj(d.root); dying.length = 0;
+  for (const c of corpses) disposeObj(c.o.root); corpses.length = 0;
   R.sq.clear(); R.bl.clear(); R.nodes.clear(); R.zones.clear(); R.pend.clear();
 }

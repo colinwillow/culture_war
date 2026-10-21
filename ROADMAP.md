@@ -23,7 +23,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B13) Map: capture-flag business ownership ring colour + team awning tint so contested trucks read at a glance
 - [x] (B15) Logic: AI improvements — expands to contested businesses, builds towers, retreats wounded squads
 - [x] (B16) FX: power visuals pass — mud bog bubbles, fireworks streaks + bursts, parade confetti cannons, pie splat
-- [ ] Units: death ragdoll-lite (fling + fade) for placeholder units; hit flash on damaged members
+- [x] (B17) Units: death ragdoll-lite (fling + fade) for placeholder units; hit flash on damaged members
 - [ ] UI: end-of-match screen with animated stats bars (kills, cash, buildings) — icons only
 - [ ] Map: day lighting pass — warmer sun, soft shadows on units only (one shadow-casting light, small map)
 - [ ] Logic: veterancy visuals + hero leveling (hero gains levels from kills, scales slightly, new ring)
