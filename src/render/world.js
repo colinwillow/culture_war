@@ -1,9 +1,9 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box } from './scene.js?v=40';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=40';
-import { hash } from '../util/math.js?v=40';
-import { emit } from '../fx/particles.js?v=40';
+import { THREE, scene, mat, box } from './scene.js?v=41';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect } from '../map/layout.js?v=41';
+import { hash } from '../util/math.js?v=41';
+import { emit } from '../fx/particles.js?v=41';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -163,7 +163,14 @@ export function buildWorld() {
   wing.computeVertexNormals();
   const birdIM = new THREE.InstancedMesh(wing, new THREE.MeshBasicMaterial({ color: 0x2a2a30, side: THREE.DoubleSide }), birds.length);
   birdIM.frustumCulled = false; scene.add(birdIM);
-  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM };
+  // Pigeons: little flocks pecking on the park grass. Walk a squad through them and they burst up and away,
+  // circle, and glide back to the same spot a few seconds later.
+  const pigeons = [];
+  parks.forEach((p, pi) => { for (let i = 0; i < 9; i++) { const hx = p.x0 + 3 + hash(pi * 31 + i, 7) * (p.x1 - p.x0 - 6), hz = p.z0 + 3 + hash(pi * 31 + i, 8) * (p.z1 - p.z0 - 6); pigeons.push({ hx, hz, x: hx, y: 0.2, z: hz, vx: 0, vy: 0, vz: 0, st: 'peck', t: hash(i, 9) * 6, rot: hash(i, 10) * 6 }); } });
+  const pgeo = new THREE.BoxGeometry(0.22, 0.18, 0.34);
+  const pigIM = new THREE.InstancedMesh(pgeo, new THREE.MeshLambertMaterial({ color: 0x8d929c }), pigeons.length);
+  pigIM.frustumCulled = false; scene.add(pigIM);
+  life = { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM, pigeons, pigIM };
 
   // Freeway traffic (render only, loops forever).
   const lanes = [-3.2, -1, 1, 3.2];
@@ -180,7 +187,7 @@ export function buildWorld() {
 }
 
 const _e = new THREE.Euler(), LAMP = [0x5dff7a, 0xffc23a, 0xff4a3c], OFF = 0x333333;
-function updateLife(dt) {
+function updateLife(dt, S) {
   if (!life) return;
   wt += dt;
   const { crownIM, crowns, lampIM, tlLamps, vents, birds, birdIM } = life;
@@ -216,10 +223,30 @@ function updateLife(dt) {
     birdIM.setMatrixAt(i, M);
   });
   birdIM.instanceMatrix.needsUpdate = true;
+  const { pigeons, pigIM } = life;
+  pigeons.forEach((p, i) => {
+    if (p.st === 'peck') {
+      if (S && S.squads.some((q) => !q.def.flies && Math.abs(q.x - p.x) < 4.5 && Math.abs(q.z - p.z) < 4.5)) {
+        const a = Math.random() * 6.28; p.st = 'fly'; p.t = 3 + Math.random() * 3; p.vx = Math.cos(a) * 5; p.vz = Math.sin(a) * 5; p.vy = 6 + Math.random() * 2;
+      } else { p.t -= dt; if (p.t < 0) { p.t = 1 + Math.random() * 4; p.rot += (Math.random() - 0.5) * 2; } }
+    } else if (p.st === 'fly') {
+      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.vy = Math.max(0, p.vy - 4 * dt); p.rot = Math.atan2(p.vx, p.vz);
+      if ((p.t -= dt) <= 0) p.st = 'home';
+    } else { // glide back down onto the home spot
+      const dx = p.hx - p.x, dz = p.hz - p.z, d = Math.hypot(dx, dz);
+      p.x += (dx / (d || 1)) * Math.min(d, 6 * dt); p.z += (dz / (d || 1)) * Math.min(d, 6 * dt); p.y += (0.2 - p.y) * Math.min(1, dt * (d < 3 ? 3 : 0.6)); p.rot = Math.atan2(dx, dz);
+      if (d < 0.1 && p.y < 0.3) { p.st = 'peck'; p.y = 0.2; p.t = 1 + Math.random() * 3; }
+    }
+    const air = p.st !== 'peck', peck = !air && Math.sin(wt * 9 + i) > 0.7 ? 0.25 : 0;
+    Q.setFromEuler(_e.set(peck, p.rot, 0));
+    M.compose(V.set(p.x, p.y, p.z), Q, Sv.set(air ? 1.6 + Math.abs(Math.sin(wt * 18 + i)) * 1.4 : 1, 1, 1)); // airborne = wings out (wider)
+    pigIM.setMatrixAt(i, M);
+  });
+  pigIM.instanceMatrix.needsUpdate = true;
 }
 
 export function updateWorld(dt, S) {
-  updateLife(dt);
+  updateLife(dt, S);
   if (!traffic) return;
   const { im, cars, lights } = traffic;
   // Which overpasses have troops on them right now? Cars passing underneath honk: a bounce and a little yellow toot.
