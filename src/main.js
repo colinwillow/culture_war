@@ -1,22 +1,22 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=84';
-import { buildWorld, updateWorld, setDusk } from './render/world.js?v=84';
-import { syncRender, clearRender, bump } from './render/sync.js?v=84';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=84';
-import { newSim, getSim, step } from './sim/sim.js?v=84';
-import { TICK } from './config/factions.js?v=84';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=84';
-import { initInput, lockPageZoom } from './input/input.js?v=84';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=84';
-import { resetUI } from './ui/state.js?v=84';
-import { fillIcons, svg } from './ui/icons.js?v=84';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=84';
-import { updateMinimap } from './ui/minimap.js?v=84';
-import { isMuted, setMuted } from './fx/sfx.js?v=84';
-import { loadChars } from './render/chars.js?v=84';
-import { FC } from './render/models.js?v=84';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay } from './render/scene.js?v=85';
+import { buildWorld, updateWorld, setDusk } from './render/world.js?v=85';
+import { syncRender, clearRender, bump } from './render/sync.js?v=85';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=85';
+import { newSim, getSim, step } from './sim/sim.js?v=85';
+import { TICK } from './config/factions.js?v=85';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=85';
+import { initInput, lockPageZoom } from './input/input.js?v=85';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=85';
+import { resetUI } from './ui/state.js?v=85';
+import { fillIcons, svg } from './ui/icons.js?v=85';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=85';
+import { updateMinimap } from './ui/minimap.js?v=85';
+import { isMuted, setMuted } from './fx/sfx.js?v=85';
+import { loadChars } from './render/chars.js?v=85';
+import { FC } from './render/models.js?v=85';
 
-export const BUILD = 84; // written by `npm run bump`
+export const BUILD = 85; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -38,7 +38,7 @@ const menu = document.getElementById('menu'), endEl = document.getElementById('e
 let running = false;
 function start(f) {
   clearRender(); clearFx(); clearAlert();
-  newSim(f, (Date.now() & 0xffffff) + 1, diff);
+  newSim(f, (Date.now() & 0xffffff) + 1, diff, mode);
   // Your faction's colour tints the HUD accents (power meter, command cards); friend/foe stays blue/red.
   const fc = new THREE.Color(FC[f].main), hx = (c) => '#' + c.getHexString(), root = document.documentElement.style;
   root.setProperty('--fc', hx(fc)); root.setProperty('--fc2', hx(fc.clone().lerp(new THREE.Color(0xffffff), 0.45)));
@@ -49,10 +49,17 @@ function start(f) {
 // Difficulty: 1-3 stars on the menu, remembered on this phone.
 let diff = 1;
 try { diff = +(localStorage.getItem('cw-diff') ?? 1); } catch (e) {}
-const diffBtns = document.querySelectorAll('#diff button');
+const diffBtns = document.querySelectorAll('#diff button[data-d]');
 const showDiff = () => diffBtns.forEach((b) => b.classList.toggle('on', +b.dataset.d === diff));
 diffBtns.forEach((b) => b.addEventListener('pointerup', () => { diff = +b.dataset.d; showDiff(); try { localStorage.setItem('cw-diff', diff); } catch (e) {} }));
 showDiff();
+// Mode: Versus (destroy the HQ) or King of the Hill (hold the middle overpass), also remembered.
+let mode = 'vs';
+try { mode = localStorage.getItem('cw-mode') || 'vs'; } catch (e) {}
+const modeBtns = document.querySelectorAll('#diff button[data-m]');
+const showMode = () => modeBtns.forEach((b) => b.classList.toggle('on', b.dataset.m === mode));
+modeBtns.forEach((b) => b.addEventListener('pointerup', () => { mode = b.dataset.m; showMode(); try { localStorage.setItem('cw-mode', mode); } catch (e) {} }));
+showMode();
 document.querySelectorAll('.pick').forEach((b) => b.addEventListener('pointerup', () => start(b.dataset.f)));
 document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; setPause(false); });
 
@@ -121,7 +128,7 @@ function frame(now) {
       return `<div class="srow" style="--d:${0.3 + i * 0.25}s"><span class="ic">${svg(ic)}</span><div class="bars"><i class="me" style="--w:${(a[k] / mx) * 100}%"><b>${a[k]}</b></i><i class="them" style="--w:${(e[k] / mx) * 100}%"><b>${e[k]}</b></i></div></div>`;
     }).join('');
     const lost = S.players[1 - S.over.winner];
-    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: lost.hqx, z: lost.hqz };
+    cin = { t: 0, x0: CAM.tx, z0: CAM.tz, d0: CAM.dist, yaw0: CAM.yaw, x: S.over.hill ? S.hill.x : lost.hqx, z: S.over.hill ? S.hill.z : lost.hqz }; // a hill win swoops onto the hill
     setTimeout(() => (endEl.hidden = false), 2600);
   }
   hudT -= dt;

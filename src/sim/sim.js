@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=84';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=84';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=84';
-import { mulberry32 } from '../util/math.js?v=84';
-import { aiStep } from './ai.js?v=84';
+} from '../config/factions.js?v=85';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=85';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=85';
+import { mulberry32 } from '../util/math.js?v=85';
+import { aiStep } from './ai.js?v=85';
 
 let S = null;
 export const getSim = () => S;
@@ -25,7 +25,7 @@ function mkPlayer(i, f, side) {
 }
 
 // diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
-export function newSim(pf, seed = 12345, diff = 1) {
+export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
   if (S) for (const b of S.blds) markCircle(b.x, b.z, b.r, -1); // free old building cells
   const others = Object.keys(FACTIONS).filter((k) => k !== pf), af = others[seed % others.length]; // random opponent
   S = {
@@ -33,6 +33,9 @@ export function newSim(pf, seed = 12345, diff = 1) {
     players: [mkPlayer(0, pf, 1), mkPlayer(1, af, -1)],
     squads: [], blds: [], nodes: [], zones: [], pending: [], events: [], cmds: [], over: null,
     ai: { t: 0, wave: [30, 20, 14][diff], waveMax: [32, 45, 60][diff] },
+    mode,
+    // King of the Hill: the middle overpass. Holding it alone (no enemy fighters on it) fills your bar; full = win.
+    hill: mode === 'hill' ? { x: 0, z: 0, r: 7, prog: [0, 0], holder: -1, contested: false, win: 90 } : null,
   };
   S.players[1].inc = [0.7, 1, 1.35][diff];
   for (const p of S.players) { const tr = fac(p).traits || {}; p.cash = Math.round(p.cash * (tr.cash || 1)); p.inc *= tr.inc || 1; } // Old Money: a trust fund
@@ -470,6 +473,17 @@ function resolvePending(pd) {
     S.events.push({ k: 'wreckboom', x: pd.x, z: pd.z, r: pd.r });
   }
 }
+function stepHill(dt) {
+  const h = S.hill, on = [false, false];
+  for (const s of S.squads) if (s.slot !== 'worker' && !s.gar && aliveN(s) > 0 && Math.hypot(s.x - h.x, s.z - h.z) < h.r) on[s.owner] = true;
+  const holder = on[0] && on[1] ? -1 : on[0] ? 0 : on[1] ? 1 : -1;
+  h.contested = on[0] && on[1];
+  if (holder !== h.holder) { h.holder = holder; S.events.push({ k: 'hill', owner: holder, x: h.x, z: h.z }); }
+  if (holder >= 0) {
+    h.prog[holder] = Math.min(1, h.prog[holder] + dt / h.win);
+    if (h.prog[holder] >= 1) S.over = { winner: holder, hill: true };
+  }
+}
 export const rallyPoint = (p) => [p.hqx, p.hqz - p.side * 20];
 
 export function step() {
@@ -484,6 +498,7 @@ export function step() {
     if (p.parade > 0) p.parade -= dt;
     if (p.party > 0) p.party -= dt;
   }
+  if (S.hill && !S.over) stepHill(dt);
   for (const b of [...S.blds]) {
     if (b.dead) continue;
     const p = pl(b.owner);
