@@ -1,11 +1,11 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=49';
-import { walkH } from '../map/layout.js?v=49';
-import { shake } from '../camera/camera.js?v=49';
-import { FC } from '../render/models.js?v=49';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=49';
+import { THREE, scene, mat, cyl, basic, disposeObj } from '../render/scene.js?v=51';
+import { walkH } from '../map/layout.js?v=51';
+import { shake } from '../camera/camera.js?v=51';
+import { FC } from '../render/models.js?v=51';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=51';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -151,6 +151,21 @@ function paintBalloon(x, z, tx, tz) {
     for (let i = 0; i < 10; i++) emit({ x: tx, y: g0 + 0.6, z: tz, vx: (Math.random() - 0.5) * 6, vy: 2 + Math.random() * 3, vz: (Math.random() - 0.5) * 6, c, s: 0.2, life: 0.6, g: 14, floor: g0 });
   });
 }
+/** Megaphone blast: three bright arcs ("((( ") travel from the crew to the target, widening as they go. */
+function soundWaves(x, z, tx, tz) {
+  const yaw = Math.atan2(tx - x, tz - z), y0 = gy(x, z, 1.3), y1 = gy(tx, tz, 1);
+  for (let k = 0; k < 3; k++) {
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.75, 16, 1, Math.PI * 0.25, Math.PI * 0.5), basic(k === 1 ? 0xffffff : 0xe85d9a, 0.9));
+    const holder = new THREE.Group(); holder.add(m); holder.rotation.y = yaw;
+    m.rotation.set(0, Math.PI / 2, 0); // upright arc, its plane edge-on to the direction of travel
+    addFx(holder, 0.42, (o, kk) => {
+      const t = Math.max(0, Math.min(1, kk * 1.3 - k * 0.15));
+      o.position.set(x + (tx - x) * t, y0 + (y1 - y0) * t, z + (tz - z) * t);
+      const sc = 0.8 + t * 1.6; o.scale.set(sc, sc, sc);
+      m.material.opacity = t <= 0 ? 0 : 0.9 * (1 - t * t);
+    });
+  }
+}
 /** Rubble left where a building fell: a heap of tumbled blocks that settles, lingers, then sinks away. */
 function fxRubble(x, z, r) {
   const g = new THREE.Group(), g0 = gy(x, z), cols = [0x8a8378, 0x6b655c, 0xa39b8c, 0x5a3a22];
@@ -190,7 +205,11 @@ export function handleEvents(S, bump) {
       case 'shot':
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
-        else if (ev.f === 'ac' && ev.slot === 'ranged') { fxLine(ev.x, ev.z, ev.tx, ev.tz, 1, 0xe85d9a); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
+        else if (ev.f === 'ac' && ev.slot === 'ranged') { soundWaves(ev.x, ev.z, ev.tx, ev.tz); fxRing(ev.tx, ev.tz, 0.3, 1.6, 0xe85d9a, 0.3, 1); }
+        else if (ev.f === 'bw' && ev.slot === 'ranged') { // shotgun: three pellets in a spread
+          const dx = ev.tx - ev.x, dz = ev.tz - ev.z, L = Math.hypot(dx, dz) || 1, px = -dz / L, pz = dx / L;
+          for (const k of [-1, 0, 1]) { const sp = k * (0.5 + Math.random() * 0.5); burstShot(ev.x, gy(ev.x, ev.z, 1.25), ev.z, ev.tx + px * sp, gy(ev.tx, ev.tz, 0.8 + Math.random() * 0.4), ev.tz + pz * sp, 0xfff2a8); }
+        }
         else if (ev.bk === 'tower' && ev.f === 'ac') paintBalloon(ev.x, ev.z, ev.tx, ev.tz);
         else if (ev.bk === 'tower' && ev.f === 'bw') { // Deer Stand: a heavy slug and a fat puff of gunsmoke off the stand
           burstShot(ev.x, gy(ev.x, ev.z, 5), ev.z, ev.tx, gy(ev.tx, ev.tz, 0.95), ev.tz, 0xffe9a8);

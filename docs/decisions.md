@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B51 (overnight loop): ranged variety: Shotgun Hunters fire a 3-pellet spread (three flashes and slugs fanning onto the target); Megaphone Crew blasts three pink/white sound arcs that widen as they travel to the target
 - B49 (overnight loop): Bike Collective bikes: spoked wheels, a pink diamond frame (top/down/seat tubes, chain stay, fork), saddle, handlebars and a gold bell that flashes on every hit; riders pedal and lean into turns like cyclists
 - B48 (overnight loop): cash chip reacts: it pops up with a green glow whenever money comes in (deposits, income, refunds, scrap) and dips with a red glow when you spend (training, building, upgrades, repairs)
 - B47 (overnight loop): repair: select workers and tap one of your damaged buildings - they walk over and hammer away (swing animation + yellow sparks), +25 hp/s each for 1 cash per 10 hp, then go back to work when it's full or you run dry. Made it an order rather than automatic so it never quietly eats your economy
