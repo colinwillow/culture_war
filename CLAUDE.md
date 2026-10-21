@@ -9,6 +9,11 @@ Owner: Colin (colinwillow). He is the artist/animator; strongest on art, animati
 most help on game logic. Full design: `docs/design.md`. History of decisions and feedback: `docs/decisions.md`.
 
 ## Run
+**GitHub Pages serves `main` as-is, with no build** (https://colinwillow.github.io/culture_war/). So the source must run
+unbuilt in a browser: `three` and its addons resolve through the import map in `index.html` to `vendor/three/`
+(copied from node_modules, three 0.160), CSS is a `<link>`, and nothing may use `import.meta.env` or import CSS/JSON
+from JS. Assets (`models/`, `draco/`) sit at the repo root and are fetched relative to the page. New three addon =
+copy it into `vendor/three/jsm/` too. Push to `main` = live on his phone (allow ~10 min for Pages cache).
 ```
 npm install
 npm run dev            # vite --host, open on phone over LAN
@@ -72,7 +77,7 @@ Rules that keep this multiplayer-ready (lockstep):
 - One-finger drag pans; hold-then-drag box selects; pinch zoom + twist rotate; eye button = ghost cam.
 
 ## Real characters (greybox 04)
-- GLBs live in `public/models/characters/` (copied from the weirdport repo), Draco decoder in `public/draco/`.
+- GLBs live in `models/characters/` (copied from the weirdport repo), Draco decoder in `draco/` (both repo root).
 - Most of the cast has no clips of its own. Clips come from three DONOR files (`fat_biker_02` idle/walk/run/hit/fall,
   `contruction_worker` swings, `dummy_officer` shoot) and are retargeted by bone name (same method as weirdport's
   `retarget`: rotation tracks shared, one constant rotation at the Hips, Hips travel dropped because the sim moves units).

@@ -7,7 +7,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-const BASE = import.meta.env.BASE_URL + 'models/characters/';
+// Paths are relative to the PAGE, so this works on GitHub Pages (served from a subfolder, no build) and in vite dev.
+const ROOT = new URL('./', document.baseURI).href;
+const BASE = ROOT + 'models/characters/';
 const HIPS = 'mixamorig_Hips', HAND = 'mixamorig_RightHand';
 
 // Characters. h = drawn height in metres (humans ~1.6). own = clips the file carries that we use as-is.
@@ -57,7 +59,7 @@ let ready = false;
 export const charsReady = () => ready;
 
 const draco = new DRACOLoader();
-draco.setDecoderPath(import.meta.env.BASE_URL + 'draco/');
+draco.setDecoderPath(ROOT + 'draco/');
 const loader = new GLTFLoader();
 loader.setDRACOLoader(draco);
 const load = (f) => loader.loadAsync(BASE + f);

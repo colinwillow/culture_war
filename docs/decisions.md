@@ -3,6 +3,8 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- **Runs on GitHub Pages unbuilt.** Colin opened Pages and got bare unstyled HTML: Pages served the raw source, which
+  needed Vite. Now an import map + vendored three make `main` playable directly.
 - **Real characters in.** Colin: borrow the example models from the weirdport repo so this starts looking like a game.
   Backwoods: hick (workers, pitchfork farmers, shotgun hunters), fat bikers (bar brawlers). Activists: fat activist,
   hippie, hipster (gig workers, sign wavers, picket line, megaphone crew). Vehicles, bikes and heroes still placeholders.

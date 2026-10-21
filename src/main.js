@@ -1,5 +1,4 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import './ui/style.css';
 import { renderer, scene, camera } from './render/scene.js';
 import { buildWorld, updateWorld } from './render/world.js';
 import { syncRender, clearRender, bump } from './render/sync.js';

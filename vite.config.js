@@ -5,6 +5,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 // so the prototype can be published as a single page and played on a phone.
 export default defineConfig(({ mode }) => ({
   base: './',
+  publicDir: false, // models/ and draco/ sit at the repo root so GitHub Pages can serve the source unbuilt
   plugins: mode === 'artifact' ? [viteSingleFile()] : [],
   build: { outDir: mode === 'artifact' ? 'dist-artifact' : 'dist' },
 }));
