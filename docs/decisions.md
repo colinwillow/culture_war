@@ -16,6 +16,7 @@ Colin asked: "keep developing it, UI, game logic, particle effects, map, placeho
   (6 cards + 2 button rows), rain visibility, and whether the AI hill/garrison play feels right.
 
 ## Greybox 04 (Oct 21, 2026)
+- B116 (overnight loop): Rain reads better: streaks longer (0.9 -> 1.4 m), thicker and brighter (opacity 0.45 -> 0.6), plus little ripple rings that grow and fade where drops land (pool of 24 reused rings)
 - B115 (overnight loop): End screen matchup: under the trophy/skull, your faction's badge vs theirs (faction colour + menu icon); the winner's is 35% bigger, the loser's greyed out
 - B114 (overnight loop): Hero duel balance (tools/balance.cjs now takes [seeds] [mode]): Hero vs Hero round robin started bw 30/30 ac 0/30 - Bald Eagle hp 600->470, dmg 25->16, speed 8->6.5; March Leader 450/12 -> 560/19; Tycoon 520/22 -> 590/26; DJ hp 480->520; Streamer 500/18 -> 540/20. Now duels bw 18 ac 15 hh 15 om 15 sc 15 nd 12 (of 30) and Versus still bw 17 ac 13 hh 15 om 12 sc 16 nd 17
 - B113 (overnight loop): Hero vs Hero: fifth mode button (hero icon); each side starts with its HQ, two workers and its hero (no starting squad), and only workers can be trained; the first hero to fall loses (heroes still heal at home, powers still charge). The computer's hero hunts yours and retreats to heal when low; the end swoop lands on the winning hero. AI-vs-AI duel ended at 54 s

@@ -1,10 +1,10 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=115';
-import { CAM } from '../camera/camera.js?v=115';
-import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=115';
-import { hash } from '../util/math.js?v=115';
-import { emit } from '../fx/particles.js?v=115';
+import { THREE, scene, mat, box, setOvercast } from './scene.js?v=116';
+import { CAM } from '../camera/camera.js?v=116';
+import { MAP, BLOCKS, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=116';
+import { hash } from '../util/math.js?v=116';
+import { emit } from '../fx/particles.js?v=116';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -311,13 +311,28 @@ export function setRain(on) {
   if (low) on = false;
   if (!on) { if (rain) { rain.im.visible = false; rain.on = false; } setOvercast(0); return; }
   if (!rain) {
-    const N = 500, im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.03, 0.9, 0.03), new THREE.MeshBasicMaterial({ color: 0xcfe2f2, transparent: true, opacity: 0.45, depthWrite: false }), N);
+    const N = 500, im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.045, 1.4, 0.045), new THREE.MeshBasicMaterial({ color: 0xe6f1fa, transparent: true, opacity: 0.6, depthWrite: false }), N);
     im.frustumCulled = false; scene.add(im);
     rain = { im, N, drops: Array.from({ length: N }, () => ({ x: (Math.random() - 0.5) * 80, y: Math.random() * 30, z: (Math.random() - 0.5) * 80 })) };
   }
   rain.on = true; rain.im.visible = true; setOvercast(1);
 }
+// Ripples: a small pool of flat rings that grow and fade where drops land (one draw each, 24 reused).
+const RIP = [];
+function ripple(x, y, z) {
+  let r = RIP.find((q) => q.t >= 1);
+  if (!r) {
+    if (RIP.length >= 24) return;
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 16), new THREE.MeshBasicMaterial({ color: 0xdbe8f2, transparent: true, opacity: 0.5, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; scene.add(m); r = { m, t: 1 }; RIP.push(r);
+  }
+  r.t = 0; r.m.position.set(x, y + 0.04, z); r.m.visible = true;
+}
+function updateRipples(dt) {
+  for (const r of RIP) { if (r.t >= 1) continue; r.t = Math.min(1, r.t + dt / 0.6); r.m.scale.setScalar(0.1 + r.t * 0.5); r.m.material.opacity = 0.5 * (1 - r.t); if (r.t >= 1) r.m.visible = false; }
+}
 function updateRain(dt) {
+  updateRipples(dt);
   if (!rain || !rain.on) return;
   Q.identity(); Sv.set(1, 1, 1);
   rain.drops.forEach((d, i) => {
@@ -325,6 +340,7 @@ function updateRain(dt) {
     const wx = CAM.tx + d.x, wz = CAM.tz + d.z, gy = walkH(wx, wz);
     if (d.y < gy) {
       if (i % 6 === 0) emit({ x: wx, y: gy + 0.05, z: wz, vx: (Math.random() - 0.5), vy: 1.2, vz: (Math.random() - 0.5), c: 0xdbe8f2, s: 0.08, life: 0.25, g: 9 });
+      if (i % 9 === 0) ripple(wx, gy, wz);
       d.y = gy + 20 + Math.random() * 10; d.x = (Math.random() - 0.5) * 80; d.z = (Math.random() - 0.5) * 80;
     }
     M.compose(V.set(wx, d.y, wz), Q, Sv); rain.im.setMatrixAt(i, M);
