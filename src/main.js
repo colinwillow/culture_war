@@ -1,20 +1,20 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun } from './render/scene.js?v=34';
-import { buildWorld, updateWorld } from './render/world.js?v=34';
-import { syncRender, clearRender, bump } from './render/sync.js?v=34';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=34';
-import { newSim, getSim, step } from './sim/sim.js?v=34';
-import { TICK } from './config/factions.js?v=34';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=34';
-import { initInput, lockPageZoom } from './input/input.js?v=34';
-import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=34';
-import { resetUI } from './ui/state.js?v=34';
-import { fillIcons, svg } from './ui/icons.js?v=34';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=34';
-import { updateMinimap } from './ui/minimap.js?v=34';
-import { loadChars } from './render/chars.js?v=34';
+import { renderer, scene, camera, followSun } from './render/scene.js?v=35';
+import { buildWorld, updateWorld } from './render/world.js?v=35';
+import { syncRender, clearRender, bump } from './render/sync.js?v=35';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=35';
+import { newSim, getSim, step } from './sim/sim.js?v=35';
+import { TICK } from './config/factions.js?v=35';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=35';
+import { initInput, lockPageZoom } from './input/input.js?v=35';
+import { refreshHUD, resetHUD, updatePlaceBar } from './ui/hud.js?v=35';
+import { resetUI } from './ui/state.js?v=35';
+import { fillIcons, svg } from './ui/icons.js?v=35';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=35';
+import { updateMinimap } from './ui/minimap.js?v=35';
+import { loadChars } from './render/chars.js?v=35';
 
-export const BUILD = 34; // written by `npm run bump`
+export const BUILD = 35; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -36,11 +36,18 @@ const menu = document.getElementById('menu'), endEl = document.getElementById('e
 let running = false;
 function start(f) {
   clearRender(); clearFx(); clearAlert();
-  newSim(f, (Date.now() & 0xffffff) + 1);
+  newSim(f, (Date.now() & 0xffffff) + 1, diff);
   resetUI(); resetHUD();
   menu.hidden = true; endEl.hidden = true; running = true; setPause(false);
   resetCam(); refreshHUD();
 }
+// Difficulty: 1-3 stars on the menu, remembered on this phone.
+let diff = 1;
+try { diff = +(localStorage.getItem('cw-diff') ?? 1); } catch (e) {}
+const diffBtns = document.querySelectorAll('#diff button');
+const showDiff = () => diffBtns.forEach((b) => b.classList.toggle('on', +b.dataset.d === diff));
+diffBtns.forEach((b) => b.addEventListener('pointerup', () => { diff = +b.dataset.d; showDiff(); try { localStorage.setItem('cw-diff', diff); } catch (e) {} }));
+showDiff();
 document.querySelectorAll('.pick').forEach((b) => b.addEventListener('pointerup', () => start(b.dataset.f)));
 document.getElementById('again').addEventListener('pointerup', () => { endEl.hidden = true; menu.hidden = false; running = false; setPause(false); });
 

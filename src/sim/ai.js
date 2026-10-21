@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=34';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=34';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=35';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN } from './sim.js?v=35';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {
@@ -90,7 +90,7 @@ export function aiStep(S, dt) {
   if (threat) { mine.forEach((s) => { if (s.order.type !== 'attack') setOrder(s, { type: 'attack', target: threat }); }); return; }
   const armyCp = mine.reduce((a, s) => a + s.def.cp, 0);
   if (armyCp >= ai.wave) {
-    ai.wave = Math.min(45, ai.wave + 8);
+    ai.wave = Math.min(ai.waveMax || 45, ai.wave + 8);
     mine.forEach((s) => setOrder(s, { type: 'amove', x: e.hqx + (S.rng() - 0.5) * 8, z: e.hqz - e.side * 6 }));
   }
 }

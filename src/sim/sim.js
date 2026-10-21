@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=34';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=34';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=34';
-import { mulberry32 } from '../util/math.js?v=34';
-import { aiStep } from './ai.js?v=34';
+} from '../config/factions.js?v=35';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=35';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=35';
+import { mulberry32 } from '../util/math.js?v=35';
+import { aiStep } from './ai.js?v=35';
 
 let S = null;
 export const getSim = () => S;
@@ -21,18 +21,20 @@ export const pl = (i) => S.players[i];
 export const fac = (p) => FACTIONS[p.f];
 
 function mkPlayer(i, f, side) {
-  return { i, f, side, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, hqx: BASES[i].x, hqz: BASES[i].z };
+  return { i, f, side, inc: 1, cash: START_CASH, st: { kills: 0, earned: 0, built: 0, razed: 0 }, meter: 0, incomeT: 0, parade: 0, hqx: BASES[i].x, hqz: BASES[i].z };
 }
 
-export function newSim(pf, seed = 12345) {
+// diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
+export function newSim(pf, seed = 12345, diff = 1) {
   if (S) for (const b of S.blds) markCircle(b.x, b.z, b.r, -1); // free old building cells
   const af = pf === 'bw' ? 'ac' : 'bw';
   S = {
     t: 0, nid: 1, rng: mulberry32(seed),
     players: [mkPlayer(0, pf, 1), mkPlayer(1, af, -1)],
     squads: [], blds: [], nodes: [], zones: [], pending: [], events: [], cmds: [], over: null,
-    ai: { t: 0, wave: 20 },
+    ai: { t: 0, wave: [30, 20, 14][diff], waveMax: [32, 45, 60][diff] },
   };
+  S.players[1].inc = [0.7, 1, 1.35][diff];
   for (const [x, z] of NODES) S.nodes.push({ id: S.nid++, x, z, amount: NODE_AMOUNT });
   for (const p of S.players) {
     addBld(p, 'hq', p.hqx, p.hqz, true);
@@ -322,7 +324,7 @@ function updateWorker(s, dt) {
   if (t.state === 'return') {
     const d = nearestDepot(s);
     if (!d) return;
-    if (Math.hypot(d.x - s.x, d.z - s.z) < d.r + 1.8) { pl(s.owner).cash += s.carry; pl(s.owner).st.earned += s.carry; S.events.push({ k: 'deposit', x: d.x, z: d.z, owner: s.owner }); s.carry = 0; t.state = t.node && t.node.amount > 0 ? 'toNode' : 'find'; }
+    if (Math.hypot(d.x - s.x, d.z - s.z) < d.r + 1.8) { const got = Math.round(s.carry * pl(s.owner).inc); pl(s.owner).cash += got; pl(s.owner).st.earned += got; S.events.push({ k: 'deposit', x: d.x, z: d.z, owner: s.owner }); s.carry = 0; t.state = t.node && t.node.amount > 0 ? 'toNode' : 'find'; }
     else moveTo(s, d.x, d.z, dt);
   }
 }
@@ -422,7 +424,7 @@ export function step() {
   for (const s of S.squads) { s.px = s.x; s.pz = s.z; }
   for (const p of S.players) {
     p.incomeT += dt;
-    if (p.incomeT >= 10) { p.incomeT -= 10; { const inc = BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot'); p.cash += inc; p.st.earned += inc; } S.events.push({ k: 'income', owner: p.i }); }
+    if (p.incomeT >= 10) { p.incomeT -= 10; { const inc = Math.round((BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot')) * p.inc); p.cash += inc; p.st.earned += inc; } S.events.push({ k: 'income', owner: p.i }); }
     if (p.parade > 0) p.parade -= dt;
   }
   for (const b of [...S.blds]) {
