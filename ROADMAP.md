@@ -20,7 +20,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 - [x] (B10) FX: building damage states (smoke at <50%, fire at <25%), collapse into rubble pile on death
 - [x] (B11) Logic: rally point per production building (tap ground after selecting building), shown as a flag
 - [x] (B12) UI: minimap in a corner (tap to jump camera), shows squads, buildings, businesses, fog-free
-- [ ] Map: capture-flag business ownership ring colour + team awning tint so contested trucks read at a glance
+- [x] (B13) Map: capture-flag business ownership ring colour + team awning tint so contested trucks read at a glance
 - [ ] Logic: AI improvements — expands to contested businesses, builds towers, retreats wounded squads
 - [ ] FX: power visuals pass — mud bog bubbles, fireworks streaks + bursts, parade confetti cannons, pie splat
 - [ ] Units: death ragdoll-lite (fling + fade) for placeholder units; hit flash on damaged members

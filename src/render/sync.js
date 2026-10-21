@@ -1,15 +1,15 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=12';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=12';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=12';
-import { emit } from '../fx/particles.js?v=12';
-import { TICK } from '../config/factions.js?v=12';
-import { walkH } from '../map/layout.js?v=12';
-import { NODE_AMOUNT, BLD } from '../config/factions.js?v=12';
-import { Q, pl } from '../sim/sim.js?v=12';
-import { UI } from '../ui/state.js?v=12';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=12';
-import { lerpAngle } from '../util/math.js?v=12';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj } from './scene.js?v=13';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=13';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=13';
+import { emit } from '../fx/particles.js?v=13';
+import { TICK } from '../config/factions.js?v=13';
+import { walkH } from '../map/layout.js?v=13';
+import { NODE_AMOUNT, BLD } from '../config/factions.js?v=13';
+import { Q, pl } from '../sim/sim.js?v=13';
+import { UI } from '../ui/state.js?v=13';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=13';
+import { lerpAngle } from '../util/math.js?v=13';
 
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
@@ -75,7 +75,7 @@ function makeNodeObj(n) {
   g.rotation.y = (n.x * 7 + n.z) % 6;
   ring.rotation.z = 0;
   scene.add(g);
-  return { g, ring, coin: g.userData.coin };
+  return { g, ring, coin: g.userData.coin, flag: g.userData.flag, awning: g.userData.awning };
 }
 
 export function bump(id) { const o = R.sq.get(id); if (o) { o.lunge = 0.15; o.atk = true; } }
@@ -248,7 +248,18 @@ export function syncRender(S, alpha, dt, time) {
     o.g.visible = k > 0;
     o.coin.rotation.z += dt * 2;
     o.coin.scale.setScalar(0.4 + 0.6 * k);
-    o.ring.material.opacity = 0.3 + 0.2 * Math.sin(time * 2);
+    // Who works this truck right now? Workers of each side on it (heading there, working, or leaving with cash).
+    let mine = 0, theirs = 0;
+    for (const w of S.squads) if (w.slot === 'worker' && w.task && w.task.node === n && Math.hypot(w.x - n.x, w.z - n.z) < 9) { if (w.owner === 0) mine++; else theirs++; }
+    const own = mine && theirs ? 'both' : mine ? 0 : theirs ? 1 : null;
+    const col = own === 0 ? 0x7fd1ff : own === 1 ? 0xff5a4f : own === 'both' ? (Math.sin(time * 8) > 0 ? 0x7fd1ff : 0xff5a4f) : 0xf5b83a;
+    o.ring.material.color.setHex(col);
+    o.ring.material.opacity = own === 'both' ? 0.75 : own === null ? 0.3 + 0.2 * Math.sin(time * 2) : 0.6;
+    o.flag.material.color.setHex(own === null ? 0xf2b632 : col);
+    o.awning.material.color.setHex(own === 0 ? 0x4aa8d8 : own === 1 ? 0xd8483f : own === 'both' ? col : 0xf2b632);
+    const fp = o.flag.geometry.attributes.position; // flag ripples
+    for (let k = 0; k < fp.count; k++) { const fx = fp.getX(k); fp.setZ(k, Math.sin(time * 7 - fx * 5 + n.id) * 0.1 * (fx + 0.45)); }
+    fp.needsUpdate = true;
   }
 
   const seenZ = new Set();

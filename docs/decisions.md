@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B13 (overnight loop): food trucks show who works them: ring, awning and a rippling flag on the sign pole turn blue (yours) / red (theirs), flash blue-red when both sides' workers are on it, gold when nobody is
 - B12 (overnight loop): minimap top-left under the chips: city blocks, trench, businesses (gold), buildings (blue/red squares), squads (dots), white camera box; tap or drag on it to fly the camera there
 - B11 (overnight loop): rally flags: select a barracks/HQ and tap the ground to plant its flag (waving cloth + dotted trail, shown while selected); new squads from it muster there in a tight cluster (workers still go to work)
 - B10 (overnight loop): building damage: dark smoke under 50% hp, flames + trembling under 25% (both scale with damage); a destroyed building sinks and keels over in a dust cloud, leaving a rubble heap that lingers ~20 s

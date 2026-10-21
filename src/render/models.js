@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=12';
+import { THREE, box, cyl, mat } from './scene.js?v=13';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -115,8 +115,12 @@ export function nodeMesh() {
   sign.add(cyl(0.06, 0.06, 1.4, 0x888888, 0, 3, 0, 6));
   const coin = cyl(0.55, 0.55, 0.12, 0xf5b83a, 0, 4, 0, 14); coin.rotation.x = Math.PI / 2; sign.add(coin);
   const awning = box(0.8, 0.08, 3, 0xf2b632, 1.4, 2.3, -0.3); awning.rotation.z = -0.3;
+  // Team flag on the sign pole + own (un-shared) awning material, so sync.js can tint them to whoever works here.
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.55, 4, 1), new THREE.MeshLambertMaterial({ color: 0xf2b632, side: THREE.DoubleSide }));
+  flag.position.set(0.5, 3.4, 0); sign.add(flag);
+  awning.material = new THREE.MeshLambertMaterial({ color: 0xf2b632 });
   g.add(truck, sign, awning, box(0.8, 0.9, 0.8, 0x8a6a3e, -1.7, 0.45, -1.2));
-  g.userData.coin = coin;
+  g.userData.coin = coin; g.userData.flag = flag; g.userData.awning = awning;
   return g;
 }
 

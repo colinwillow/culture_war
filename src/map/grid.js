@@ -1,5 +1,5 @@
 // Walkability grid + A* pathfinding. Hand-written, no physics/path library (project convention).
-import { MAP, BLOCKS, TREES, PARKED, walkH } from './layout.js?v=12';
+import { MAP, BLOCKS, TREES, PARKED, walkH } from './layout.js?v=13';
 
 export const blocked = new Uint8Array(MAP.cols * MAP.rows); // >0 = blocked (counts, so buildings can add/remove)
 
