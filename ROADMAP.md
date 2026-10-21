@@ -81,7 +81,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 
 ## Batch 7 (added 11:57 UTC by the loop, same rules)
 - [x] (B66 docs) Docs: refresh CLAUDE.md "Current state" + docs/design.md with what is actually built now (4 factions, systems added overnight) so future sessions start from the truth
-- [ ] Logic: AI-vs-AI balance pass — fast-forward round-robin matches between all 4 factions (sim has no player input needed if both sides run the AI), nudge numbers where one faction always wins
+- [x] (B69) Logic: AI-vs-AI balance pass — fast-forward round-robin matches between all 4 factions (sim has no player input needed if both sides run the AI), nudge numbers where one faction always wins
 - [ ] UI: dev readout — tap the B# on the menu title to toggle a tiny FPS + unit-count line in the corner (helps judge phone performance)
 - [ ] Logic: STREET CREW (Rush) data — sneakerhead runners, breakdancers, boombox crew (sound-wave ranged), lowrider cav, graffiti tagger siege, DJ hero; powers Block Party (army buff) + Mixtape Drop (shockwave stun)
 - [ ] Units: Street Crew cast with Colin's moussa GLB (has hip-hop dance clips - breakdancers attack by dancing) + bouncing lowrider placeholder

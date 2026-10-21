@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS,
-} from '../config/factions.js?v=66';
-import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=66';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=66';
-import { mulberry32 } from '../util/math.js?v=66';
-import { aiStep } from './ai.js?v=66';
+} from '../config/factions.js?v=69';
+import { MAP, NODES, BASES, walkH } from '../map/layout.js?v=69';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=69';
+import { mulberry32 } from '../util/math.js?v=69';
+import { aiStep } from './ai.js?v=69';
 
 let S = null;
 export const getSim = () => S;
@@ -523,7 +523,7 @@ export function step() {
     if (s.f !== 'ac' || s.slot === 'worker') { s.rally = 0; continue; }
     let c = 0;
     for (const o of S.squads) if (o !== s && o.owner === s.owner && o.slot !== 'worker' && Math.hypot(o.x - s.x, o.z - s.z) < 8) c++;
-    s.rally = Math.min(0.25, c * 0.05);
+    s.rally = Math.min(0.2, c * 0.05); // balance B67: cap 25% -> 20%
   }
   for (const s of [...S.squads]) if (!s.dead) updateSquad(s, dt);
   separate();
