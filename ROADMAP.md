@@ -140,3 +140,7 @@ Log every build in `docs/decisions.md` (newest first, one or two lines). All bui
 ## Batch 15 (added 14:08 UTC by the loop, same rules)
 - [x] (B114) Logic: hero duel balance — round robin all 6 heroes in Hero vs Hero (AI vs AI, several seeds); nudge outliers
 - [x] (B115) UI: end screen shows both factions' icons (yours vs theirs, the winner's bigger) above the stats
+
+## Batch 16 (added 14:14 UTC by the loop, same rules)
+- [ ] FX: rain reads better — longer, brighter streaks and little ripple rings on the ground where drops land
+- [ ] UI: first match ever — the build (hammer) button pulses gently until it is first used (show, don't label), remembered on the phone
