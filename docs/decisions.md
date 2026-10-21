@@ -3,6 +3,7 @@
 Newest first. Colin's feedback in his words where it matters.
 
 ## Greybox 04 (Oct 21, 2026)
+- B44 (overnight loop): hold to grab the army: press and hold still on the map - a green ring fills under your finger; let go once it's full to select every army squad on screen (workers and garrisons left out). Drag instead and it's the usual box select
 - B43 (overnight loop): eagle Screech: three sound rings roll out at bird height and on the ground in quick succession, a small camera kick, and a burst of brown/white feathers drifts down; stunned squads (anyone, any stun) wobble dazed on the spot until it wears off
 - B42 (overnight loop): tower shots by faction: Deer Stand fires a heavy slug with a fat puff of gunsmoke off the stand; Banner Tower lobs paint balloons that burst into bright splats (pink/teal/gold/blue) with droplets, fading after a few seconds
 - B41 (overnight loop): pigeons: little grey flocks peck around the park grass; walk any squad within ~4 m and they burst up and away flapping, circle off, then glide back down to their spot a few seconds later (one instanced draw for all of them)

@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=43';
-import { walkH } from '../map/layout.js?v=43';
-import { getSim, command } from '../sim/sim.js?v=43';
-import { UI, select, selSquads } from '../ui/state.js?v=43';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=43';
-import { fxMarker } from '../fx/fx.js?v=43';
-import { ack } from '../render/sync.js?v=43';
+import { THREE, camera, canvas } from '../render/scene.js?v=44';
+import { walkH } from '../map/layout.js?v=44';
+import { getSim, command } from '../sim/sim.js?v=44';
+import { UI, select, selSquads } from '../ui/state.js?v=44';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit } from '../camera/camera.js?v=44';
+import { fxMarker } from '../fx/fx.js?v=44';
+import { ack } from '../render/sync.js?v=44';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -77,6 +77,16 @@ function boxSelect(x0, y0, x1, y1) {
   if (ids.length) select({ type: 'sq', ids });
 }
 
+// Hold still on the ground: after the box-select delay a ring starts filling under the finger; let go once it is full
+// (without dragging) to grab every army squad you can see.
+const ringEl = document.getElementById('holdRing');
+const HOLD_ALL = 750;
+function showRing(x, y) { Object.assign(ringEl.style, { left: x - 34 + 'px', top: y - 34 + 'px' }); ringEl.hidden = false; ringEl.classList.remove('fill'); void ringEl.offsetWidth; ringEl.classList.add('fill'); }
+function selectAllOnScreen() {
+  const S = getSim(), W = window.innerWidth, H = window.innerHeight;
+  const ids = S.squads.filter((s) => { if (s.owner !== 0 || s.slot === 'worker' || s.gar) return false; const [sx, sy] = toScreen(s.x, walkH(s.x, s.z) + 0.9, s.z); return sx >= 0 && sx <= W && sy >= 0 && sy <= H; }).map((s) => s.id);
+  if (ids.length) select({ type: 'sq', ids });
+}
 const pointers = new Map();
 let gesture = null, pressTimer = null;
 function pinchInfo() { const [a, b] = [...pointers.values()]; return { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x) }; }
@@ -88,9 +98,9 @@ export function initInput() {
     clearTimeout(pressTimer);
     if (pointers.size === 1) {
       const rightMouse = e.pointerType === 'mouse' && e.button !== 0;
-      gesture = { type: rightMouse ? 'box' : 'press', x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY };
-      if (!rightMouse && !UI.place) pressTimer = setTimeout(() => { if (gesture && gesture.type === 'press') { gesture.type = 'box'; boxEl.style.display = 'block'; } }, 380);
-    } else if (pointers.size === 2) { gesture = { type: 'pinch', ...pinchInfo() }; boxEl.style.display = 'none'; }
+      gesture = { type: rightMouse ? 'box' : 'press', x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, t0: performance.now() };
+      if (!rightMouse && !UI.place) pressTimer = setTimeout(() => { if (gesture && gesture.type === 'press') { gesture.type = 'box'; gesture.ring = true; boxEl.style.display = 'block'; showRing(gesture.x0, gesture.y0); } }, 380);
+    } else if (pointers.size === 2) { gesture = { type: 'pinch', ...pinchInfo() }; boxEl.style.display = 'none'; ringEl.hidden = true; }
     else gesture = { type: 'none' };
   });
   canvas.addEventListener('pointermove', (e) => {
@@ -98,6 +108,7 @@ export function initInput() {
     if (!pt || !gesture) return;
     pt.x = e.clientX; pt.y = e.clientY;
     if (gesture.type === 'press' && Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 10) { clearTimeout(pressTimer); gesture.type = UI.place ? 'ghost' : 'pan'; }
+    if (gesture.type === 'box' && gesture.ring && Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 10) { gesture.ring = false; ringEl.hidden = true; }
     if (gesture.type === 'box') {
       const l = Math.min(gesture.x0, e.clientX), t = Math.min(gesture.y0, e.clientY);
       Object.assign(boxEl.style, { display: 'block', left: l + 'px', top: t + 'px', width: Math.abs(e.clientX - gesture.x0) + 'px', height: Math.abs(e.clientY - gesture.y0) + 'px' });
@@ -118,9 +129,13 @@ export function initInput() {
     clearTimeout(pressTimer);
     if (gesture && !cancel) {
       if (gesture.type === 'press' && pointers.size === 0) onTap(e.clientX, e.clientY);
-      else if (gesture.type === 'box') { boxEl.style.display = 'none'; if (Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 6) boxSelect(gesture.x0, gesture.y0, e.clientX, e.clientY); }
+      else if (gesture.type === 'box') {
+        boxEl.style.display = 'none';
+        if (Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > 6) boxSelect(gesture.x0, gesture.y0, e.clientX, e.clientY);
+        else if (gesture.ring && performance.now() - gesture.t0 >= HOLD_ALL) selectAllOnScreen();
+      }
     }
-    if (pointers.size === 0) { gesture = null; boxEl.style.display = 'none'; }
+    if (pointers.size === 0) { gesture = null; boxEl.style.display = 'none'; ringEl.hidden = true; }
     else if (gesture && gesture.type === 'pinch') gesture = { type: 'none' };
   };
   canvas.addEventListener('pointerup', (e) => end(e, false));

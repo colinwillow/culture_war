@@ -131,3 +131,9 @@ svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width:
 .diff button { pointer-events: auto; display: flex; gap: 0; align-items: center; justify-content: center; min-width: 70px; height: 50px; padding: 0 10px; border-radius: 16px; background: var(--panel); border: 2px solid var(--line); color: var(--muted); cursor: pointer; }
 .diff button .ic { width: 20px; height: 20px; }
 .diff button.on { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(245, 184, 58, .45); }
+#holdRing { position: fixed; width: 68px; height: 68px; border-radius: 50%; pointer-events: none; z-index: 8; --p: 0deg;
+  background: conic-gradient(var(--good) var(--p), rgba(255, 255, 255, .18) 0); -webkit-mask: radial-gradient(circle, transparent 25px, #000 26px); mask: radial-gradient(circle, transparent 25px, #000 26px); }
+#holdRing[hidden] { display: none; }
+@property --p { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+#holdRing.fill { animation: holdFill .37s linear forwards; }
+@keyframes holdFill { to { --p: 360deg; } }
