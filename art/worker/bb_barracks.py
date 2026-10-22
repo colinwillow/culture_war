@@ -41,4 +41,17 @@ for z in (1.1, 1.5):
 cyl(0.5, 0.06, (2.6, -2.2, 0.3), 'tire', n=8)                                     # tyre stack (training)
 cyl(0.5, 0.3, (2.6, -2.2, 0.45), 'tire', n=8)
 box((0.4, 0.4, 1.2), (-2.6, 2.4, 0.85), 'bone', bevel=0.05)                       # punching bag
+
+# ---- v2 detail pass: spikes on the roof corners + ridge, glow canisters by the door, crown tags, chain at the door
+for x in (-3.3, 3.3):
+    for y in (-3.3, 3.3):
+        spike(0.2, 0.75, (x, y, Hw + 0.3), (x * 0.1, y * 0.06, 1))
+    canister(0.22, 1.2, (x * 0.88, -D / 2 - 0.35, 1.0), (0, 0, 1), 'glow', bars=3, ribs=1)
+for y in (-2.0, 0.0, 2.0):
+    spike(0.13, 0.45, (-1.2, y, Hw + 1.03), (0, 0, 1)); spike(0.13, 0.45, (1.2, y, Hw + 1.03), (0, 0, 1))
+crown(1.4, (0, -D / 2 - 0.27, Hw - 0.15), normal=(0, -1, 0), up=(0, 0, 1), t=0.04)       # white crown on the crimson sign
+for s in (-1, 1):
+    crown(2.2, (s * (Wd / 2 + 0.16), 0.5, 1.9), normal=(s, 0, 0), up=(0, 0, 1), t=0.05)
+    box((0.5, 0.12, 0.5), (s * 2.9, -D / 2 - 0.16, Hw - 0.3), 'ivory', bevel=0.04)
+    hexbolt(0.07, (s * 2.9, -D / 2 - 0.23, Hw - 0.3), (0, -1, 0))
 print(ship('bb_barracks'))

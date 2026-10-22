@@ -34,4 +34,18 @@ cyl(0.35, 0.9, (-0.4, -0.9, 0.6), 'rust', n=8, bevel=0.03)                      
 cyl(0.35, 0.9, (0.3, -1.3, 0.6), 'orange', n=8, bevel=0.03)
 box((1.2, 0.8, 0.6), (0.0, 1.6, 0.45), 'steel', rot=(0, 15, 25), bevel=0.05)        # scrap heap
 box((0.9, 0.6, 0.5), (0.5, 1.2, 0.5), 'rust', rot=(10, -20, 60), bevel=0.05)
+
+# ---- v2 detail pass: spikes on fence corners + crane top, a glow canister rack, crown tags, hook chain
+for x in (-E, E):
+    for y in (-E, E):
+        spike(0.09, 0.4, (x, y, 1.5), (x * 0.05, y * 0.05, 1))
+spike(0.12, 0.5, (-1.4, 1.4, 3.92), (0, 0, 1))
+for i, x in enumerate((-0.3, 0.05, 0.4)):
+    canister(0.13, 0.7, (x, -1.9, 0.5), (0, 0, 1), 'glow', bars=3, ribs=1)            # canister rack (the stock)
+box((1.1, 0.35, 0.08), (0.05, -1.9, 0.12), 'iron', bevel=0.02)
+box((1.1, 0.35, 0.06), (0.05, -1.9, 0.88), 'iron', bevel=0.02)
+crown(0.7, (0, E + 0.05, 0.8), normal=(0, 1, 0), up=(0, 0, 1), t=0.03)
+crown(0.6, (-E - 0.05, 0, 0.8), normal=(-1, 0, 0), up=(0, 0, 1), t=0.03)
+crown(0.5, (1.3, 0.2 - 0.41, 1.45), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+chain((1.4, 1.4, 3.55), (1.4, 1.4, 2.1), 0.05)
 print(ship('bb_depot'))

@@ -45,4 +45,15 @@ box((0.22, 0.3, 0.12), (0, -0.55, 8.27), 'glow', bevel=0.0)                     
 for x in (-1.2, 1.2):
     cyl(0.06, 1.9, (x, 1.2, 7.95), 'iron', n=5)
 box((3.0, 1.8, 0.08), (0, 0.6, 8.85), 'rust', rot=(-12, 0, 4), bevel=0.0)
+
+# ---- v2 detail pass: spike ring on the nest, glow canisters strapped to two legs, crown tag on the front plate
+for x in (-1.3, 1.3):
+    for y in (-1.3, 1.3):
+        spike(0.12, 0.5, (x, y, 7.85), (x * 0.3, y * 0.3, 1))
+for y in (-1.3, 1.3):
+    spike(0.1, 0.4, (0, y, 7.85), (0, y * 0.3, 1))
+crown(0.9, (0, -1.48, 7.36), normal=(0, -1, 0), up=(0, 0, 1), t=0.03)
+for (x, y) in ((P * 0.9, -P * 0.9), (-P * 0.88, -P * 0.88)):
+    canister(0.14, 0.8, (x, y - 0.12, 2.6), (0, 0, 1), 'glow', bars=3, ribs=1)
+spike(0.1, 0.35, (0, 0.6, 9.0), (0, 0, 1))
 print(ship('bb_tower'))
