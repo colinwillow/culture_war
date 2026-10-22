@@ -333,3 +333,7 @@ def gear(r, loc, col='team', teeth=10, bite=2, thick=0.25, rot=(90, 0, 0), hub='
         ob.append(cyl(r * 0.22, thick * 1.1, tuple(p), 'iron', rot, n=8))
     ob.append(cyl(r * 0.35, thick * 1.3, loc, hub, rot, n=8, bevel=0.02))
     return ob
+
+def torus(R, r, loc=(0, 0, 0), col='steel', rot=(0, 0, 0), n=16, m=6):
+    bpy.ops.mesh.primitive_torus_add(major_radius=R, minor_radius=r, major_segments=n, minor_segments=m)
+    ob = bpy.context.object; _place(ob, loc, rot); _color(ob, col); return ob
