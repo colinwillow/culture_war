@@ -1,23 +1,23 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=159';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=159';
-import { syncRender, clearRender, bump } from './render/sync.js?v=159';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=159';
-import { newSim, getSim, step } from './sim/sim.js?v=159';
-import { TICK } from './config/factions.js?v=159';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=159';
-import { initInput, lockPageZoom } from './input/input.js?v=159';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=159';
-import { resetUI } from './ui/state.js?v=159';
-import { fillIcons, svg } from './ui/icons.js?v=159';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=159';
-import { updateMinimap } from './ui/minimap.js?v=159';
-import { isMuted, setMuted } from './fx/sfx.js?v=159';
-import { loadChars } from './render/chars.js?v=159';
-import { emit } from './fx/particles.js?v=159';
-import { FC } from './render/models.js?v=159';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=162';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=162';
+import { syncRender, clearRender, bump } from './render/sync.js?v=162';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=162';
+import { newSim, getSim, step } from './sim/sim.js?v=162';
+import { TICK } from './config/factions.js?v=162';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=162';
+import { initInput, lockPageZoom } from './input/input.js?v=162';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=162';
+import { resetUI } from './ui/state.js?v=162';
+import { fillIcons, svg } from './ui/icons.js?v=162';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=162';
+import { updateMinimap } from './ui/minimap.js?v=162';
+import { isMuted, setMuted } from './fx/sfx.js?v=162';
+import { loadChars } from './render/chars.js?v=162';
+import { emit } from './fx/particles.js?v=162';
+import { FC } from './render/models.js?v=162';
 
-export const BUILD = 159; // written by `npm run bump`
+export const BUILD = 162; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -97,6 +97,7 @@ globeBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); globe = !gl
 globeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 applyGlobe();
 document.getElementById('duelBtn').innerHTML = svg('shield'); // the duel arena sandbox (duel.html)
+document.getElementById('arenaBtn').addEventListener('pointerup', (e) => { e.stopPropagation(); location.href = './duel.html'; });
 // Dev aid: long-press any menu button (faction, stars, modes, sound, graphics) to see its name; the press then does nothing.
 {
   let lp = null; const tip = document.getElementById('tip');

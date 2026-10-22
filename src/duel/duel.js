@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=159';
+import { svg } from '../ui/icons.js?v=162';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -21,6 +21,7 @@ const MELEE = {
   ],
   block: 'standing_block_idle', blockHit: 'standing_block_react_large',
   hits: ['Hit_To_Body', 'Head_Hit', 'standing_react_large_gut'], fall: 'Shoulder_Hit_And_Fall', getup: 'Getting_Up',
+  react: { head: 'Head_Hit', body: 'Hit_To_Body', gut: 'standing_react_large_gut', left: 'standing_react_large_from_left', right: 'standing_react_large_from_right' },
   taunt: 'standing_taunt_chest_thump',
 };
 const GUN = {
@@ -45,11 +46,12 @@ const ROSTER = [
 ];
 const RULE = {
   think: 0.22,       // seconds between decisions
-  miss: 0.12,        // a swing that just whiffs
+  // (no dice for a MISS any more: a swing misses when the weapon physically does not reach the body -- see touches)
+  reachTol: 0.28,    // m of slack round the body capsule for a weapon tip (fists/feet get 60% of it)
   dodge: 0.08,       // defender steps out of it (only if not busy)
   glance: 0.25,      // half damage, light flinch
   crit: 0.1,         // a clean hit that floors him
-  readBlock: 0.35,   // chance a fighter sees a swing coming and blocks it
+  readBlock: 0.25,   // chance a fighter sees a swing coming and blocks it
   blockKeep: 0.12,   // damage that gets through a block
   hitstop: 0.075,    // both fighters freeze on a clean hit
   ring: 9,           // arena radius (m)
@@ -333,7 +335,7 @@ function brain(f, dt) {
     setState(f, 'block', 0.5 + rng() * 0.5); play(f, S.block); return;
   }
   if (S.shoot && d > S.keep[0] && d < S.keep[1]) return startShot(f);
-  const want = S.shoot && d > S.keep[1] ? S.keep[1] - 1 : S.reach;
+  const want = S.shoot && d > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15); // whiffing? step in
   if (d > want + 0.2) { setState(f, 'move', 0); return; }
   const r = rng();
   if (r < 0.62) startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]);
@@ -341,13 +343,14 @@ function brain(f, dt) {
   else { setState(f, 'idle', 0); f.think = 0.3 + rng() * 0.4; play(f, S.idle); }
 }
 function startAttack(f, m) {
+  stats.swings++; f.lastStrike = null;
   f.move = m; f.prog = 0; f.swingDone = false; setState(f, 'attack', dur(f, m.c, m.spd)); play(f, m.c, true, m.spd, 0.1); sound('swing', 0.35);
 }
 function startShot(f) {
   const m = f.def.style.shoot; f.move = { ...m, reach: 99, ranged: true }; f.prog = 0; f.swingDone = false;
   setState(f, 'attack', dur(f, m.c, m.spd)); play(f, m.c, true, m.spd, 0.1);
 }
-function resolve(a) { // the moment of contact: block, miss, dodge, glance, hit or floor
+function resolve(a, hp) { // the moment of contact: block, dodge, glance, hit or floor (a miss never gets here)
   const b = other(a), m = a.move, d = flat(a, b).length(), dir = flat(a, b).normalize(), at = chest(b);
   if (m.ranged) {
     const from = a.hand ? a.hand.getWorldPosition(new THREE.Vector3()) : chest(a);
@@ -358,27 +361,42 @@ function resolve(a) { // the moment of contact: block, miss, dodge, glance, hit 
     if (b.state === 'block' && facing(b, a) > 0.2) return blocked(a, b, m, dir, 0.3);
     return hurt(a, b, m.dmg * (0.8 + rng() * 0.4), dir, 0.35, false);
   }
-  if (b.ko || b.state === 'down' || b.state === 'getup' || d > m.reach + 0.3 || facing(a, b) < 0.3) { sound('swing', 0.25); return; }
+  if (b.ko || b.state === 'down' || b.state === 'getup') { sound('swing', 0.25); return; }
   if (b.state === 'block' && facing(b, a) > 0.2) return blocked(a, b, m, dir, RULE.blockKeep);
   const r = rng();
-  if (r < RULE.miss) { sound('swing', 0.3); return; }
-  if (r < RULE.miss + RULE.dodge && ['idle', 'move'].includes(b.state)) { // sidestep
+  if (r < RULE.dodge && ['idle', 'move'].includes(b.state)) { // sidestep
     const side = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(rng() < 0.5 ? 1 : -1);
-    b.vel.addScaledVector(side, 4).addScaledVector(dir, 1.5); sound('swing', 0.3); return;
+    b.vel.addScaledVector(side, 4).addScaledVector(dir, 1.5); sound('swing', 0.3); stats.dodge++; return;
   }
-  if (r < RULE.miss + RULE.dodge + RULE.glance) return hurt(a, b, m.dmg * 0.5, dir, 0.4, false, true);
+  if (r < RULE.dodge + RULE.glance) return hurt(a, b, m.dmg * 0.5, dir, 0.4, false, true, hp);
   const floor = rng() < (m.big || RULE.crit);
-  hurt(a, b, m.dmg * (0.85 + rng() * 0.3), dir, m.knock || 1.3, floor);
+  hurt(a, b, m.dmg * (0.85 + rng() * 0.3), dir, m.knock || 1.3, floor, false, hp);
+}
+// THE STRIKING POINT and the BODY it has to reach. A swing lands on the first frame, inside its active window, where the
+// weapon tip (fist, foot) is inside the defender's capsule; if the window closes first it whiffed, whatever the dice say.
+function strikePoint(f) { const src = f.move.limb === 'foot' ? f.foot : f.tip || f.hand; return src ? src.getWorldPosition(new THREE.Vector3()) : chest(f); }
+function touches(p, b, tol) {
+  const r = 0.3 * b.h / 1.9 + tol, y = Math.min(Math.max(p.y, 0.2 * b.h), 0.95 * b.h);
+  return Math.hypot(p.x - b.root.position.x, p.z - b.root.position.z) < r && Math.abs(p.y - y) < r;
+}
+function whereHit(b, p) { // head / gut / body, or the side it came from (in the defender's own frame)
+  const lx = p.x - b.root.position.x, lz = p.z - b.root.position.z, s = Math.sin(b.root.rotation.y), c = Math.cos(b.root.rotation.y);
+  const side = lx * c - lz * s; // +X is his LEFT
+  if (p.y > 0.8 * b.h) return 'head';
+  if (Math.abs(side) > 0.22 * b.h / 1.9 && Math.abs(side) > Math.abs(lx * s + lz * c)) return side > 0 ? 'left' : 'right';
+  return p.y < 0.55 * b.h ? 'gut' : 'body';
 }
 function blocked(a, b, m, dir, keep) {
+  stats.block++;
   b.hp -= m.dmg * keep; play(b, b.def.style.blockHit, true, 1.2, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2) * 0.7);
   b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3);
   pop(chest(b).addScaledVector(dir, -0.35), 0x9fe0ff, 0.8, 0.14); sound('clang', 0.5); shake = Math.max(shake, 0.06);
   if (b.hp <= 0) ko(b, dir);
 }
-function hurt(a, b, dmg, dir, knock, floor, light = false) {
+function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
+  if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
-  const p = chest(b).addScaledVector(dir, -0.25);
+  const p = hp ? hp.clone() : chest(b).addScaledVector(dir, -0.25); // sparks where it actually struck
   burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), floor ? 0xffa040 : 0xffe07a, light ? 10 : 24, light ? 2.5 : 4.5);
   const tc = teamColor(a.hue.value);
   pop(p, 0xffffff, light ? 0.55 : floor ? 1.3 : 0.95, light ? 0.12 : 0.18);
@@ -388,7 +406,8 @@ function hurt(a, b, dmg, dir, knock, floor, light = false) {
   if (b.hp <= 0) return ko(b, dir);
   const S = b.def.style;
   if (floor) { setState(b, 'down', dur(b, S.fall, 1.2) * 0.85); play(b, S.fall, true, 1.2, 0.08); b.vel.addScaledVector(dir, 2.5); return; }
-  const h = light ? S.hits[1] : S.hits[(rng() * S.hits.length) | 0];
+  const where = hp ? whereHit(b, hp) : null, want = where && S.react && S.react[where];
+  const h = want && b.actions[want] ? want : light ? S.hits[1] : S.hits[(rng() * S.hits.length) | 0];
   setState(b, 'hit', dur(b, h, 1.4) * 0.75); play(b, h, true, 1.4, 0.06);
 }
 function ko(b, dir) {
@@ -396,6 +415,7 @@ function ko(b, dir) {
   sound('heavy', 0.9); shake = 0.3; hud();
 }
 let hitstop = 0;
+const stats = { swings: 0, whiff: 0, block: 0, dodge: 0, glance: 0, hit: 0, floor: 0 }; // live tally (window.duel.stats)
 
 function stepFighter(f, dt) {
   const o = other(f), S = f.def.style;
@@ -406,13 +426,22 @@ function stepFighter(f, dt) {
     dy = Math.atan2(Math.sin(dy), Math.cos(dy)); f.root.rotation.y += dy * Math.min(1, dt * 8);
   }
   if (f.state === 'move') {
-    const d = flat(f, o), dist = d.length(), want = S.shoot && dist > S.keep[1] ? S.keep[1] - 1 : S.reach;
+    const d = flat(f, o), dist = d.length(), want = S.shoot && dist > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15);
     if (dist <= want) { setState(f, 'idle', 0); play(f, S.idle); }
     else { const run = dist > 4.5, sp = (run ? 3.4 : 1.4) * f.def.speed * (f.h / 1.9); play(f, run ? S.run : S.walk); f.root.position.addScaledVector(d.normalize(), sp * dt); }
   }
   if (f.state === 'attack') {
     f.prog = 1 - f.t / dur(f, f.move.c, f.move.spd);
-    if (!f.swingDone && f.prog >= f.move.at) { f.swingDone = true; resolve(f); }
+    if (!f.swingDone && f.move.ranged && f.prog >= f.move.at) { f.swingDone = true; resolve(f); }
+    else if (!f.swingDone && f.prog >= f.move.at - 0.1) { // melee: the active window
+      const now = strikePoint(f), tol = RULE.reachTol * (f.tip && f.move.limb !== 'foot' ? 1 : 0.6);
+      // swept: test the path the tip travelled since last frame, so a low frame rate cannot skip the body
+      const from = f.lastStrike || now; let hp = null;
+      for (let i = 1; i <= 6 && !hp; i++) { const q = from.clone().lerp(now, i / 6); if (touches(q, o, tol)) hp = q; }
+      f.lastStrike = now;
+      if (hp) { f.swingDone = true; resolve(f, hp); }
+      else if (f.prog > f.move.at + 0.07) { f.swingDone = true; sound('swing', 0.3); f.whiffs = (f.whiffs || 0) + 1; stats.whiff++; }
+    }
     if (f.t <= 0) { setState(f, 'idle', 0); f.think = 0.15 + rng() * 0.35; play(f, S.idle); }
   }
   if ((f.state === 'block' || f.state === 'hit') && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle); }
@@ -514,5 +543,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
+  window.duel = { stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
 });
