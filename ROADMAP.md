@@ -9,7 +9,7 @@ Colin signs off a species row on the roster board.
 STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabled, B226). UI is game too.
 ### Items
 - [x] B235 alien bases in the RTS: bb_/gb_/rb_/sb_ hq, depot, barracks, tower, wall for Brutes/Greys/Reptilians/Spores (bldMesh -> genBase)
-- [ ] Team colour on the gen bases (crimson key -> your blue) so own vs enemy reads from the building, not just the disc
+- [x] B236 Team colour on the gen bases (crimson key -> your blue) so own vs enemy reads from the building, not just the disc
 - [ ] Ships in matches: the Fast/Heavy slot as flyers (s_* pieces, docs/gaps.md)
 - [x] B226 menu: War for the World, four species only
 - [x] B227 arena: fist / shooting-pose grips, gunners never club, size drives damage + launch

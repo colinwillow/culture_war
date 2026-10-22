@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=235';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=235';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=235';
-import { emit } from '../fx/particles.js?v=235';
-import { seen as fogSeen } from './fog.js?v=235';
-import { bark } from '../fx/sfx.js?v=235';
-import { TICK } from '../config/factions.js?v=235';
-import { walkH, CITY } from '../map/layout.js?v=235';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=235';
-import { CAM } from '../camera/camera.js?v=235';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=236';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=236';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=236';
+import { emit } from '../fx/particles.js?v=236';
+import { seen as fogSeen } from './fog.js?v=236';
+import { bark } from '../fx/sfx.js?v=236';
+import { TICK } from '../config/factions.js?v=236';
+import { walkH, CITY } from '../map/layout.js?v=236';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=236';
+import { CAM } from '../camera/camera.js?v=236';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=235';
-import { UI } from '../ui/state.js?v=235';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=235';
+import { Q, pl, getSim } from '../sim/sim.js?v=236';
+import { UI } from '../ui/state.js?v=236';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=236';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=235';
+import { lerpAngle } from '../util/math.js?v=236';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -81,8 +81,26 @@ function makeSquadObj(s) {
   if (dg && s.owner !== 0) bar.g.visible = rank.visible = false;
   return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, vet, dg, own: s.owner, inf: s.inf > 0, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };
 }
+// TEAM KEY on the alien bases (B236): only pure crimson (hue ~352, sat > .55) is team paint, and YOUR buildings wear
+// it in your blue, keeping its brightness; the enemy's stay crimson. One keyed clone per source material, shared.
+const OWN_KEY = new Map();
+function ownKey(m) {
+  if (OWN_KEY.has(m)) return OWN_KEY.get(m);
+  const k = m.clone(); k.userData.shared = true;
+  k.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      { vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b)), d = mx - mn, sat = mx > 0.0 ? d / mx : 0.0, h = 0.0;
+        if (d > 0.0) { if (mx == c.r) h = mod((c.g - c.b) / d, 6.0); else if (mx == c.g) h = (c.b - c.r) / d + 2.0; else h = (c.r - c.g) / d + 4.0; h *= 60.0; }
+        float dh = min(abs(h - 352.0), 360.0 - abs(h - 352.0));
+        float w = (1.0 - smoothstep(14.0, 22.0, dh)) * smoothstep(0.45, 0.6, sat) * step(0.12, mx);
+        diffuseColor.rgb = mix(c, vec3(0.25, 0.62, 1.0) * mx * 1.15, w); }`);
+  };
+  k.customProgramCacheKey = () => 'ownKey';
+  OWN_KEY.set(m, k); return k;
+}
 function makeBldObj(b) {
   const root = new THREE.Group(), mesh = casts(mergeStatic(bldMesh(b.kind, b.f))); root.add(mesh);
+  if (mesh.userData.gen && b.owner === 0) mesh.traverse((o) => { if (o.isMesh && !Array.isArray(o.material)) o.material = ownKey(o.material); });
   const pips = new THREE.Group(); pips.position.set(0, b.kind === 'barracks' ? 3 : 0, 0);
   if (b.kind === 'barracks') for (let i = 0; i < 3; i++) pips.add(box(0.4, 0.4, 0.4, 0xf5b83a, (i - 1) * 0.6, 0, 0));
   root.add(pips);
