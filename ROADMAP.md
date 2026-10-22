@@ -14,7 +14,7 @@ STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabl
 - [x] B229 Weirdport ground textures (asphalt / sidewalk / curb / grass)
 - [x] B231 HUD restyle to the menu's look: dark glass chips with species-colour neon edge, Bungee numbers, command buttons glow in the species colour (--fc)
 - [x] B232 Building textures: Weirdport's brick / concrete / plaster / corrugated / roof tar on the placeholder city blocks (groundMat-style world UVs)
-- [ ] Sky + light: dusk-alien grade (magenta horizon, teal shadows), fog tinted to match; billboard god rays already exist
+- [x] B233 Sky + light: dusk-alien grade (magenta horizon, teal shadows), fog tinted to match; billboard god rays already exist
 - [x] B230 worker UI batch 8: logo + four emblems on the menu (command icons still to wire)
 - [ ] In-game names: unit + power names per species (Brutes / Greys / Reptilians / Spores), not the tabled human ones
 - [x] (B219) Arena YOU mode: a real THIRD-PERSON FOLLOW CAM on your fighter (read weirdport/index.html's camera + reticle first and match it): behind/over the shoulder, right-stick drag orbits it, a reticle when holding a gun, hold-up fires where the camera faces, a strike goes toward the reticle. This is the camera possession will use.

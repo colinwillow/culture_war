@@ -58,7 +58,21 @@ export function followSun(x, z) {
 }
 /** Time of day, k = 0 (morning) .. 1 (golden hour): the sun drops lower, warmer and longer-shadowed, the sky
  * and fog go peach, the sky fill dims. Only colours and one direction change, so it costs nothing per frame. */
-const DAY = { sun: new THREE.Color(0xffe0b0), dusk: new THREE.Color(0xff9c55), sky: new THREE.Color(0xa9c8de), skyD: new THREE.Color(0xf2b98e), hemi: new THREE.Color(0xdcecff), hemiD: new THREE.Color(0xffd2b0) };
+// ALIEN GRADE (B233, "sexy map"): a teal-violet day going to a magenta dusk, cool teal bounce from the ground.
+const DAY = { sun: new THREE.Color(0xfff0d8), dusk: new THREE.Color(0xff7a6a), sky: new THREE.Color(0x8fb4cf), skyD: new THREE.Color(0xe07a9e), hemi: new THREE.Color(0xd6e4ff), hemiD: new THREE.Color(0xffb8d6) };
+hemi.groundColor.setHex(0x3c4c58);
+// Sky dome: horizon = the fog colour (so the city melts into it), zenith a deep violet; a ringed planet hangs in it.
+// Follows the camera, never fogged, drawn first. Two draws.
+const SKY = { hor: { value: new THREE.Color() }, zen: { value: new THREE.Color() } };
+const skyDome = new THREE.Mesh(new THREE.SphereGeometry(600, 24, 12), new THREE.ShaderMaterial({ uniforms: { uHor: SKY.hor, uZen: SKY.zen }, side: THREE.BackSide, depthWrite: false, fog: false,
+  vertexShader: 'varying vec3 vD; void main() { vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform vec3 uHor; uniform vec3 uZen; varying vec3 vD; void main() { gl_FragColor = vec4(mix(uHor, uZen, smoothstep(-0.02, 0.55, vD.y)), 1.0); }' }));
+skyDome.renderOrder = -10; skyDome.frustumCulled = false;
+{ const pl = new THREE.Group(), ball = new THREE.Mesh(new THREE.SphereGeometry(46, 24, 16), new THREE.MeshBasicMaterial({ color: 0xc88ad8, fog: false, depthWrite: false })),
+    ring = new THREE.Mesh(new THREE.RingGeometry(62, 92, 48), new THREE.MeshBasicMaterial({ color: 0xffd0e8, transparent: true, opacity: 0.55, side: THREE.DoubleSide, fog: false, depthWrite: false }));
+  ring.rotation.x = 1.25; ring.rotation.y = 0.3; pl.add(ball, ring); pl.position.set(-150, 70, -430); pl.renderOrder = -9; ball.renderOrder = ring.renderOrder = -9; skyDome.add(pl); }
+scene.add(skyDome);
+skyDome.onBeforeRender = (r, sc, cam) => { skyDome.position.copy(cam.position); skyDome.updateMatrixWorld(); };
 let lastTod = 0, overcast = 0;
 const GREY = new THREE.Color(0x8d969e);
 /** Rain: greys the sky/fog and dims the sun on top of the time of day (k 0..1). */
@@ -70,7 +84,9 @@ export function setTimeOfDay(k) {
   scene.background.copy(DAY.sky).lerp(DAY.skyD, k); scene.fog.color.copy(scene.background);
   hemi.color.copy(DAY.hemi).lerp(DAY.hemiD, k); hemi.intensity = 0.85 - 0.08 * k;
   if (overcast > 0) { scene.background.lerp(GREY, 0.55 * overcast); scene.fog.color.copy(scene.background); sun.intensity *= 1 - 0.45 * overcast; }
+  SKY.hor.value.copy(scene.background); SKY.zen.value.setHex(0x2a1f52).lerp(GREY, 0.4 * overcast);
 }
+setTimeOfDay(0);
 /** Mark a subtree as shadow casters. */
 export function casts(o) { o.traverse((n) => { if (n.isMesh) n.castShadow = true; }); return o; }
 

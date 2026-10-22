@@ -1,24 +1,24 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=232';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=232';
-import { syncRender, clearRender, bump } from './render/sync.js?v=232';
-import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=232';
-import { newSim, getSim, step } from './sim/sim.js?v=232';
-import { TICK } from './config/factions.js?v=232';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=232';
-import { initInput, lockPageZoom } from './input/input.js?v=232';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=232';
-import { resetUI } from './ui/state.js?v=232';
-import { fillIcons, svg } from './ui/icons.js?v=232';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=232';
-import { updateMinimap } from './ui/minimap.js?v=232';
-import { isMuted, setMuted } from './fx/sfx.js?v=232';
-import { loadChars } from './render/chars.js?v=232';
-import { emit } from './fx/particles.js?v=232';
-import { FC } from './render/models.js?v=232';
-import { renderBattleCam, battleSpot } from './render/battlecam.js?v=232';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=233';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=233';
+import { syncRender, clearRender, bump } from './render/sync.js?v=233';
+import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=233';
+import { newSim, getSim, step } from './sim/sim.js?v=233';
+import { TICK } from './config/factions.js?v=233';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=233';
+import { initInput, lockPageZoom } from './input/input.js?v=233';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=233';
+import { resetUI } from './ui/state.js?v=233';
+import { fillIcons, svg } from './ui/icons.js?v=233';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=233';
+import { updateMinimap } from './ui/minimap.js?v=233';
+import { isMuted, setMuted } from './fx/sfx.js?v=233';
+import { loadChars } from './render/chars.js?v=233';
+import { emit } from './fx/particles.js?v=233';
+import { FC } from './render/models.js?v=233';
+import { renderBattleCam, battleSpot } from './render/battlecam.js?v=233';
 
-export const BUILD = 232; // written by `npm run bump`
+export const BUILD = 233; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
