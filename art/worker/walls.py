@@ -42,5 +42,14 @@ def build(name, hole=None, frame='wood'):
         box((x1 - x0 + 0.2, T + 0.1, 0.16), ((x0 + x1) / 2, 0, z1 + 0.06), 'concrete', bevel=0.02)   # lintel
         if z0 > 0.01:
             box((x1 - x0 + 0.16, T + 0.14, 0.08), ((x0 + x1) / 2, 0, z0 - 0.02), 'concrete', bevel=0.015)  # sill
+    # ---- v2 detail pass: crown graffiti + spray streak on the outer face, cracks, a drain pipe, a vent box
+    cx = 1.2 if not hole else (hole[1] + W / 2) / 2
+    crown(0.9, (cx, -T / 2 - 0.02, 1.1), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+    box((1.2, 0.02, 0.1), (-1.2, -T / 2 - 0.02, 2.0), 'magenta', rot=(0, 8, 0), bevel=0.0)
+    for (x, z, r) in ((-1.5, 1.2, 35), (-1.3, 1.45, -20), (1.6, 2.3, 50)):
+        box((0.4, 0.02, 0.03), (x, -T / 2 - 0.015, z), 'dark', rot=(0, r, 0), bevel=0.0)
+    cyl(0.07, 2.9, (W / 2 - 0.15, -T / 2 - 0.1, 1.5), 'steel', n=6)
+    for z in (0.6, 1.6, 2.6): box((0.18, 0.12, 0.05), (W / 2 - 0.15, -T / 2 - 0.06, z), 'iron', bevel=0.0)
+    box((0.5, 0.25, 0.4), (-1.5, T / 2 + 0.12, 2.4), 'steel', bevel=0.03)
     cuts = {'x': [-1.0, 0.0, 1.0], 'z': [1.45]}
     return ship(name, chunk_cuts=cuts)
