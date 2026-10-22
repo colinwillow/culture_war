@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=254';
-import { makePops, slashTex } from '../fx/pops.js?v=254';
+import { svg } from '../ui/icons.js?v=255';
+import { makePops, slashTex } from '../fx/pops.js?v=255';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -537,12 +537,26 @@ function spawn(def, side, slot = 0, n = 1) {
 // stick to swap (his own goes down where he stands). The style follows the weapon: a gun makes a gunner of anyone
 // whose rig carries the rifle clips; a mace makes a brawler.
 const pickups = []; // { key, mesh, x, z }
+const mountBone = (f, n) => { let b = null; f.model.traverse((o) => { if (!b && o.isBone && o.name === n) b = o; }); return b; };
 function mountWeapon(f, key) {
   const W = WEAPDATA[key]; if (!W) return;
   const { model, hand, mats, R } = f;
   let own = null; if (R.R.own === key) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
   let wm = null;
   if (own) { wm = weaponMesh(W, mats); own.add(wm); } // his own mount bone: identity
+  else if (W.gen && mountBone(f, 'weapon_root_right')) { // B255 his WEAPON BONES (Colin's convention, pipeline/mounts.py):
+    // the root sits in the fist; the weapon's +Z goes to weapon_tip_2 (melee: the handle through the fist, blade edge
+    // -Y toward the fingers) or gun_tip_right (a barrel: the way the fingers point, sights +Y toward the index side)
+    const gun = !!(WEAPONS[key].gun && f.actions['rifle_shoot_stationary_01']);
+    const root = mountBone(f, 'weapon_root_right'), tipB = mountBone(f, gun ? 'gun_tip_right' : 'weapon_tip_2'), othB = mountBone(f, gun ? 'weapon_tip_2' : 'gun_tip_right');
+    model.updateMatrixWorld(true);
+    const p0 = root.getWorldPosition(new THREE.Vector3()), z = tipB.getWorldPosition(new THREE.Vector3()).sub(p0).normalize();
+    const o = othB.getWorldPosition(new THREE.Vector3()).sub(p0).normalize(), yv = (gun ? o : o.negate()).addScaledVector(z, -(gun ? o : o).dot(z)).normalize();
+    const Wq = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(yv, z), yv, z));
+    const rq = root.getWorldQuaternion(new THREE.Quaternion()), rs = root.getWorldScale(new THREE.Vector3());
+    const mount = new THREE.Group(); mount.quaternion.copy(rq.invert().multiply(Wq)); mount.scale.setScalar(1 / rs.x);
+    wm = weaponMesh(W, mats); mount.add(wm); root.add(mount);
+  }
   else if (W.gen && hand) { // aimed in the POSE he uses it in, true metres (B227: aimed at the T-pose, the shooting
     // pose turned the blunderbuss to the sky and the fighting idle laid the club out flat like a gun -- Colin)
     const gun = !!(WEAPONS[key].gun && f.actions['rifle_shoot_stationary_01']);
@@ -593,7 +607,7 @@ function gripQ(f, gun) {
 function dropWeapon(f, dir) {
   const wm = f.wgroup; if (!wm) return;
   const p = new THREE.Vector3(); wm.getWorldPosition(p);
-  const holder = wm.parent; holder.remove(wm); if (holder !== f.hand && holder.parent === f.hand) f.hand.remove(holder);
+  const holder = wm.parent; holder.remove(wm); if (!holder.isBone && holder.parent) holder.parent.remove(holder); // the mount group, under the hand or a weapon bone
   const sc = new THREE.Vector3(); wm.getWorldScale(sc); // keep the size it had in his hand
   wm.matrixAutoUpdate = true; wm.matrix.identity(); wm.scale.copy(sc);
   const x = f.root.position.x + (dir ? dir.x * 0.9 : 0.6), z = f.root.position.z + (dir ? dir.z * 0.9 : 0);
