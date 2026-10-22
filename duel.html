@@ -34,6 +34,7 @@
   #stick, #rstick { position: fixed; z-index: 3; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 3px solid #ffffff80; background: #ffffff18; pointer-events: none; }
   #stick i, #rstick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0008; }
   body.you .dock button:not(#you):not(#home) { display: none; }
+  #load[hidden] { display: none; }
   #load { position: fixed; inset: 0; display: grid; place-items: center; font-family: 'Bungee', sans-serif; font-size: 18px; background: #1b1d24; }
   #err { position: fixed; left: 10px; right: 10px; top: 60px; background: #a01818; padding: 8px; font: 12px monospace; white-space: pre-wrap; }
 </style>
@@ -62,6 +63,6 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 </script>
-<script type="module" src="./src/duel/duel.js?v=215"></script>
+<script type="module" src="./src/duel/duel.js?v=216"></script>
 </body>
 </html>
