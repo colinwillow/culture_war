@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=157';
+import { svg } from '../ui/icons.js?v=159';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -17,7 +17,7 @@ const MELEE = {
     { c: 'standing_melee_attack_horizontal', at: 0.41, dmg: 16, reach: 2.1, spd: 1.35 },
     { c: 'standing_melee_attack_downward', at: 0.38, dmg: 21, reach: 2.0, spd: 1.35, big: 0.25 },
     { c: 'standing_melee_attack_backhand', at: 0.35, dmg: 14, reach: 2.0, spd: 1.45 },
-    { c: 'standing_melee_attack_kick_ver._1', at: 0.31, dmg: 10, reach: 1.9, spd: 1.3, knock: 2.6 },
+    { c: 'standing_melee_attack_kick_ver._1', at: 0.31, dmg: 10, reach: 1.9, spd: 1.3, knock: 2.6, limb: 'foot' },
   ],
   block: 'standing_block_idle', blockHit: 'standing_block_react_large',
   hits: ['Hit_To_Body', 'Head_Hit', 'standing_react_large_gut'], fall: 'Shoulder_Hit_And_Fall', getup: 'Getting_Up',
@@ -117,7 +117,16 @@ async function loadWeapon(key) { // geometry + transform relative to the file's 
 const WEAPDATA = {};
 function weaponMesh(W, mats) {
   const g = new THREE.Group();
-  for (const q of W.parts) { const m = new THREE.Mesh(q.g, tint(q.m.clone(), mats)); m.matrixAutoUpdate = false; m.matrix.copy(q.x); m.castShadow = true; m.frustumCulled = false; g.add(m); }
+  const box = new THREE.Box3();
+  for (const q of W.parts) {
+    const m = new THREE.Mesh(q.g, tint(q.m.clone(), mats)); m.matrixAutoUpdate = false; m.matrix.copy(q.x); m.castShadow = true; m.frustumCulled = false; g.add(m);
+    q.g.computeBoundingBox(); box.union(q.g.boundingBox.clone().applyMatrix4(q.x));
+  }
+  // the TIP: the far end of the weapon's long axis from the grip (the mount is at the origin), centred on the other two
+  const size = box.getSize(new THREE.Vector3()), ax = size.x > size.y ? (size.x > size.z ? 'x' : 'z') : (size.y > size.z ? 'y' : 'z');
+  const tip = new THREE.Object3D(); box.getCenter(tip.position);
+  tip.position[ax] = Math.abs(box.max[ax]) > Math.abs(box.min[ax]) ? box.max[ax] : box.min[ax];
+  g.add(tip); g.userData.tip = tip;
   return g;
 }
 
@@ -153,6 +162,77 @@ function tracer(a, b, hit) {
   scene.add(l); tracers.push({ l, t: 0.09 });
 }
 let shake = 0;
+
+// SLASH TRAILS: a ribbon swept by the striking point (weapon tip, fist or foot) over the swing's active frames,
+// fading by age, in the fighter's team colour. Additive, so fading the colour to black IS the fade.
+const TRAIL_N = 24, TRAIL_LIFE = 0.2;
+function makeTrail() {
+  const pos = new Float32Array(TRAIL_N * 2 * 3), col = new Float32Array(TRAIL_N * 2 * 3), idx = [];
+  for (let i = 0; i < TRAIL_N - 1; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setIndex(idx);
+  const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  mesh.frustumCulled = false; scene.add(mesh);
+  return { mesh, pts: [] }; // pts: { a: tip, b: base, age }
+}
+const teamColor = (hue) => new THREE.Color().setHSL((0.08 + hue / (Math.PI * 2)) % 1, 0.95, 0.62);
+const _ta = new THREE.Vector3(), _tb = new THREE.Vector3();
+function stepTrail(f, dt) {
+  const T = f.trail, m = f.move;
+  for (const p of T.pts) p.age += dt;
+  while (T.pts.length && T.pts[0].age > TRAIL_LIFE) T.pts.shift();
+  if (f.state === 'attack' && m && !m.ranged && f.prog > m.at - 0.2 && f.prog < m.at + 0.12) {
+    const src = m.limb === 'foot' ? f.foot : f.tip || f.hand;
+    if (src) {
+      src.getWorldPosition(_ta);
+      if (f.tip && m.limb !== 'foot') f.hand.getWorldPosition(_tb).lerp(_ta, 0.35); // blade-length ribbon: grip side to tip
+      else _tb.copy(_ta).addScaledVector(new THREE.Vector3(0, 1, 0), -0.18);         // fist/foot: a short streak
+      T.pts.push({ a: _ta.clone(), b: _tb.clone(), age: 0 }); if (T.pts.length > TRAIL_N) T.pts.shift();
+    }
+  }
+  const pos = T.mesh.geometry.attributes.position, col = T.mesh.geometry.attributes.color, c = teamColor(f.hue.value);
+  for (let i = 0; i < TRAIL_N; i++) {
+    const p = T.pts[Math.min(i, T.pts.length - 1)];
+    if (!p) { pos.setXYZ(i * 2, 0, -99, 0); pos.setXYZ(i * 2 + 1, 0, -99, 0); continue; }
+    const k = Math.pow(Math.max(0, 1 - p.age / TRAIL_LIFE), 1.5) * (i < T.pts.length ? 1 : 0);
+    pos.setXYZ(i * 2, p.a.x, p.a.y, p.a.z); pos.setXYZ(i * 2 + 1, p.b.x, p.b.y, p.b.z);
+    col.setXYZ(i * 2, c.r * k, c.g * k, c.b * k); col.setXYZ(i * 2 + 1, c.r * k * 0.15, c.g * k * 0.15, c.b * k * 0.15);
+  }
+  pos.needsUpdate = true; col.needsUpdate = true;
+}
+
+// IMPACT FLASHES: camera-facing sprites (a starburst glow and a slash streak along the swing) that pop and fade.
+const flashTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, '#fff'); g.addColorStop(0.25, 'rgba(255,240,200,.9)'); g.addColorStop(1, 'rgba(255,200,120,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  x.globalCompositeOperation = 'lighter'; x.fillStyle = 'rgba(255,255,255,.85)';
+  for (let i = 0; i < 4; i++) { x.save(); x.translate(64, 64); x.rotate((i * Math.PI) / 4); x.beginPath(); x.moveTo(-64, 0); x.lineTo(0, -5); x.lineTo(64, 0); x.lineTo(0, 5); x.fill(); x.restore(); }
+  return new THREE.CanvasTexture(c);
+})();
+const slashTex = (() => {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 32; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.beginPath(); x.moveTo(0, 16); x.quadraticCurveTo(128, 2, 256, 16); x.quadraticCurveTo(128, 30, 0, 16); x.fill();
+  return new THREE.CanvasTexture(c);
+})();
+const pops = [];
+function pop(p, color, size, life, tex = flashTex, angle = 0, stretch = 1) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, rotation: angle }));
+  s.position.copy(p); s.renderOrder = 5; scene.add(s); pops.push({ s, t: 0, life, size, stretch });
+}
+function stepPops(dt) {
+  for (let i = pops.length - 1; i >= 0; i--) {
+    const q = pops[i]; q.t += dt; const k = q.t / q.life, grow = 1 - Math.pow(1 - Math.min(1, k * 2.2), 3);
+    q.s.scale.set(q.size * grow * q.stretch, q.size * grow * (q.stretch > 1 ? 0.35 : 1), 1); q.s.material.opacity = Math.max(0, 1 - k);
+    if (q.t >= q.life) { scene.remove(q.s); q.s.material.dispose(); pops.splice(i, 1); }
+  }
+}
+function slashAngle(f, dir) { // screen-space angle of the swing (from the trail's last points), else across the push
+  const T = f.trail.pts, n = T.length;
+  const a = n > 2 ? T[n - 3].a.clone() : new THREE.Vector3(), b = n > 2 ? T[n - 1].a.clone() : a.clone().add(new THREE.Vector3(-dir.z, 0.3, dir.x));
+  a.project(camera); b.project(camera);
+  return Math.atan2((b.y - a.y) / camera.aspect, b.x - a.x);
+}
 
 // sound: Colin's own recordings from Weirdport, decoded on the first tap (browsers block audio before one)
 const SND = { hit: ['hit_sound_01', 'hit_sound_02', 'hit_sound_03'], heavy: ['hit_sound_gound_01'], swing: ['swoosh_01', 'swoosh_02', 'swoosh_03'],
@@ -204,17 +284,17 @@ function spawn(def, side) {
     o.material = tint(o.material.clone(), mats, hue);
   });
   let hand = null; model.traverse((o) => { if (!hand && o.isBone && o.name === 'mixamorig_RightHand') hand = o; });
-  const W = def.weapon && WEAPDATA[def.weapon];
+  const W = def.weapon && WEAPDATA[def.weapon]; let weaponTip = null;
   if (W) {
     let own = null; if (R.R.own === def.weapon) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
-    if (own) own.add(weaponMesh(W, mats)); // his own mount bone: identity
+    if (own) { const wm = weaponMesh(W, mats); own.add(wm); weaponTip = wm.userData.tip; } // his own mount bone: identity
     else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
       model.updateMatrixWorld(true);
       const toModel = model.matrixWorld.clone().invert(), handM = toModel.clone().multiply(hand.matrixWorld);
       const H = R.box.max.y - R.box.min.y, G = WEAPONS[def.weapon], hp = new THREE.Vector3().setFromMatrixPosition(handM);
       const want = new THREE.Matrix4().compose(hp.add(new THREE.Vector3(...G.off).multiplyScalar(H)), new THREE.Quaternion(), new THREE.Vector3().setScalar(G.s * H));
       const mount = new THREE.Group(); mount.matrixAutoUpdate = false; mount.matrix.copy(handM.invert().multiply(want));
-      mount.add(weaponMesh(W, mats)); hand.add(mount);
+      const wm = weaponMesh(W, mats); mount.add(wm); hand.add(mount); weaponTip = wm.userData.tip;
     }
   }
   for (const m of mats) m.userData.hue = hue;
@@ -222,7 +302,9 @@ function spawn(def, side) {
   tail.sort((a, b) => a.b.name.localeCompare(b.b.name));
   const mixer = new THREE.AnimationMixer(model), actions = {};
   for (const n in R.clips) actions[n] = mixer.clipAction(R.clips[n]);
-  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
+  let foot = null; model.traverse((o) => { if (!foot && o.isBone && o.name === 'mixamorig_RightToeBase') foot = o; });
+  const trail = makeTrail(); trail.mesh.visible = true;
+  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, trail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
   root.position.set(side * 3.2, 0, 0); scene.add(root); play(f, def.style.idle);
   return f;
@@ -290,13 +372,17 @@ function resolve(a) { // the moment of contact: block, miss, dodge, glance, hit 
 }
 function blocked(a, b, m, dir, keep) {
   b.hp -= m.dmg * keep; play(b, b.def.style.blockHit, true, 1.2, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2) * 0.7);
-  b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3); sound('clang', 0.5); shake = Math.max(shake, 0.06);
+  b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3);
+  pop(chest(b).addScaledVector(dir, -0.35), 0x9fe0ff, 0.8, 0.14); sound('clang', 0.5); shake = Math.max(shake, 0.06);
   if (b.hp <= 0) ko(b, dir);
 }
 function hurt(a, b, dmg, dir, knock, floor, light = false) {
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
   const p = chest(b).addScaledVector(dir, -0.25);
   burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), floor ? 0xffa040 : 0xffe07a, light ? 10 : 24, light ? 2.5 : 4.5);
+  const tc = teamColor(a.hue.value);
+  pop(p, 0xffffff, light ? 0.55 : floor ? 1.3 : 0.95, light ? 0.12 : 0.18);
+  if (!a.move || !a.move.ranged) pop(p, tc, light ? 1.0 : 1.7, 0.16, slashTex, slashAngle(a, dir), 3);
   sound(floor ? 'heavy' : 'hit', light ? 0.45 : 0.8); if (rng() < 0.35) setTimeout(() => sound('grunt', 0.5), 60);
   b.vel.addScaledVector(dir, knock * 2.2);
   if (b.hp <= 0) return ko(b, dir);
@@ -391,7 +477,7 @@ function hud() {
   document.getElementById('barA').classList.toggle('win', b.ko && !a.ko); document.getElementById('barB').classList.toggle('win', a.ko && !b.ko);
 }
 function fight() {
-  for (const f of fighters) { scene.remove(f.root); f.mixer.stopAllAction(); }
+  for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
   const a = spawn(ROSTER[picks[0]], -1), b = spawn(ROSTER[picks[1]], 1);
   a.root.rotation.y = Math.PI / 2; b.root.rotation.y = -Math.PI / 2; fighters.push(a, b); hud();
@@ -419,7 +505,8 @@ function frame() {
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
-  stepSparks(dt);
+  stepSparks(dt); stepPops(dt);
+  for (const f of fighters) stepTrail(f, dt);
   for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.t -= dt; t.l.material.opacity = Math.max(0, t.t / 0.09); if (t.t <= 0) { scene.remove(t.l); t.l.geometry.dispose(); tracers.splice(i, 1); } }
   stepCamera(dt); hud();
   renderer.render(scene, camera);
