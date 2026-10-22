@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=209';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=209';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=209';
-import { emit } from '../fx/particles.js?v=209';
-import { seen as fogSeen } from './fog.js?v=209';
-import { bark } from '../fx/sfx.js?v=209';
-import { TICK } from '../config/factions.js?v=209';
-import { walkH, CITY } from '../map/layout.js?v=209';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=209';
-import { CAM } from '../camera/camera.js?v=209';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=211';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=211';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=211';
+import { emit } from '../fx/particles.js?v=211';
+import { seen as fogSeen } from './fog.js?v=211';
+import { bark } from '../fx/sfx.js?v=211';
+import { TICK } from '../config/factions.js?v=211';
+import { walkH, CITY } from '../map/layout.js?v=211';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=211';
+import { CAM } from '../camera/camera.js?v=211';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=209';
-import { UI } from '../ui/state.js?v=209';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=209';
+import { Q, pl, getSim } from '../sim/sim.js?v=211';
+import { UI } from '../ui/state.js?v=211';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=211';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=209';
+import { lerpAngle } from '../util/math.js?v=211';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -659,9 +659,10 @@ function flagMarker(x, z, r) {
   return { g, ring, fill, flag };
 }
 function capRender(S, time) {
-  if (!S.cap) { if (R.cap) { R.cap.forEach((o) => disposeObj(o.g)); R.cap = null; } return; }
-  if (!R.cap) R.cap = S.cap.pts.map((f) => flagMarker(f.x, f.z, f.r));
-  S.cap.pts.forEach((f, i) => {
+  const C = S.cap || S.obj; // Capture and Hold flags, or the Versus objectives: the same markers
+  if (!C) { if (R.cap) { R.cap.forEach((o) => disposeObj(o.g)); R.cap = null; } return; }
+  if (!R.cap) R.cap = C.pts.map((f) => flagMarker(f.x, f.z, f.r));
+  C.pts.forEach((f, i) => {
     const o = R.cap[i], c = f.contested ? (Math.sin(time * 18) > 0 ? 0x7fd1ff : 0xff5a4f) : f.owner === 0 ? 0x7fd1ff : f.owner === 1 ? 0xff5a4f : 0xf3efe2;
     o.ring.material.color.setHex(c); o.fill.material.color.setHex(c); o.flag.material.color.setHex(c);
     o.flag.position.y = 1.2 + Math.abs(f.prog) * 2.3; // the flag climbs the pole as it is captured

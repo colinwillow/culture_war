@@ -7,13 +7,13 @@
 //   - S.events: list of things that happened this tick ({k:'shot'|'hit'|'boom'|...}); render/fx drain it.
 //   - Q: read-only queries (canPlace, canTrain, ...) the UI may call for instant button feedback.
 import {
-  TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
+  TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME, OBJ_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=209';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=209';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=209';
-import { mulberry32 } from '../util/math.js?v=209';
-import { aiStep } from './ai.js?v=209';
+} from '../config/factions.js?v=211';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=211';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=211';
+import { mulberry32 } from '../util/math.js?v=211';
+import { aiStep } from './ai.js?v=211';
 
 let S = null;
 export const getSim = () => S;
@@ -43,6 +43,9 @@ export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
     // swing it over in ~6 s; every second, the side holding MORE flags drains the other's 300-point counter by the margin.
     cap: mode === 'cap' ? { pts: [[0, 0], [-18, 29], [18, -29]].map(([x, z]) => ({ x, z, r: 6, prog: 0, owner: -1 })), score: [300, 300], max: 300, t: 0 } : null,
     hill: mode === 'hill' ? { x: 0, z: 0, r: 7, prog: [0, 0], holder: -1, contested: false, win: 90 } : null,
+    // OBJECTIVES (Versus): the same three spots as Capture and Hold, but they pay instead of winning -- every income tick
+    // each spot you hold adds OBJ_INCOME. Fights happen where the money is (docs/gaps.md A7).
+    obj: mode === 'vs' ? { pts: [[0, 0], [-18, 29], [18, -29]].map(([x, z]) => ({ x, z, r: 6, prog: 0, owner: -1 })) } : null,
   };
   S.players[1].inc = [0.7, 1, 1.35][diff];
   for (const p of S.players) { const tr = fac(p).traits || {}; p.cash = Math.round(p.cash * (tr.cash || 1)); p.inc *= tr.inc || 1; } // Old Money: a trust fund
@@ -797,9 +800,8 @@ function stepDown(dt) {
   else if (D.meter >= D.win) S.over = { winner: bi, down: true };
   else if (S.t >= D.limit) S.over = { winner: D.meter >= D.hold ? bi : wi, down: true };
 }
-function stepCap(dt) {
-  const c = S.cap;
-  for (const f of c.pts) {
+function capturePoints(pts, dt) { // fighters of one side alone at a spot swing it over in ~6 s
+  for (const f of pts) {
     const on = [false, false];
     for (const s of S.squads) if (s.slot !== 'worker' && !s.gar && aliveN(s) > 0 && Math.hypot(s.x - f.x, s.z - f.z) < f.r) on[s.owner] = true;
     if (on[0] !== on[1]) {
@@ -810,6 +812,10 @@ function stepCap(dt) {
     }
     f.contested = on[0] && on[1];
   }
+}
+function stepCap(dt) {
+  const c = S.cap;
+  capturePoints(c.pts, dt);
   c.t += dt;
   if (c.t >= 1) {
     c.t -= 1;
@@ -839,11 +845,12 @@ export function step() {
   for (const s of S.squads) { s.px = s.x; s.pz = s.z; }
   for (const p of S.players) {
     p.incomeT += dt;
-    if (p.incomeT >= 10) { p.incomeT -= 10; { const inc = Math.round((BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot')) * p.inc); p.cash += inc; p.st.earned += inc; } S.events.push({ k: 'income', owner: p.i }); }
+    if (p.incomeT >= 10) { p.incomeT -= 10; { const held = S.obj ? S.obj.pts.filter((f) => f.owner === p.i).length : 0; const inc = Math.round((BASE_INCOME + DEPOT_INCOME * builtCount(p, 'depot') + OBJ_INCOME * held) * p.inc); p.cash += inc; p.st.earned += inc; for (const f of S.obj ? S.obj.pts : []) if (f.owner === p.i) S.events.push({ k: 'objpay', owner: p.i, x: f.x, z: f.z }); } S.events.push({ k: 'income', owner: p.i }); }
     if (p.parade > 0) p.parade -= dt;
     if (p.party > 0) p.party -= dt;
   }
   if (S.hill && !S.over) stepHill(dt);
+  if (S.obj && !S.over) capturePoints(S.obj.pts, dt);
   if (S.cap && !S.over) stepCap(dt);
   if (S.duel && !S.over) for (const p of S.players) if (!S.squads.some((q) => q.owner === p.i && q.slot === 'hero' && aliveN(q) > 0)) { S.over = { winner: 1 - p.i, duel: true }; break; }
   if (S.down && !S.over) stepDown(dt);

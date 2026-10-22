@@ -1,13 +1,13 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=209';
-import { makePops, slashTex, screenAngle } from './pops.js?v=209';
-import { walkH, CITY } from '../map/layout.js?v=209';
-import { sfx } from './sfx.js?v=209';
-import { shake, CAM } from '../camera/camera.js?v=209';
-import { FC } from '../render/models.js?v=209';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=209';
+import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=211';
+import { makePops, slashTex, screenAngle } from './pops.js?v=211';
+import { walkH, CITY } from '../map/layout.js?v=211';
+import { sfx } from './sfx.js?v=211';
+import { shake, CAM } from '../camera/camera.js?v=211';
+import { FC } from '../render/models.js?v=211';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=211';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -445,6 +445,7 @@ export function handleEvents(S, bump) {
       case 'mud': fxRing(ev.x, ev.z, 1, 8, 0x5b4026, 0.5, 0.15); fxBits(ev.x, ev.z, 0x5b4026, 10, 0.3, 8); break;
       case 'fwlaunch': { const p = S.players[ev.owner]; for (let i = 0; i < 6; i++) fxRocket(p.hqx + (Math.random() - 0.5) * 3, p.hqz, ev.x + (Math.random() - 0.5) * 8, ev.z + (Math.random() - 0.5) * 8, CONF[i], 1.5 + i * 0.05); break; }
       case 'fwboom': fxFireworks(ev.x, ev.z, ev.r); shake(1.2, ev.x, ev.z); break;
+      case 'objpay': if (ev.owner === 0) fxCoin(ev.x, 3, ev.z); break; // the spot pays: a coin pops off it
       case 'hill': if (ev.owner >= 0) { fxRing(ev.x, ev.z, 1, 9, ev.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.7, 0.3); fxBits(ev.x, ev.z, ev.owner === 0 ? 0x7fd1ff : 0xff5a4f, 10, 1, 6); } break;
       case 'wifi': { // the signal dies: wifi arcs collapse inward, then a red static crackle over the area
         for (let k = 0; k < 3; k++) fxRing(ev.x, ev.z, ev.r * (1 - k * 0.25), 0.4, 0x5aa9e6, 0.5 + k * 0.15, 0.3 + k * 0.4);

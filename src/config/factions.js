@@ -10,6 +10,7 @@ export const GATHER_T = 3; // seconds a worker works a shift
 export const CARRY = 30; // cash carried per trip
 export const BASE_INCOME = 10; // HQ trickle every 10 s
 export const DEPOT_INCOME = 20; // extra trickle per depot every 10 s
+export const OBJ_INCOME = 15; // per objective spot held, every 10 s (Versus)
 
 // Counter loop: key beats value (2x damage).
 export const COUNTER = { pike: 'cav', cav: 'ranged', ranged: 'melee', melee: 'pike' };
