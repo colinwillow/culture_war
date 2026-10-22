@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=227';
+import { THREE } from './scene.js?v=228';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -227,6 +227,17 @@ export async function loadChars() {
 // frame these hand props use, so a worker piece drops straight in. Loaded with the cast; missing = the box prop.
 const GEN = { club: 'w_brute_club.glb', blunderbuss: 'w_brute_blunderbuss.glb', wrenchhammer: 'w_brute_wrenchhammer.glb', cleaver: 'w_brute_cleaver.glb', pipewrench: 'w_brute_pipewrench.glb' };
 const GENS = {};
+// A melee prop held in a fist (same rule as the arena, B227): the haft runs pinky side to index side, edge where the
+// fingers point. Guns and finger-less rigs keep the bind-forward rule.
+const GUNS = new Set(['blunderbuss', 'shotgun', 'nailgun']);
+function fistQ(hand, kind) {
+  if (GUNS.has(kind)) return null;
+  const kid = (n) => hand.children.find((o) => o.name === HAND + n);
+  if (!kid('Index1') || !kid('Pinky1') || !kid('Middle1')) return null;
+  const z = kid('Index1').position.clone().sub(kid('Pinky1').position).normalize(), fd = kid('Middle1').position.clone().normalize();
+  const y = fd.negate().addScaledVector(z, -fd.dot(z)).normalize();
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(y, z), y, z));
+}
 function prop(kind) {
   if (GENS[kind]) { const c = GENS[kind].clone(true); c.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); return c; }
   const g = new THREE.Group();
@@ -307,9 +318,10 @@ export function makeChar(f, slot, i) {
   if (c.prop && p.handQ) {
     let hand = null; m.traverse((o) => { if (o.isBone && o.name === HAND) hand = o; });
     if (hand) {
-      const pr = prop(Array.isArray(c.prop) ? c.prop[i % c.prop.length] : c.prop);
-      pr.quaternion.copy(p.handQ).invert(); // undo the hand's bind rotation: the prop points model-forward at bind
-      pr.scale.setScalar(1 / p.handS); // the hand lives under the 0.01 armature: give the prop metres back
+      const kind = Array.isArray(c.prop) ? c.prop[i % c.prop.length] : c.prop, pr = prop(kind);
+      pr.quaternion.copy(fistQ(hand, kind) || p.handQ.clone().invert()); // a club through the FIST, else model-forward at bind
+      pr.scale.setScalar(1 / (p.handS * p.scale)); // metres in the world: the hand's armature scale AND the body's height fit
+      // (B228: without the second the Brutes, authored small and scaled up, waved wrench-hammers the size of a door)
       hand.add(pr);
     }
   }

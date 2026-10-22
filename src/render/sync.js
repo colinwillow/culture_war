@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=227';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=227';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=227';
-import { emit } from '../fx/particles.js?v=227';
-import { seen as fogSeen } from './fog.js?v=227';
-import { bark } from '../fx/sfx.js?v=227';
-import { TICK } from '../config/factions.js?v=227';
-import { walkH, CITY } from '../map/layout.js?v=227';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=227';
-import { CAM } from '../camera/camera.js?v=227';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=228';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=228';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=228';
+import { emit } from '../fx/particles.js?v=228';
+import { seen as fogSeen } from './fog.js?v=228';
+import { bark } from '../fx/sfx.js?v=228';
+import { TICK } from '../config/factions.js?v=228';
+import { walkH, CITY } from '../map/layout.js?v=228';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=228';
+import { CAM } from '../camera/camera.js?v=228';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=227';
-import { UI } from '../ui/state.js?v=227';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=227';
+import { Q, pl, getSim } from '../sim/sim.js?v=228';
+import { UI } from '../ui/state.js?v=228';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=228';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=227';
+import { lerpAngle } from '../util/math.js?v=228';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -22,17 +22,32 @@ const corpses = []; // squads wiped out: their last bodies finish falling before
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
 
-function makeBar(w) {
-  const g = new THREE.Group();
-  const bg = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.08, 0.24), basic(0x000000, 0.6));
-  const fill = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.16), basic(0x7ee05b, 1));
-  fill.position.z = 0.01; g.add(bg, fill); g.renderOrder = 5;
-  return { g, fill, w };
+// HEALTH IS A RING ON THE GROUND (B228, Colin: "rings around the characters' feet rather than the stupid bars above
+// their heads"). One flat mesh per squad: a segment per member, each lit round by that member's health, so a squad
+// shows who is hurt and who is gone. Buildings get one segment. Green -> amber -> red, with a glow at the lit edge.
+const RING_VS = 'varying vec2 vP; void main() { vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+const RING_FS = `uniform float uHp[8]; uniform float uN; uniform float uIn; uniform float uOut; uniform vec3 uCol; uniform float uFix; varying vec2 vP;
+void main() {
+  float r = length(vP), t = (r - uIn) / (uOut - uIn);
+  float a = fract(atan(vP.x, vP.y) / 6.2831853 + 1.0), s = a * uN, i = floor(s), f = fract(s);
+  float hp = 0.0; for (int k = 0; k < 8; k++) if (float(k) == i) hp = uHp[k];
+  float gap = uN > 1.0 ? 0.06 : 0.0; if (f < gap || f > 1.0 - gap) discard;
+  float fill = (f - gap) / (1.0 - 2.0 * gap), lit = step(fill, hp) * step(0.001, hp);
+  vec3 c = uFix > 0.5 ? uCol : (hp > 0.5 ? mix(vec3(1.0, 0.8, 0.2), vec3(0.45, 1.0, 0.4), (hp - 0.5) * 2.0) : mix(vec3(1.0, 0.25, 0.25), vec3(1.0, 0.8, 0.2), hp * 2.0));
+  float edge = 1.0 - abs(t - 0.5) * 2.0;
+  vec3 col = lit > 0.5 ? c * (0.85 + 0.6 * smoothstep(0.3, 1.0, edge)) : vec3(0.05, 0.04, 0.08);
+  gl_FragColor = vec4(col, (lit > 0.5 ? 0.95 : 0.55) * smoothstep(0.0, 0.25, edge));
+}`;
+function makeBar(rIn, rOut) {
+  const u = { uHp: { value: new Array(8).fill(1) }, uN: { value: 1 }, uIn: { value: rIn }, uOut: { value: rOut }, uCol: { value: new THREE.Color() }, uFix: { value: 0 } };
+  const g = new THREE.Mesh(new THREE.RingGeometry(rIn, rOut, 48, 1), new THREE.ShaderMaterial({ uniforms: u, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false }));
+  g.rotation.x = -Math.PI / 2; g.position.y = 0.11; g.renderOrder = 3;
+  return { g, u };
 }
-function setBar(bar, f, color) {
-  f = Math.max(0.001, Math.min(1, f));
-  bar.fill.scale.x = f; bar.fill.position.x = (-(1 - f) * bar.w) / 2;
-  bar.fill.material.color.setHex(color || (f > 0.5 ? 0x7ee05b : f > 0.25 ? 0xf2c232 : 0xff5a4f));
+function setBar(bar, hp, color) { // hp: one fraction, or an array of per-member fractions
+  const H = bar.u.uHp.value, arr = Array.isArray(hp) ? hp : [hp], n = Math.min(8, arr.length);
+  for (let i = 0; i < 8; i++) H[i] = i < n ? Math.max(0, Math.min(1, arr[i])) : 0;
+  bar.u.uN.value = n; bar.u.uFix.value = color ? 1 : 0; if (color) bar.u.uCol.value.setHex(color);
 }
 function makeSquadObj(s) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -52,7 +67,7 @@ function makeSquadObj(s) {
   const sel = ringMesh(s.r + 0.45, s.r + 0.72, selCol(), 0.95); sel.visible = false; root.add(sel);
   const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
   const h = real ? 1.85 : new THREE.Box3().setFromObject(body).max.y;
-  const bar = makeBar(Math.max(1.4, s.r * 1.5)); bar.g.position.y = h + 0.7; root.add(bar.g);
+  const bar = makeBar(s.r + 0.8, s.r + 1.05); root.add(bar.g);
   const stun = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 6, 14), mat(0xffe14d)); stun.rotation.x = Math.PI / 2; stun.position.y = h + 0.25; stun.visible = false; root.add(stun);
   const pie = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat(0xfff8ec)); pie.scale.y = 0.6; pie.position.y = h + 0.05; pie.visible = false; root.add(pie);
   const carry = box(0.5, 0.4, 0.5, 0xf5b83a, 0, h + 0.1, 0); carry.visible = false; root.add(carry);
@@ -80,7 +95,7 @@ function makeBldObj(b) {
   const team = new THREE.Mesh(new THREE.CircleGeometry(b.r + 0.2, 32), basic(b.owner === 0 ? 0x7fd1ff : 0xff5a4f, 0.2));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.07; root.add(team);
   const h = new THREE.Box3().setFromObject(mesh).max.y;
-  const bar = makeBar(b.r * 1.4); bar.g.position.y = h + 0.8; root.add(bar.g);
+  const bar = makeBar(b.r + 0.65, b.r + 1.0); root.add(bar.g);
   root.position.set(b.x, walkH(b.x, b.z), b.z);
   if (b.owner === 0) mesh.rotation.y = Math.PI; // face the enemy
   scene.add(root);
@@ -378,9 +393,8 @@ export function syncRender(S, alpha, dt, time) {
     o.team.material.color.setHex(s.owner === 2 ? (s.slot === 'worker' ? 0xf28c28 : Math.sin(time * 9) > 0 ? 0xff3030 : 0x3060ff) : s.bull > 0 ? 0xe85d9a : s.ot > 0 ? 0xf2c232 : s.owner === 0 ? 0x7fd1ff : 0xff5a4f); // police discs flash red/blue
     for (const m of o.members) if (m.userData.siren) { const on = Math.sin(time * 9) > 0; m.userData.siren[0].visible = on; m.userData.siren[1].visible = !on; }
     let tot = 0; for (const h of s.members) tot += h;
-    setBar(o.bar, tot / (s.members.length * s.mhp));
+    setBar(o.bar, s.members.map((x) => x / s.mhp));
     o.bar.g.visible = tot < s.members.length * s.mhp || o.sel.visible;
-    o.bar.g.quaternion.copy(camera.quaternion);
     o.stun.visible = s.stun > 0 && s.stun <= 2.5; o.stun.rotation.z = time * 6;
     // Dazed: a stunned squad wobbles drunkenly on the spot until it shakes it off.
     o.body.rotation.z = o.stun.visible ? Math.sin(time * 9) * 0.12 : 0; o.body.rotation.x = o.stun.visible ? Math.cos(time * 7) * 0.08 : 0;
@@ -454,7 +468,6 @@ export function syncRender(S, alpha, dt, time) {
     o.sel.visible = !!(UI.sel && UI.sel.type === 'bld' && UI.sel.id === b.id);
     setBar(o.bar, b.built < 1 ? b.built : b.hp / b.maxHp, b.built < 1 ? 0xf2c232 : 0);
     o.bar.g.visible = b.built < 1 || b.hp < b.maxHp || o.sel.visible;
-    o.bar.g.quaternion.copy(camera.quaternion);
     // Rally flag: shown while the building is selected, with a dotted trail from the door to the pole.
     if (b.rally && o.sel.visible) {
       if (!o.flag) {
