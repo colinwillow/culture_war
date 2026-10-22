@@ -131,20 +131,31 @@ function groundTex(name) {
   if (!texCache[name]) { const t = texLoader.load('./textures/' + name + '.webp'); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; texCache[name] = t; }
   return texCache[name];
 }
-export function groundMat(top, side = top, metres = 4, tint = 0xffffff) {
+export function groundMat(top, side = top, metres = 4, tint = 0xffffff, blend = null) {
   const m = new THREE.MeshLambertMaterial({ color: tint, map: groundTex(top) });
-  const side_ = groundTex(side);
+  const side_ = groundTex(side), blend_ = blend ? groundTex(blend) : side_;
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uSide = { value: side_ }; sh.uniforms.uM = { value: metres };
+    sh.uniforms.uSide = { value: side_ }; sh.uniforms.uM = { value: metres }; sh.uniforms.uBlend = { value: blend_ }; sh.uniforms.uHasB = { value: blend ? 1 : 0 };
     sh.vertexShader = 'varying vec3 vGW; varying vec3 vGN;\n' + sh.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
       vec4 gw = vec4(transformed, 1.0); vec3 gn = objectNormal;
       #ifdef USE_INSTANCING
         gw = instanceMatrix * gw; gn = mat3(instanceMatrix) * gn;
       #endif
       vGW = (modelMatrix * gw).xyz; vGN = normalize(mat3(modelMatrix) * gn);`);
-    sh.fragmentShader = 'uniform sampler2D uSide; uniform float uM; varying vec3 vGW; varying vec3 vGN;\n' + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader = `uniform sampler2D uSide; uniform sampler2D uBlend; uniform float uM; uniform float uHasB; varying vec3 vGW; varying vec3 vGN;
+      float gHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float gNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(gHash(i), gHash(i + vec2(1, 0)), f.x), mix(gHash(i + vec2(0, 1)), gHash(i + vec2(1, 1)), f.x), f.y); }
+      float gFbm(vec2 p) { return gNoise(p) * 0.55 + gNoise(p * 2.3 + 7.1) * 0.3 + gNoise(p * 5.1 + 3.7) * 0.15; }
+` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec4 sampledDiffuseColor = abs(vGN.y) > 0.5 ? texture2D(map, vGW.xz / uM)
         : texture2D(uSide, vec2(abs(vGN.x) > 0.5 ? vGW.z : vGW.x, vGW.y) / (uM * 0.25));
+      if (uHasB > 0.5 && abs(vGN.y) > 0.5) { // B249 ORGANIC GROUND: world-noise patches of the blend texture (dirt) and a
+        // slow light/dark wash, so a lawn is a field and not a tile (the references' ground)
+        float n = gFbm(vGW.xz * 0.045), w = gFbm(vGW.xz * 0.012 + 11.0);
+        sampledDiffuseColor = mix(sampledDiffuseColor, texture2D(uBlend, vGW.xz / (uM * 0.8)), smoothstep(0.58, 0.72, n));
+        sampledDiffuseColor.rgb *= 0.82 + 0.36 * w;
+      }
       diffuseColor *= sampledDiffuseColor;`);
   };
   return m;

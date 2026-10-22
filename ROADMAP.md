@@ -7,7 +7,7 @@ hard grid); FEW, LOW buildings on open land; big readable units with selection c
 hex pads under bases. Units Warhammer-big. The Weirdport third-person game is a SEPARATE session (Battle for Earth
 in the kit city); this loop owns the RTS.
 - [x] B247/B248 telephoto camera, half-height city, units 1.6x
-- [ ] Organic ground: grass shader with world-noise dirt patches and colour variation (no flat tiles), soft edges on
+- [x] B249 Organic ground: grass shader with world-noise dirt patches and colour variation (no flat tiles), soft edges on
       sidewalks/lots, scattered instanced rocks + bushes + grass tufts (geometry worker batch 10)
 - [ ] Trees: chunky stylized tree clusters along streets and in parks (batch 10), swaying
 - [ ] Break the grid: fewer city blocks, open plazas and parks between, roads that bend near the edges
