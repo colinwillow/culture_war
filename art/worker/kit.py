@@ -279,3 +279,45 @@ def ship_multi(name, groups, spacing=0.0, clip=False):
     for o in bpy.context.scene.objects:
         if o.type == 'MESH': print('  ', o.name, 'node at', tuple(round(v, 2) for v in o.location), 'tris', tris(o))
     return info
+
+def container(length, loc, col='rust', axis='Y', h=2.6, w=2.4, ribs=True, doors=True):
+    """Shipping container (chunky) lying along `axis` ('X' or 'Y'), loc = bottom centre."""
+    x, y, z = loc
+    L, Wd = (length, w)
+    size = (Wd, L, h) if axis == 'Y' else (L, Wd, h)
+    obs = [box(size, (x, y, z + h / 2), col, bevel=0.06)]
+    n = max(2, int(L / 0.7))
+    if ribs:
+        for i in range(n):
+            t = -L / 2 + (i + 0.5) * L / n
+            for s in (-1, 1):
+                if axis == 'Y': obs.append(box((0.06, 0.16, h - 0.3), (x + s * (Wd / 2 + 0.02), y + t, z + h / 2), col, bevel=0.0))
+                else: obs.append(box((0.16, 0.06, h - 0.3), (x + t, y + s * (Wd / 2 + 0.02), z + h / 2), col, bevel=0.0))
+    # corner castings
+    for a in (-1, 1):
+        for b in (-1, 1):
+            for c in (0.12, h - 0.12):
+                p = (x + a * (Wd / 2 - 0.08), y + b * (L / 2 - 0.08)) if axis == 'Y' else (x + a * (L / 2 - 0.08), y + b * (Wd / 2 - 0.08))
+                obs.append(box((0.24, 0.24, 0.24), (p[0], p[1], z + c), 'iron', bevel=0.02))
+    return obs
+
+def gear(r, loc, col='team', teeth=10, bite=2, thick=0.25, rot=(90, 0, 0), hub='iron'):
+    """Bitten gear emblem: disc + teeth, `bite` teeth missing with a dark notch. Faces along local Z (rot -> facing)."""
+    import mathutils
+    ob = []
+    E = mathutils.Euler([math.radians(v) for v in rot]).to_matrix()
+    c = Vector(loc)
+    ob.append(cyl(r, thick, loc, col, rot, n=teeth * 2))
+    for i in range(teeth):
+        if i < bite: continue
+        a = 2 * math.pi * i / teeth
+        p = c + E @ Vector((math.cos(a) * (r + r * 0.12), math.sin(a) * (r + r * 0.12), 0))
+        t = box((r * 0.3, r * 0.26, thick), tuple(p), col, bevel=0.0)
+        t.rotation_euler = (E @ mathutils.Matrix.Rotation(a, 3, 'Z')).to_euler()
+    a = 2 * math.pi * (bite - 1) / teeth / 2
+    for k in range(3):   # bite marks: dark scallops on the rim
+        aa = a + (k - 1) * 0.28
+        p = c + E @ Vector((math.cos(aa) * r * 0.9, math.sin(aa) * r * 0.9, 0))
+        ob.append(cyl(r * 0.22, thick * 1.1, tuple(p), 'iron', rot, n=8))
+    ob.append(cyl(r * 0.35, thick * 1.3, loc, hub, rot, n=8, bevel=0.02))
+    return ob
