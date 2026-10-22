@@ -19,7 +19,7 @@ item says so.
 ### Items
 - [x] (B159) Duel: weapon SLASH TRAILS (ribbon from the weapon's measured tip over the swing's active frames, team-tinted) + impact flashes that face the camera
 - [x] (B162) Duel: hits that LAND -- resolve contact from the real weapon-tip / fist position against the defender's body (miss if it really missed), react direction from where it hit (front/side), stagger toward the push
-- [ ] Duel: ground FX -- dust puffs on footsteps/landings/knockdowns, scuff marks where a body hits the floor, debris kicked by the kick
+- [x] (B171) Duel: ground FX -- dust puffs on footsteps/landings/knockdowns, scuff marks where a body hits the floor, debris kicked by the kick
 - [ ] Duel: colour system v2 -- both sides pick a team colour (palette of 6 with names-free swatches), weapon trails/sparks/HP bar take the team colour, tint threshold tuned so skin markings + paint shift but steel/leather never do
 - [ ] Duel: gameplay depth 1 -- guard meter (blocking drains it, guard break stuns), parry window right after a block lands (counter-attack), 2-hit combos
 - [ ] Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips

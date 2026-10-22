@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=166';
+import { svg } from '../ui/icons.js?v=171';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -158,6 +158,55 @@ function stepSparks(dt) {
   }
   sparkGeo.attributes.position.needsUpdate = true;
 }
+// DUST + DEBRIS: soft puffs that grow and fade (normal blending, so dust reads as dust, not glow) and little pebbles that
+// fall. One Points draw call; point size is in world metres at any lens (size * uPx / depth).
+const DUST_N = 260;
+const dust = { pos: new Float32Array(DUST_N * 3), col: new Float32Array(DUST_N * 3), size: new Float32Array(DUST_N), alpha: new Float32Array(DUST_N),
+  vel: Array.from({ length: DUST_N }, () => new THREE.Vector3()), life: new Float32Array(DUST_N), max: new Float32Array(DUST_N), grow: new Float32Array(DUST_N), grav: new Float32Array(DUST_N), i: 0 };
+const dustGeo = new THREE.BufferGeometry();
+for (const [k, n] of [['position', 3], ['color', 3], ['size', 1], ['alpha', 1]]) dustGeo.setAttribute(k, new THREE.BufferAttribute(dust[k === 'position' ? 'pos' : k === 'color' ? 'col' : k], n));
+const dustMat = new THREE.ShaderMaterial({
+  uniforms: { uPx: { value: 400 } }, transparent: true, depthWrite: false,
+  vertexShader: 'attribute float size; attribute float alpha; attribute vec3 color; varying vec3 vC; varying float vA; uniform float uPx;\n' +
+    'void main() { vC = color; vA = alpha; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = size * uPx / -mv.z; gl_Position = projectionMatrix * mv; }',
+  fragmentShader: 'varying vec3 vC; varying float vA; void main() { float d = length(gl_PointCoord - 0.5) * 2.0; if (d > 1.0) discard; gl_FragColor = vec4(vC, vA * (1.0 - d * d)); }',
+});
+const dustPts = new THREE.Points(dustGeo, dustMat); dustPts.frustumCulled = false; scene.add(dustPts);
+function puff(p, n, o = {}) { // o: spread, up, size, grow, life, color, grav, vel(dir), alpha
+  const c = new THREE.Color(o.color ?? 0xeadcc0); // paler than the sand so it reads against it
+  for (let k = 0; k < n; k++) {
+    const i = dust.i = (dust.i + 1) % DUST_N, sp = o.spread ?? 1.2;
+    dust.pos.set([p.x + (Math.random() - 0.5) * 0.3, p.y + 0.05, p.z + (Math.random() - 0.5) * 0.3], i * 3);
+    dust.vel[i].set((Math.random() - 0.5) * sp, (o.up ?? 0.6) * (0.5 + Math.random()), (Math.random() - 0.5) * sp);
+    if (o.vel) dust.vel[i].addScaledVector(o.vel, 0.6 + Math.random() * 0.6);
+    const v = 0.85 + Math.random() * 0.3; dust.col.set([c.r * v, c.g * v, c.b * v], i * 3);
+    dust.size[i] = (o.size ?? 0.35) * (0.7 + Math.random() * 0.6); dust.grow[i] = o.grow ?? 1.4; dust.grav[i] = o.grav ?? -0.3;
+    dust.max[i] = dust.life[i] = (o.life ?? 0.9) * (0.7 + Math.random() * 0.6); dust.alpha[i] = o.alpha ?? 0.7;
+  }
+}
+const pebbles = (p, dir, n) => puff(p, n, { color: 0x5a4632, size: 0.07, grow: 0, life: 0.8, grav: 9, up: 3.2, spread: 2.2, vel: dir.clone().multiplyScalar(2.5), alpha: 1 });
+function stepDust(dt) {
+  for (let i = 0; i < DUST_N; i++) {
+    if (dust.life[i] <= 0) { dust.alpha[i] = 0; continue; }
+    dust.life[i] -= dt; const v = dust.vel[i], k = dust.life[i] / dust.max[i];
+    v.y -= dust.grav[i] * dt; v.multiplyScalar(Math.exp(-2.5 * dt));
+    dust.pos[i * 3] += v.x * dt; dust.pos[i * 3 + 1] = Math.max(0.03, dust.pos[i * 3 + 1] + v.y * dt); dust.pos[i * 3 + 2] += v.z * dt;
+    dust.size[i] += dust.grow[i] * dt; if (dust.grow[i] > 0) dust.alpha[i] = Math.min(dust.alpha[i], 0.7 * Math.sin(Math.PI * Math.min(1, k * 1.2)));
+    if (dust.life[i] <= 0) dust.alpha[i] = 0;
+  }
+  for (const k of ['position', 'size', 'alpha', 'color']) dustGeo.attributes[k].needsUpdate = true;
+  dustMat.uniforms.uPx.value = renderer.domElement.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+}
+// SCUFF MARKS: a dark smear left on the sand where a body hits the floor (and where a slide drags), fading over 25 s
+const scuffTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, 'rgba(60,40,25,.55)'); g.addColorStop(1, 'rgba(60,40,25,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+const scuffs = [];
+function scuff(p, dir, len, wid) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: scuffTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+  m.rotation.x = -Math.PI / 2; m.rotation.z = Math.atan2(dir.x, dir.z); m.scale.set(wid, len, 1); m.position.set(p.x, 0.012, p.z); scene.add(m);
+  scuffs.push({ m, t: 25 }); if (scuffs.length > 40) { const o = scuffs.shift(); scene.remove(o.m); o.m.material.dispose(); }
+}
+function stepScuffs(dt) { for (const q of scuffs) { q.t -= dt; q.m.material.opacity = Math.min(1, q.t / 6); } }
 const tracers = [];
 function tracer(a, b, hit) {
   const g = new THREE.BufferGeometry().setFromPoints([a, b]);
@@ -305,9 +354,10 @@ function spawn(def, side, slot = 0, n = 1) {
   tail.sort((a, b) => a.b.name.localeCompare(b.b.name));
   const mixer = new THREE.AnimationMixer(model), actions = {};
   for (const n in R.clips) actions[n] = mixer.clipAction(R.clips[n]);
-  let foot = null; model.traverse((o) => { if (!foot && o.isBone && o.name === 'mixamorig_RightToeBase') foot = o; });
+  let foot = null, footL = null, hips = null;
+  model.traverse((o) => { if (!o.isBone) return; if (o.name === 'mixamorig_RightToeBase') foot = o; if (o.name === 'mixamorig_LeftToeBase') footL = o; if (o.name === 'mixamorig_Hips') hips = o; });
   const trail = makeTrail(); trail.mesh.visible = true;
-  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, trail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
+  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
   f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
   root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -402,6 +452,7 @@ function blocked(a, b, m, dir, keep) {
   if (b.hp <= 0) ko(b, dir);
 }
 function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
+  if (a.move && a.move.limb === 'foot') pebbles(b.root.position.clone(), dir, 8); // a kick throws up the sand
   if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
   const p = hp ? hp.clone() : chest(b).addScaledVector(dir, -0.25); // sparks where it actually struck
@@ -417,6 +468,32 @@ function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   const where = hp ? whereHit(b, hp) : null, want = where && S.react && S.react[where];
   const h = want && b.actions[want] ? want : light ? S.hits[1] : S.hits[(rng() * S.hits.length) | 0];
   setState(b, 'hit', dur(b, h, 1.4 * RULE.pace) * 0.65); play(b, h, true, 1.4 * RULE.pace, 0.06);
+}
+const _fp = new THREE.Vector3();
+function groundFx(f, dt) {
+  // footfalls: a toe that comes down after being up kicks a small puff (bigger when running)
+  // a PLANT is a toe that was swinging fast and stops near the ground (a height test missed: these walks barely lift)
+  if (!f.toeLast) f.toeLast = [new THREE.Vector3(), new THREE.Vector3()];
+  [f.foot, f.footL].forEach((t, i) => {
+    if (!t || dt <= 0) return; t.getWorldPosition(_fp); const v = _fp.distanceTo(f.toeLast[i]) / dt; f.toeLast[i].copy(_fp);
+    if (v > 1.6 * f.h / 1.9) f.feetUp[i] = true;
+    else if (v < 0.5 && f.feetUp[i] && _fp.y < 0.12 * f.h) { f.feetUp[i] = false; puff(_fp, f.state === 'move' ? 4 : 2, { size: 0.24, spread: 0.7, up: 0.45, life: 0.7 }); }
+  });
+  // a body hitting the floor: hips come down low during a fall -> a ring of dust, a heavy thud, a scuff
+  // (by TIME into the fall clip: the hips only sink to ~0.3 of his height, late and not reliably enough to test)
+  if (f.state === 'down' || f.state === 'ko') f.downT = (f.downT || 0) + dt; else f.downT = 0;
+  if ((f.state === 'down' || f.state === 'ko') && f.hips && !f.fell) {
+    f.hips.getWorldPosition(_fp); _fp.y = 0;
+    if (f.downT > 0.45 * dur(f, f.def.style.fall, 1.2 * RULE.pace)) {
+      f.fell = true; const d = f.vel.clone().setY(0); if (d.lengthSq() < 1e-4) d.set(Math.sin(f.root.rotation.y), 0, Math.cos(f.root.rotation.y)).negate();
+      puff(_fp, 16, { size: 0.5, spread: 3.2, up: 0.5, life: 1.2, grow: 1.8 }); pebbles(_fp, d.normalize(), 6);
+      scuff(_fp, d, 1.4 * f.h / 1.9, 0.9 * f.h / 1.9); sound('heavy', 0.6); shake = Math.max(shake, 0.12);
+    }
+  }
+  if (f.state !== 'down' && f.state !== 'ko') f.fell = false;
+  // dragged across the sand by a big knockback: a dust trail behind the feet
+  const sp = f.vel.length();
+  if (sp > 2.2 && Math.random() < dt * 30) { const p = f.root.position.clone(); puff(p, 1, { size: 0.3, spread: 0.4, up: 0.3, life: 0.7, vel: f.vel.clone().multiplyScalar(-0.15) }); if (Math.random() < 0.15) scuff(p, f.vel, 0.6, 0.4); }
 }
 function ko(b, dir) {
   b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3);
@@ -463,6 +540,7 @@ function stepFighter(f, dt) {
     if (dl < min && dl > 1e-4) f.root.position.addScaledVector(d.normalize(), (min - dl) * 0.5);
   }
   // hit flash
+  groundFx(f, dt);
   if (f.flash > 0) { f.flash = Math.max(0, f.flash - dt * 6); for (const m of f.mats) m.emissive.setRGB(f.flash * 0.6, f.flash * 0.1, f.flash * 0.06); }
 }
 function stepTail(f, time) { // procedural sway: a travelling wave down the chain, bigger towards the tip, kicked by speed
@@ -531,6 +609,7 @@ function hud() {
 }
 function fight() {
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
+  for (const q of scuffs) { scene.remove(q.m); q.m.material.dispose(); } scuffs.length = 0;
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
   const n = SIZES[size];
   for (let i = 0; i < n; i++) fighters.push(spawn(ROSTER[picks[0]], -1, i, n), spawn(ROSTER[picks[1]], 1, i, n));
@@ -560,7 +639,7 @@ function frame() {
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
-  stepSparks(dt); stepPops(dt);
+  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt);
   for (const f of fighters) stepTrail(f, dt);
   for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.t -= dt; t.l.material.opacity = Math.max(0, t.t / 0.09); if (t.t <= 0) { scene.remove(t.l); t.l.geometry.dispose(); tracers.splice(i, 1); } }
   stepCamera(dt); hud();
@@ -569,5 +648,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
+  window.duel = { dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
 });
