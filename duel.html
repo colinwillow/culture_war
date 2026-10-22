@@ -35,6 +35,13 @@
   #stick i, #rstick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0008; }
   body.you .dock button:not(#you):not(#home) { display: none; }
   #load[hidden] { display: none; }
+  /* the aim mark in YOU mode with a gun: two broken rings a little above centre, where the lens looks */
+  #reticle { position: fixed; z-index: 2; left: 50%; top: 42%; width: 0; height: 0; pointer-events: none; }
+  #reticle[hidden] { display: none; }
+  #reticle i { position: absolute; border-radius: 50%; border: 3px dashed #ffffffd0; }
+  #reticle i:first-child { width: 34px; height: 34px; left: -20px; top: -20px; animation: spin 4s linear infinite; }
+  #reticle i:last-child { width: 8px; height: 8px; left: -7px; top: -7px; border-style: solid; border-color: #ffd75a; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   #load { position: fixed; inset: 0; display: grid; place-items: center; font-family: 'Bungee', sans-serif; font-size: 18px; background: #1b1d24; }
   #err { position: fixed; left: 10px; right: 10px; top: 60px; background: #a01818; padding: 8px; font: 12px monospace; white-space: pre-wrap; }
 </style>
@@ -54,6 +61,7 @@
 </div>
 <div id="stick" hidden><i id="knob"></i></div>
 <div id="rstick" hidden><i id="rknob"></i></div>
+<div id="reticle" hidden><i></i><i></i></div>
 <div id="load">LOADING</div>
 <div id="err" hidden></div>
 <script>
@@ -63,6 +71,6 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 </script>
-<script type="module" src="./src/duel/duel.js?v=217"></script>
+<script type="module" src="./src/duel/duel.js?v=219"></script>
 </body>
 </html>

@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=217';
-import { makePops, slashTex } from '../fx/pops.js?v=217';
+import { svg } from '../ui/icons.js?v=219';
+import { makePops, slashTex } from '../fx/pops.js?v=219';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -571,9 +571,10 @@ function padStep(f, dt) {
   const down = PAD.rhold && PAD.ry > RPAD.blockAt && Math.abs(PAD.rx) < RPAD.arc + 0.2;
   PAD.firing = up;
   if (busy) { PAD.rflick = false; if (!up) PAD.charge = 0; return; }
-  if (PAD.rflick) { PAD.rflick = false; PAD.charge = 0; if (S.attacks && S.attacks.length) return startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]); if (S.shoot) return startShot(f); }
+  if (PAD.rflick) { f.faceWant = camAz; f.target = aimPick(f) || f.target; PAD.rflick = false; PAD.charge = 0; if (S.attacks && S.attacks.length) return startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]); if (S.shoot) return startShot(f); }
   if (up) { // the trigger: a gun fires on its own; a melee winds up (charge builds while held)
-    if (S.shoot) { PAD.charge = 0; return startShot(f); }
+    f.faceWant = camAz;
+    if (S.shoot) { PAD.charge = 0; const t = aimPick(f); f.aimMiss = !t; if (t) f.target = t; return startShot(f); }
     PAD.charge = Math.min(1, PAD.charge + dt / RPAD.chargeT);
     if (f.state !== 'charge') { setState(f, 'charge', 99); play(f, S.block, false, 0.6, 0.15); } // wind-up pose stands in for a charge clip
     return;
@@ -586,7 +587,7 @@ function padStep(f, dt) {
   if (f.state === 'block') { setState(f, 'idle', 0); play(f, S.idle); }
   if (PAD.mag > 0.15) { // walk/run where the left thumb points, screen-relative, still facing him
     const cf = new THREE.Vector3(view.cx - camera.position.x, 0, view.cz - camera.position.z).normalize(), cr = new THREE.Vector3(-cf.z, 0, cf.x);
-    const dir = cr.multiplyScalar(PAD.x).add(cf.multiplyScalar(-PAD.y)).normalize();
+    const dir = cr.multiplyScalar(PAD.x).add(cf.multiplyScalar(-PAD.y)).normalize(); f.faceWant = Math.atan2(dir.x, dir.z);
     const run = PAD.mag > 0.7, sp = (run ? 4.2 : 1.8) * f.def.speed * (f.h / 1.9);
     f.root.position.addScaledVector(dir, sp * dt);
     const face = new THREE.Vector3(Math.sin(f.root.rotation.y), 0, Math.cos(f.root.rotation.y)), along = dir.dot(face), across = dir.dot(new THREE.Vector3(-face.z, 0, face.x));
@@ -637,7 +638,9 @@ function resolve(a, hp) { // the moment of contact: block, dodge, glance, hit or
   const b = other(a), m = a.move, d = flat(a, b).length(), dir = flat(a, b).normalize(), at = chest(b);
   if (m.ranged) {
     const from = a.hand ? a.hand.getWorldPosition(new THREE.Vector3()) : chest(a);
-    sound('shot', 0.4); burst(from, dir, 0xffd27a, 6, 2);
+    sound('shot', 0.4);
+    if (a.aimMiss) { a.aimMiss = false; const far = from.clone().addScaledVector(camFwd(), 14); burst(from, camFwd(), 0xffd27a, 6, 2); tracer(from, far, false); return; }
+    burst(from, dir, 0xffd27a, 6, 2);
     const hitP = Math.max(0.25, 0.85 - d * 0.04);
     if (b.ko || b.state === 'down' || rng() > hitP) { tracer(from, at.clone().add(new THREE.Vector3(rng() - 0.5, rng() * 0.6, rng() - 0.5)), false); return; }
     tracer(from, at, true);
@@ -753,7 +756,7 @@ function stepFighter(f, dt) {
   f.t -= dt; brain(f, dt);
   // turn to face the other one (not while flat on the floor)
   if (!['down', 'ko', 'getup'].includes(f.state)) {
-    const d = flat(f, o), want = Math.atan2(d.x, d.z); let dy = want - f.root.rotation.y;
+    const d = flat(f, o), want = f.player && f.faceWant !== undefined ? f.faceWant : Math.atan2(d.x, d.z); let dy = want - f.root.rotation.y;
     dy = Math.atan2(Math.sin(dy), Math.cos(dy)); f.root.rotation.y += dy * Math.min(1, dt * 8);
   }
   if (f.state === 'circle' || f.state === 'backstep' || f.state === 'dodge') { // footwork, always facing him
@@ -847,7 +850,7 @@ canvas.addEventListener('pointermove', (e) => {
     let dx = e.clientX - rstick.x0, dy = e.clientY - rstick.y0; const L = Math.hypot(dx, dy); rstick.far = Math.max(rstick.far, L);
     if (L > STICK_R) { dx *= STICK_R / L; dy *= STICK_R / L; }
     PAD.rx = dx / STICK_R; PAD.ry = dy / STICK_R; PAD.rmag = Math.min(1, L / STICK_R); rknobEl.style.transform = `translate(${dx}px,${dy}px)`;
-    if (Math.abs(PAD.rx) > RPAD.arc || Math.abs(PAD.ry) < 0.3) view.orbit = rstick.o + (e.clientX - rstick.x0) * 0.008; // sideways: the camera
+    if (!PAD.on && (Math.abs(PAD.rx) > RPAD.arc || Math.abs(PAD.ry) < 0.3)) view.orbit = rstick.o + (e.clientX - rstick.x0) * 0.008; // sideways: the camera
     return;
   }
   if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
@@ -875,12 +878,35 @@ const lift = (e) => {
 canvas.addEventListener('pointerup', lift); canvas.addEventListener('pointercancel', lift);
 canvas.addEventListener('wheel', (e) => { view.zoom = Math.min(2.5, Math.max(0.45, view.zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: true });
 function pinchD() { const v = [...pts.values()]; return v.length >= 2 ? Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]) : 0; }
+// THIRD-PERSON FOLLOW CAM for YOU mode, after Weirdport's `stepCam` (Colin: "it wasn't very third person"): the lens sits
+// a boom behind the hero at a low elevation and looks at a point on him; the right thumb held SIDEWAYS turns it at a rate
+// (a dead zone that SUBTRACTS, so a thumb held up to aim does not wander it); movement and aim are relative to it.
+const FCAM = { dist: 5.6, el: 0.22, look: 0.62, side: 0.75, yawRate: 2.6, dead: 0.06, aimCone: 0.42 }; // side: over-the-shoulder shift (x height/1.9) so he does not cover the reticle
+let camAz = 0;
+const camFwd = () => new THREE.Vector3(Math.sin(camAz), 0, Math.cos(camAz));
+function aimPick(f) { // the foe closest to where the lens looks, inside the aim cone; null = nobody there
+  const fw = camFwd(); let best = null, bd = FCAM.aimCone;
+  for (const o of fighters) { if (o.team === f.team || o.ko) continue; const d = flat(f, o), L = d.length() || 1, a = Math.acos(Math.max(-1, Math.min(1, d.dot(fw) / L))); if (a < bd) { bd = a; best = o; } }
+  return best;
+}
 function koPush() { // 0..1: how far the KO push-in is (in, hold, then back out)
   if (!koCam) return 0; const t = koCam.t;
   return t < KO.ease * 0.5 ? t / (KO.ease * 0.5) : t < KO.hold ? 1 : Math.max(0, 1 - (t - KO.hold) / KO.ease);
 }
 function stepCamera(dt) {
   if (!fighters.length) return;
+  const me = PAD.on && fighters.find((f) => f.player);
+  if (me && !koCam) { // YOU mode: the follow cam
+    if (PAD.rhold && !PAD.firing) { const ax = Math.abs(PAD.rx); if (ax > FCAM.dead && Math.abs(PAD.ry) < 0.55) camAz -= Math.sign(PAD.rx) * ((ax - FCAM.dead) / (1 - FCAM.dead)) * FCAM.yawRate * dt; }
+    const k = me.h / 1.9, tgt = me.root.position.clone().setY(me.root.position.y + me.h * FCAM.look).add(new THREE.Vector3(-Math.cos(camAz), 0, Math.sin(camAz)).multiplyScalar(FCAM.side * k)), d = FCAM.dist * Math.max(0.8, k) * view.zoom, ce = Math.cos(FCAM.el);
+    const want = tgt.clone().add(new THREE.Vector3(-Math.sin(camAz) * ce * d, Math.sin(FCAM.el) * d + 0.4, -Math.cos(camAz) * ce * d));
+    camera.position.lerp(want, 1 - Math.exp(-dt * 10));
+    const sx = shake > 0 ? (Math.random() - 0.5) * shake : 0; camera.position.x += sx; camera.lookAt(tgt);
+    shake = Math.max(0, shake - dt * 1.2);
+    document.getElementById('reticle').hidden = !me.def.style.shoot;
+    return;
+  }
+  document.getElementById('reticle').hidden = true;
   const up = fighters.filter((f) => !f.ko).length ? fighters.filter((f) => !f.ko) : fighters;
   const mid = new THREE.Vector3(); for (const f of up) mid.add(f.root.position); mid.multiplyScalar(1 / up.length);
   let sep = 0; for (const f of up) sep = Math.max(sep, 2 * Math.hypot(f.root.position.x - mid.x, f.root.position.z - mid.z));
@@ -934,7 +960,7 @@ function fight() {
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
   const n = SIZES[size];
   for (let i = 0; i < n; i++) fighters.push(spawn(ROSTER[picks[0]], -1, i, n), spawn(ROSTER[picks[1]], 1, i, n));
-  if (PAD.on && fighters[0]) fighters[0].player = true;
+  if (PAD.on && fighters[0]) { fighters[0].player = true; camAz = fighters[0].root.rotation.y; }
   view.dir = null; hud(); paintTeams();
 }
 document.querySelectorAll('[data-i]').forEach((el) => (el.outerHTML = svg(el.dataset.i)));
@@ -991,5 +1017,5 @@ const needRigs = () => [ROSTER[picks[0]].rig, ROSTER[picks[1]].rig].filter((k) =
 const loadCard = (on) => { const el = document.getElementById('load'); if (el) el.hidden = !on; };
 Promise.all([...needRigs().map(ensureRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => { WEAPDATA[k] = w; }))]).then(() => {
   loadCard(false); fight(); frame();
-  window.duel = { ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { FCAM, ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
