@@ -242,12 +242,14 @@ def preview(path, png, dist=None):
     w = bpy.data.worlds.new('w'); sc.world = w
     bpy.ops.render.render(write_still=True)
 
-def ship(name, objs=None, chunk_cuts=None, clip=False):
+def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None):
     """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info.
     clip=True cuts away anything below the ground (y 0)."""
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
     ob = join(name, objs)
     if clip: clip_ground(ob)
+    if fit:   # non-uniform squash in Blender axes (x, y=depth, z=up) about the origin
+        ob.data.transform(Matrix.Diagonal((fit[0], fit[1], fit[2], 1.0)))
     p = os.path.join(OUT, name + '.glb'); export(p, [ob])
     if chunk_cuts:
         cs = chunks(ob, chunk_cuts, name)
