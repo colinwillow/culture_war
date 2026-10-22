@@ -1,6 +1,20 @@
 # Roadmap
 
-## NIGHT LOOP 2 (Oct 22 2026, from 06:35 UTC, no stop time: Colin "go for it") -- same rules as the evening loop below.
+## NIGHT LOOP 3 (Oct 22 08:45 UTC -> STOP 15:30 UTC Oct 23, Colin's usage reset at 9 am Pacific)
+A GEOMETRY WORKER session runs beside this one (art/README.md): this loop writes art/REQUESTS.md and wires in what
+art/DELIVERED.md lists; never edit models/gen/ or DELIVERED.md. EVERY pass first: read DELIVERED.md; if a new piece is
+there, wiring it into the game (weapon on its rig / prop in the city / building) can be that pass's build.
+STEER (Colin, 08:40): the game must be seen UP CLOSE -- the arena's side-on fights are the look. No Tripo models until
+Colin signs off a species row on the roster board.
+### Items
+- [ ] Arena YOU mode: a real THIRD-PERSON FOLLOW CAM on your fighter (read weirdport/index.html's camera + reticle first and match it): behind/over the shoulder, right-stick drag orbits it, a reticle when holding a gun, hold-up fires where the camera faces, a strike goes toward the reticle. This is the camera possession will use.
+- [ ] RTS BATTLE CAM: a picture-in-picture window (bottom-left, ~35% width) that follows the hottest fight from a low side angle like the arena; tap it and the main camera swoops down there. Second render of the same scene, low res, only while a fight is on.
+- [ ] RTS closer by default: start matches closer, cap max zoom-out lower (overview = the minimap's job), units/buildings read at that distance; an idle auto-dip toward an on-screen fight after a few seconds without touch.
+- [ ] Wire in the worker's Brute weapons (club / blunderbuss / wrench-hammer / cleaver / pipe wrench / cannon / skateboard) on the right Brutes in the arena and RTS.
+- [ ] Wire in the worker's city kit + breakable building kit (cars, props, walls that break into chunks when shot).
+- [ ] Wire in the Brute base buildings for Backwoods (HQ, barracks, depot, tower, wall).
+
+## NIGHT LOOP 2 (Oct 22 2026, from 06:35 UTC) -- remaining items continue after loop 3's.
 ### Items (Colin picked the order: objectives, hero abilities, walls, species factions)
 - [x] (B211) Objectives: 2-3 neutral spots on the map (power plant, bank, radio tower) that pay a small bonus (+income or +power) to whoever holds them (a squad inside, no enemy inside); ring + flag like the hill; minimap marks; the AI contests them. Versus mode only at first. Sim + fx + minimap.
 - [x] (B213) Species hero ability #1 on the Brutes' Hero (ridden by Backwoods for now): EAT -- gulps the nearest civilian for a big heal + a roar that scares enemy squads back for 2 s (sim `heroAbility` case, fx, the arena's grunt sound).
