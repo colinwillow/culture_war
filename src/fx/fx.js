@@ -1,13 +1,14 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=219';
-import { makePops, slashTex, screenAngle } from './pops.js?v=219';
-import { walkH, CITY } from '../map/layout.js?v=219';
-import { sfx } from './sfx.js?v=219';
-import { shake, CAM } from '../camera/camera.js?v=219';
-import { FC } from '../render/models.js?v=219';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=219';
+import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=221';
+import { makePops, slashTex, screenAngle } from './pops.js?v=221';
+import { noteHit } from '../render/battlecam.js?v=221';
+import { walkH, CITY } from '../map/layout.js?v=221';
+import { sfx } from './sfx.js?v=221';
+import { shake, CAM } from '../camera/camera.js?v=221';
+import { FC } from '../render/models.js?v=221';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=221';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -359,6 +360,7 @@ export function handleEvents(S, bump) {
     playFor(ev);
     switch (ev.k) {
       case 'shot':
+        if (ev.to !== 2 && ev.tx !== undefined) noteHit(ev.tx, ev.tz);
         if (ev.slot === 'siege' && ev.f === 'sc') sprayTag(S, ev);
         if (ev.slot === 'siege' && ev.f === 'bw') for (let k = 0; k < 6; k++) emit({ x: ev.x + (Math.random() - 0.5) * 1.2, y: gy(ev.x, ev.z, 1.6), z: ev.z + (Math.random() - 0.5) * 1.2, vx: (Math.random() - 0.5) * 0.8, vy: 0.8 + Math.random(), vz: (Math.random() - 0.5) * 0.8, c: k % 2 ? 0x9a9a9a : 0xd8d8d8, s: 0.5, life: 1.6 + Math.random(), g: -0.3, drag: 1, grow: 3 });
         if (ev.slot === 'siege' && ev.f === 'bw') fxArc(ev.x, ev.z, ev.tx, ev.tz, 0xd63c3c, () => { fxRing(ev.tx, ev.tz, 0.5, 3.5, 0xf5b83a, 0.4); fxBits(ev.tx, ev.tz, 0xf5b83a, 5); });
@@ -383,6 +385,7 @@ export function handleEvents(S, bump) {
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
         else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
         if (!ev.area) meleeClose(ev);
+        if (ev.to !== 2) noteHit(ev.tx, ev.tz); // the battle cam follows fights between the two sides
         bump(ev.id); break;
       case 'boom': shake(1.6, ev.x, ev.z); fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
