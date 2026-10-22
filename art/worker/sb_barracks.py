@@ -1,6 +1,7 @@
 # Spore barracks: spawning pod bed -- 5 egg sacs in a goo pool. Origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = spore_style()   # Spore brand: cracked pod bursting spores
 ball(3.5, (0, 0, 0), 'goo', 2, (1, 1, 0.12))                                   # pool mound (rim)
 cyl(3.0, 0.1, (0, 0, 0.4), 'gacid', n=16)                                       # glowing goo surface
 for a in range(0, 360, 40):                                                      # fungal rim lumps
@@ -37,4 +38,9 @@ hexplinth(3.6, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
 hexplinth(3.6 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
 for k in range(6):
     a = math.radians(60 * k); ball(3.6 * 0.06, (math.cos(a) * 3.6, math.sin(a) * 3.6, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
+
+# ---- SPORE PASS: leather straps + buckles binding the egg sacs, rusty iron hoops round the pool rim, a spore-emblem rag
+for (x, y, s_) in eggs[:3]: strap((x - 0.6 * s_, y, 0.5), (x + 0.6 * s_, y, 1.6 * s_), 0.12)
+for a in (30, 150, 270): r = math.radians(a); cyl(0.3, 0.2, (math.cos(r) * 3.3, math.sin(r) * 3.3, 0.35), 'iron', n=8)
+banner(0.7, 0.9, (0, -3.55, 1.2), (0, -1, 0), mark='crown')
 print(ship('sb_barracks', clip=True))

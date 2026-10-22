@@ -2,6 +2,7 @@
 # Lowest tendril tip at y 0, origin under the centre.
 import sys, os, random; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = spore_style()   # Spore brand: cracked pod bursting spores
 rnd = random.Random(3)
 ball(1.15, (0, 0, 3.3), 'gacid', 2)                                             # glow core
 ball(1.95, (0, 0, 3.35), 'cacid', 2, (1, 1, 0.85))                              # translucent sac (top ~5)
@@ -38,4 +39,9 @@ crown(0.45, (0, -2.07, 3.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.015)
 # ---- detail pass 2: a crimson crown pennant trailing off the harness, goo drips on the sac
 banner(0.35, 0.5, (0, 2.08, 2.95), (0, 1, 0), mark='crown')
 for a in (30, 150, 270): r = math.radians(a); cyl(0.08, 0.4, (math.cos(r) * 1.5, math.sin(r) * 1.5, 2.1), 'goo', n=5, r2=0.02)
+
+# ---- SPORE PASS: leather straps over the sac to the harness, pores, a spore-emblem plate on the band
+for a in (0, 120, 240):
+    r = math.radians(a); strap((math.cos(r) * 1.95, math.sin(r) * 1.95, 3.0), (math.cos(r) * 0.6, math.sin(r) * 0.6, 4.8), 0.1, buckle=False)
+spots((0, 0, 3.35), 1.95, 12, seed=65, col='pore', size=0.1, scale=(1, 1, 0.85), zmin=3.0)
 print(ship('s_spore_cloud'))

@@ -1,6 +1,7 @@
 # Spore depot: spore silo -- a tall puffball with vents. Origin ground centre, front +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = spore_style()   # Spore brand: cracked pod bursting spores
 ball(2.0, (0, 0, 0.2), 'goo', 1, (1, 1, 0.3))                                   # root mat
 for a in range(0, 360, 60):                                                       # root tendrils
     r = math.radians(a)
@@ -38,4 +39,9 @@ hexplinth(2.1, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
 hexplinth(2.1 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
 for k in range(6):
     a = math.radians(60 * k); ball(2.1 * 0.06, (math.cos(a) * 2.1, math.sin(a) * 2.1, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
+
+# ---- SPORE PASS: rusty iron bands + leather straps holding the puffball, pores, spore-emblem rag on the neck
+for z in (2.6, 4.3): torus(1.8 - abs(z - 3.4) * 0.35, 0.08, (0, 0, z), 'iron', n=14, m=4)
+strap((-1.6, -0.6, 2.0), (-0.8, -1.5, 4.6), 0.18)
+spots((0, 0, 3.4), 1.85, 14, seed=62, col='pore', size=0.12, scale=(1, 1, 1.25))
 print(ship('sb_depot', clip=True))

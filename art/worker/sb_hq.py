@@ -1,6 +1,7 @@
 # Spore HQ: giant mushroom-cluster mother-mound with a glowing sac core. Origin ground centre, sac faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = spore_style()   # Spore brand: cracked pod bursting spores
 ball(4.6, (0, 0.3, 0), 'goo', 2, (1.0, 0.95, 0.45))                              # mound (clipped at ground)
 ball(2.2, (2.3, 1.8, 0.4), 'goo', 1, (1, 1, 0.7))
 ball(2.0, (-2.5, 1.6, 0.3), 'goo', 1, (1, 1, 0.6))
@@ -60,4 +61,12 @@ hexplinth(5.0, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
 hexplinth(5.0 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
 for k in range(6):
     a = math.radians(60 * k); ball(5.0 * 0.06, (math.cos(a) * 5.0, math.sin(a) * 5.0, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
+
+# ---- SPORE PASS (spores_prompts.md): scavenged street-punk gear bound onto the fungus -- leather straps with iron
+# buckles across the mound, rusty bolted iron bands on the big stalk, pore spots, crimson rags with the spore emblem
+for (p0, p1) in (((-4.2, -1.5, 0.6), (-1.0, -2.6, 2.4)), ((4.0, -1.2, 0.6), (1.2, -2.5, 2.4)), ((-2.5, 2.8, 0.8), (2.6, 2.6, 1.2))):
+    strap(p0, p1, 0.3)
+for z in (2.0, 4.5): cyl(0.95, 0.25, (0, 1.0, z), 'iron', n=10)
+spots((0, 0.3, 0.5), 4.2, 20, seed=61, col='pore', size=0.14, zmin=0.8, scale=(1.0, 0.95, 0.55))
+banner(1.0, 1.4, (2.8, -2.2, 2.6), (0.3, -1, 0), mark='crown')
 print(ship('sb_hq', clip=True))

@@ -1,6 +1,7 @@
 # Spore tower: spitter stalk -- a bent stalk with a gaping bulb on top (mouth faces +Z). Origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = spore_style()   # Spore brand: cracked pod bursting spores
 ball(1.2, (0, 0, 0.1), 'goo', 1, (1, 1, 0.35))                                     # root base
 cyl(0.9, 0.5, (0, 0, 0.3), 'team', n=8, r2=0.8)                                      # crimson root collar
 # stalk: segments bending back then forward (an S), getting thinner
@@ -40,4 +41,8 @@ hexplinth(1.3, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
 hexplinth(1.3 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
 for k in range(6):
     a = math.radians(60 * k); ball(1.3 * 0.06, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
+
+# ---- SPORE PASS: iron collar bands on the stalk, a leather strap, pores on the bulb
+for z in (1.4, 3.2): cyl(0.56, 0.18, (0, 0.4, z), 'iron', n=8)
+spots((0, -0.6, 6.8), 1.15, 10, seed=63, col='pore', size=0.1, zmin=6.6)
 print(ship('sb_tower', clip=True))

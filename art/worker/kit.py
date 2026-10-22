@@ -797,3 +797,50 @@ def mushtree(loc, h=4.0, r=1.6, seed=0):
     return [cyl(r * 0.16, h, (x, y, z + h / 2), 'sandlt', n=6, r2=r * 0.12),
             ball(r, (x, y, z + h), 'capviolet', 2, (1, 1, 0.42)),
             cyl(r * 0.85, 0.08, (x, y, z + h - 0.1), 'teal', n=10)]
+
+# ---------------------------------------------------------------- Spore style (art/refs/colin/spores_prompts.md):
+# walking street-punk FUNGUS: spongy pale-violet + acid-green flesh with pores, glowing acid veins/sacs, rusty bolted
+# metal, worn leather straps, crimson cloth rags carrying the Spore emblem (a cracked pod bursting with spores).
+PAL['spongy'] = _lin('c8b2d6'); PAL['spongy2'] = _lin('9fc06a'); PAL['pore'] = _lin('5a3a6a')
+
+def sporemark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None):
+    """Spore brand: a round pod (ring of slabs) cracked open at the top with 5 spore dots bursting out."""
+    t = t or w * 0.06; n = Vector(normal).normalized(); u = Vector(up).normalized()
+    x = u.cross(n).normalized(); u = n.cross(x).normalized(); c = Vector(loc)
+    M = Matrix((x, n, u)).transposed().to_4x4(); obs = []; R = w * 0.3
+    def flat(o, px, py, rot=0.0):
+        o.matrix_world = Matrix.Translation(c + x * px + u * py + n * t / 2) @ M @ Matrix.Rotation(rot, 4, 'Y'); return o
+    for k in range(10):
+        a = 2 * math.pi * k / 10 - math.pi / 2
+        if abs(math.sin(a) - 1) < 0.25: continue                         # gap at the top = the crack
+        obs.append(flat(box((R * 0.62, t, R * 0.3), (0, 0, 0), col, bevel=0.0), math.cos(a) * R, math.sin(a) * R - w * 0.1, -(a + math.pi / 2)))
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=10, ring_count=5, radius=1)              # pod body (round)
+    o = bpy.context.object; _color(o, col)
+    o.matrix_world = Matrix.Translation(c + u * -w * 0.1 + n * t / 2) @ M @ Matrix.Diagonal((R * 0.55, t / 2, R * 0.55, 1)); obs.append(o)
+    for k, (px, py, r) in enumerate(((0, 0.42, 0.07), (-0.16, 0.36, 0.055), (0.16, 0.36, 0.055), (-0.26, 0.24, 0.045), (0.26, 0.24, 0.045))):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=8, ring_count=4, radius=1)
+        o = bpy.context.object; _color(o, col)
+        o.matrix_world = Matrix.Translation(c + x * px * w + u * py * w + n * t / 2) @ M @ Matrix.Diagonal((r * w, t / 2, r * w, 1))
+        obs.append(o)
+    return obs
+
+def spore_style():
+    """Call at the top of a Spore script: fungus -> spongy pale violet, crowns -> spore emblems, banners carry it."""
+    PAL['fungus'] = PAL['spongy']
+    g = globals()
+    def sp_crown(w, loc, normal=(0, -1, 0), col='white', t=None, up=(0, 0, 1)):
+        return sporemark(w * 1.1, loc, normal, up, 'ivory' if col in ('white', 'ivory') else col, t)
+    def sp_banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='white'):
+        obs = _BANNER_ORIG(w, h, loc, normal, col, 'none', mark_col)
+        n = Vector(normal).normalized(); mp = Vector(loc) - Vector((0, 0, h * 0.5)) + n * 0.04
+        return obs + sporemark(w * 0.8, tuple(mp), tuple(n), (0, 0, 1), 'ivory', 0.015)
+    g['crown'] = sp_crown; g['banner'] = sp_banner
+    return sp_crown, sp_banner
+
+def strap(p0, p1, w=0.12, col='leather', buckle=True):
+    """Worn leather strap with an iron buckle (binding scavenged gear onto organic shapes)."""
+    p0, p1 = Vector(p0), Vector(p1); d = p1 - p0; obs = []
+    s = box((w, w * 0.25, d.length), tuple((p0 + p1) / 2), col, bevel=0.0); s.rotation_euler = d.to_track_quat('Z', 'Y').to_euler(); obs.append(s)
+    if buckle:
+        b = box((w * 1.4, w * 0.35, w * 1.1), tuple(p0 + d * 0.5), 'iron', bevel=0.0); b.rotation_euler = s.rotation_euler; obs.append(b)
+    return obs
