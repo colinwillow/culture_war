@@ -9,3 +9,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [p_skateboard] models/gen/p_skateboard.glb -- 932 tris, 0.30 x 0.17 x 0.88 m, origin on the ground under the deck centre (deck top ~0.14 up), nose along +Z, crimson grip stripe, 1 material
 - [c_car_sedan] models/gen/c_car_sedan.glb -- 1288 tris, 2.08 x 1.40 x 4.26 m (wheels/mirrors stick out), origin ground centre, front +Z, blue body, 1 material; c_car_sedan_chunks.glb = 6 capped chunks chunk_0..5 (left/right x front/middle/rear), 1816 tris
 - [c_car_van] models/gen/c_car_van.glb -- 1272 tris, 2.2 x 2.3 x 5.06 m, origin ground centre, front +Z, white with orange stripe, 1 material; c_car_van_chunks.glb = 6 capped chunks (left/right x cab/mid/rear), 1736 tris
+- [c_bus] models/gen/c_bus.glb -- 1440 tris, 2.78 x 3.15 x 11.1 m (mirrors stick out; body 2.45 wide), origin ground centre, front +Z, doors on the -X side, yellow, 2 materials: kit + glow (amber destination sign)
