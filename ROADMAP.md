@@ -1,6 +1,6 @@
 # Roadmap
 
-## EVENING LOOP (Oct 22 2026) -- PAUSED by Colin at 02:55 UTC after B191 (roster + art prompts first) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
+## EVENING LOOP (Oct 22 2026) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
 Loop rules: `git pull origin main`, read this file, take the FIRST unchecked item in THIS section, ship it as ONE build
 (`npm run bump`, boot check of index.html AND duel.html, push to `main`), tick it with the build number, one line in
 `docs/decisions.md`, end the pass. Too big? Split it here and ship the first half. Never ship a page that does not boot.
@@ -33,7 +33,7 @@ item says so.
 - [x] (B191) Map: leaves/debris + god rays on the RTS map (reuse the arena code); no water body on this map (the hex city has water hexes); whether the hex board replaces the current map is Colin's call
 
 ### Items, batch 2 (added 02:50 UTC by the loop; same rules, same steer; the species-war direction from docs/roster.md v3)
-- [ ] RTS: the arena's slash trails + impact flashes + hitstop on squad fights near the camera (reuse duel.js code via a shared module; the sim is untouched)
+- [x] (B193) RTS: the arena's slash trails + impact flashes + hitstop on squad fights near the camera (reuse duel.js code via a shared module; the sim is untouched)
 - [ ] Arena: KO moment -- slow-mo on the final blow, camera push-in on the loser, a beat before the winner's taunt; footstep sounds from weirdport's footsteps folder
 - [ ] Arena: YOU vs one -- a left virtual stick to move, two big buttons (ATTACK / BLOCK), dodge on a stick flick; the AI fighter opposite; same rules
 - [ ] Hex: street walkability grid + A* on the hex city, a dozen wandering civilians on its streets (the first step toward the hex board carrying the living city)

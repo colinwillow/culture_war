@@ -1,17 +1,46 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=192';
-import { walkH, CITY } from '../map/layout.js?v=192';
-import { sfx } from './sfx.js?v=192';
-import { shake, CAM } from '../camera/camera.js?v=192';
-import { FC } from '../render/models.js?v=192';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=192';
+import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=193';
+import { makePops, slashTex, screenAngle } from './pops.js?v=193';
+import { walkH, CITY } from '../map/layout.js?v=193';
+import { sfx } from './sfx.js?v=193';
+import { shake, CAM } from '../camera/camera.js?v=193';
+import { FC } from '../render/models.js?v=193';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=193';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
+// Melee close-ups (the arena's hit language on the RTS map): when the camera is in close, a squad's blow throws a slash
+// streak along the swing and a white starburst, and a heavy one freezes time for a beat. Far out it is all skipped:
+// at the default zoom a 1.5 m flash is a speck and fifty squads trading blows would be a strobe.
+const POPS = makePops(scene, 24);
+const CLOSE = { dist: 34, radius: 26, stop: 0.06, stopEvery: 0.45 };
+let stopT = 0, stopCool = 0;
+/** Real-time factor for this frame: near zero during a hitstop, 1 otherwise. Sim determinism is untouched (it only
+ *  changes how fast ticks are fed, never what a tick does). */
+export function hitstopScale(dt) {
+  stopCool -= dt;
+  if (stopT > 0) { stopT -= dt; return 0.05; }
+  return 1;
+}
+function meleeClose(ev) {
+  if (CAM.dist > CLOSE.dist || Math.hypot(ev.tx - CAM.tx, ev.tz - CAM.tz) > CLOSE.radius) return;
+  const dx = ev.tx - ev.x, dz = ev.tz - ev.z, L = Math.hypot(dx, dz) || 1, hx = ev.tx - (dx / L) * 0.35, hz = ev.tz - (dz / L) * 0.35;
+  const p = new THREE.Vector3(hx, gy(hx, hz, 1.05 + Math.random() * 0.3), hz);
+  const heavy = ev.slot === 'melee' || ev.slot === 'hero' || ev.slot === 'cav' || ev.slot === 'robot';
+  const col = ev.to === 0 ? 0xff5a4f : 0x7fd1ff; // red when we are the one being hit
+  POPS.pop(p, 0xffffff, heavy ? 1.3 : 0.8, heavy ? 0.18 : 0.13);
+  if (ev.tb === undefined) { // a streak across the push, tilted a little like a real swing
+    const s = (Math.random() < 0.5 ? -1 : 1), a = p.clone().add(new THREE.Vector3(-dz / L * s, 0.5, dx / L * s)), b = p.clone().add(new THREE.Vector3(dz / L * s, -0.3, -dx / L * s));
+    POPS.pop(p, col, heavy ? 1.9 : 1.2, 0.16, slashTex, screenAngle(camera, a, b), 3);
+  }
+  if (heavy && stopCool <= 0) { stopT = CLOSE.stop; stopCool = CLOSE.stopEvery; }
+}
+
 export function updateFx(dt) {
   updateParticles(dt);
+  POPS.step(dt);
   for (let i = fx.length - 1; i >= 0; i--) {
     const f = fx[i];
     f.t += dt;
@@ -20,7 +49,7 @@ export function updateFx(dt) {
     if (f.t >= f.life) { disposeObj(f.obj); fx.splice(i, 1); }
   }
 }
-export function clearFx() { for (const f of fx) disposeObj(f.obj); fx.length = 0; clearParticles(); }
+export function clearFx() { for (const f of fx) disposeObj(f.obj); fx.length = 0; clearParticles(); POPS.clear(); stopT = 0; }
 
 const gy = (x, z, o = 0) => walkH(x, z) + o;
 export function fxLine(x, z, tx, tz, y0, c) {
@@ -351,6 +380,7 @@ export function handleEvents(S, bump) {
         }
         if (ev.area) { fxRing(ev.tx, ev.tz, 0.6, 3, 0xc9a875, 0.35); fxBits(ev.tx, ev.tz, 0x8a7a55, 4); }
         else { const hx = ev.tx + (Math.random() - 0.5) * 0.8, hz = ev.tz + (Math.random() - 0.5) * 0.8; burstHit(hx, gy(hx, hz, 1), hz, gy(hx, hz)); }
+        if (!ev.area) meleeClose(ev);
         bump(ev.id); break;
       case 'boom': shake(1.6, ev.x, ev.z); fxRing(ev.x, ev.z, 1, ev.r * 3, 0xff8a3c, 0.7); fxBits(ev.x, ev.z, 0x6b5a45, 16, 1.5, 9); fxRubble(ev.x, ev.z, ev.r); break;
       case 'done': fxRing(ev.x, ev.z, 0.5, 4, 0xffffff, 0.5, 0.2); break;
