@@ -20,7 +20,8 @@
   .bar b { font-family: 'Bungee', sans-serif; font-size: 15px; letter-spacing: 1px; text-shadow: 0 2px 0 #000; }
   .hp { height: 14px; border-radius: 7px; background: #00000080; border: 2px solid #fff; overflow: hidden; margin-top: 3px; }
   .hp i { display: block; height: 100%; width: 100%; background: linear-gradient(#ffd75a, #f28c28); transition: width .25s; }
-  .bar.r .hp i { margin-left: auto; }
+  .bar.r .hp i, .bar.r .gd i { margin-left: auto; }
+  .gd { height: 5px; border-radius: 3px; background: #00000080; margin-top: 3px; overflow: hidden; } .gd i { display: block; height: 100%; background: #9fe0ff; transition: width .15s; }
   .bar.win b { color: #ffd75a; }
   .dock { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: 0; right: 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 0 10px; }
   .dock button { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #fff; background: #2a2d38e0; color: #fff; display: grid; place-items: center; padding: 0; font: inherit; box-shadow: 0 4px 0 #0008; }
@@ -35,7 +36,7 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="bars"><div class="bar" id="barA"><i class="sw" id="swA"></i><b id="nameA"></b><div class="hp"><i id="hpA"></i></div></div><div class="bar r" id="barB"><b id="nameB"></b><i class="sw" id="swB"></i><div class="hp"><i id="hpB"></i></div></div></div>
+<div class="bars"><div class="bar" id="barA"><i class="sw" id="swA"></i><b id="nameA"></b><div class="hp"><i id="hpA"></i></div><div class="gd"><i id="gdA"></i></div></div><div class="bar r" id="barB"><b id="nameB"></b><i class="sw" id="swB"></i><div class="hp"><i id="hpB"></i></div><div class="gd"><i id="gdB"></i></div></div></div>
 <div class="dock">
   <button type="button" id="home" aria-label="Back to the game"><span data-i="home"></span><small>MENU</small></button>
   <button type="button" class="pick" id="pickA" aria-label="Left fighter"><b></b></button>
@@ -54,6 +55,6 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 </script>
-<script type="module" src="./src/duel/duel.js?v=175"></script>
+<script type="module" src="./src/duel/duel.js?v=178"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=175';
+import { svg } from '../ui/icons.js?v=178';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -54,6 +54,12 @@ const RULE = {
   crit: 0.1,         // a clean hit that floors him
   readBlock: 0.25,   // chance a fighter sees a swing coming and blocks it
   blockKeep: 0.12,   // damage that gets through a block
+  guard: 100,        // guard meter: blocks drain it by the blow's damage, it refills 18/s out of block; empty = GUARD BREAK (stunned)
+  guardRegen: 7,     // (18 never let a break happen: 7 blocks in 40 s and the bar stayed above 60)
+  breakStun: 1.1,    // seconds helpless after a guard break
+  parry: 0.22,       // seconds after a block lands in which a COUNTER is open (the defender swings back at once, unblockable)
+  parryP: 0.6,       // chance he takes it
+  combo: 0.45,       // chance a landed swing chains straight into a second one (no recovery)
   hitstop: 0.075,    // both fighters freeze on a clean hit
   ring: 9,           // arena radius (m)
 };
@@ -364,7 +370,7 @@ function spawn(def, side, slot = 0, n = 1) {
   let foot = null, footL = null, hips = null;
   model.traverse((o) => { if (!o.isBone) return; if (o.name === 'mixamorig_RightToeBase') foot = o; if (o.name === 'mixamorig_LeftToeBase') footL = o; if (o.name === 'mixamorig_Hips') hips = o; });
   const trail = makeTrail(); trail.mesh.visible = true;
-  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
+  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, guard: RULE.guard, parryT: 0, combo: 0, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
   f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
   root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -396,7 +402,7 @@ function brain(f, dt) {
   const o = other(f), S = f.def.style, d = flat(f, o).length();
   // seeing a swing coming (from anyone aimed at him): block it
   const threat = fighters.find((x) => x.team !== f.team && x.target === f && x.state === 'attack' && x.move && x.prog < x.move.at && flat(f, x).length() < x.move.reach + 0.6);
-  if (threat && rng() < RULE.readBlock) {
+  if (threat && f.guard > 25 && rng() < RULE.readBlock) {
     setState(f, 'block', 0.35 + rng() * 0.35); play(f, S.block); return;
   }
   if (S.shoot && d > S.keep[0] && d < S.keep[1]) return startShot(f);
@@ -404,11 +410,11 @@ function brain(f, dt) {
   if (d > want + 0.2) { setState(f, 'move', 0); return; }
   const r = rng();
   if (r < 0.62) startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]);
-  else if (r < 0.8) { setState(f, 'block', 0.3 + rng() * 0.4); play(f, S.block); }
+  else if (r < 0.8 && f.guard > 25) { setState(f, 'block', 0.3 + rng() * 0.4); play(f, S.block); }
   else { setState(f, 'idle', 0); f.think = 0.15 + rng() * 0.25; play(f, S.idle); }
 }
 function startAttack(f, m) {
-  stats.swings++; f.lastStrike = null;
+  stats.swings++; f.lastStrike = null; f.landed = false;
   f.move = m; f.prog = 0; f.swingDone = false; const sp = m.spd * RULE.pace; f.move = { ...m, spd: sp }; setState(f, 'attack', dur(f, m.c, sp)); play(f, m.c, true, sp, 0.08); sound('swing', 0.35);
 }
 function startShot(f) {
@@ -427,14 +433,14 @@ function resolve(a, hp) { // the moment of contact: block, dodge, glance, hit or
     return hurt(a, b, m.dmg * (0.8 + rng() * 0.4), dir, 0.35, false);
   }
   if (b.ko || b.state === 'down' || b.state === 'getup') { sound('swing', 0.25); return; }
-  if (b.state === 'block' && facing(b, a) > 0.2) return blocked(a, b, m, dir, RULE.blockKeep);
+  if (b.state === 'block' && facing(b, a) > 0.2 && !m.counter) return blocked(a, b, m, dir, RULE.blockKeep);
   const r = rng();
-  if (r < RULE.dodge && ['idle', 'move'].includes(b.state)) { // sidestep
+  if (b.state !== 'break' && r < RULE.dodge && ['idle', 'move'].includes(b.state)) { // sidestep
     const side = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(rng() < 0.5 ? 1 : -1);
     b.vel.addScaledVector(side, 4).addScaledVector(dir, 1.5); sound('swing', 0.3); stats.dodge++; return;
   }
-  if (r < RULE.dodge + RULE.glance) return hurt(a, b, m.dmg * 0.5, dir, 0.4, false, true, hp);
-  const floor = rng() < (m.big || RULE.crit);
+  if (b.state !== 'break' && r < RULE.dodge + RULE.glance) return hurt(a, b, m.dmg * 0.5, dir, 0.4, false, true, hp);
+  const floor = rng() < (b.state === 'break' ? 0.6 : m.big || RULE.crit);
   hurt(a, b, m.dmg * (0.85 + rng() * 0.3), dir, m.knock || 1.3, floor, false, hp);
 }
 // THE STRIKING POINT and the BODY it has to reach. A swing lands on the first frame, inside its active window, where the
@@ -453,12 +459,20 @@ function whereHit(b, p) { // head / gut / body, or the side it came from (in the
 }
 function blocked(a, b, m, dir, keep) {
   stats.block++;
-  b.hp -= m.dmg * keep; play(b, b.def.style.blockHit, true, 1.2 * RULE.pace, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2 * RULE.pace) * 0.6);
+  b.hp -= m.dmg * keep; b.guard -= m.dmg * (m.big ? 2.8 : 2.1);
   b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3);
   pop(chest(b).addScaledVector(dir, -0.35), 0x9fe0ff, 0.8, 0.14); sound('clang', 0.5); shake = Math.max(shake, 0.06);
-  if (b.hp <= 0) ko(b, dir);
+  if (b.hp <= 0) return ko(b, dir);
+  if (b.guard <= 0) { // GUARD BREAK: the shield arm drops, he reels, wide open
+    b.guard = 0; stats.breaks++; setState(b, 'break', RULE.breakStun); play(b, b.def.style.hits[2] || b.def.style.hits[0], true, 0.7, 0.08);
+    b.vel.addScaledVector(dir, 2.5); pop(chest(b), 0xffffff, 1.6, 0.25); burst(chest(b), new THREE.Vector3(0, 1, 0), 0xffffff, 30, 4); sound('heavy', 0.7); shake = Math.max(shake, 0.2);
+    hitstop = RULE.hitstop; return;
+  }
+  play(b, b.def.style.blockHit, true, 1.2 * RULE.pace, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2 * RULE.pace) * 0.6);
+  b.parryT = RULE.parry; // the counter window
 }
 function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
+  a.landed = true;
   if (a.move && a.move.limb === 'foot') pebbles(b.root.position.clone(), dir, 8); // a kick throws up the sand
   if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
@@ -507,7 +521,7 @@ function ko(b, dir) {
   sound('heavy', 0.9); shake = 0.3; hud();
 }
 let hitstop = 0;
-const stats = { swings: 0, whiff: 0, block: 0, dodge: 0, glance: 0, hit: 0, floor: 0 }; // live tally (window.duel.stats)
+const stats = { swings: 0, whiff: 0, block: 0, dodge: 0, glance: 0, hit: 0, floor: 0, breaks: 0, parry: 0, combo: 0 }; // live tally (window.duel.stats)
 
 function stepFighter(f, dt) {
   const o = other(f), S = f.def.style;
@@ -534,9 +548,21 @@ function stepFighter(f, dt) {
       if (hp) { f.swingDone = true; resolve(f, hp); }
       else if (f.prog > f.move.at + 0.07) { f.swingDone = true; sound('swing', 0.3); f.whiffs = (f.whiffs || 0) + 1; stats.whiff++; }
     }
-    if (f.t <= 0 || f.prog > 0.8) { setState(f, 'idle', 0); f.think = 0.05 + rng() * 0.2; play(f, S.idle, false, 1, 0.2); } // cut the long recoveries
+    if (f.t <= 0 || f.prog > 0.8) {
+      const o = other(f);
+      if (f.landed && !f.move.ranged && f.combo < 1 && o && !o.ko && !['down', 'ko'].includes(o.state) && flat(f, o).length() < f.move.reach + 0.5 && rng() < RULE.combo) {
+        f.combo++; const next = S.attacks.filter((x) => x.c !== f.move.c); startAttack(f, next[(rng() * next.length) | 0]); stats.combo++; // COMBO: straight into the next swing
+      } else { f.combo = 0; setState(f, 'idle', 0); f.think = 0.05 + rng() * 0.2; play(f, S.idle, false, 1, 0.2); } // cut the long recoveries
+    }
   }
-  if ((f.state === 'block' || f.state === 'hit') && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle); }
+  if ((f.state === 'block' || f.state === 'hit' || f.state === 'break') && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle); }
+  if (f.state !== 'block') f.guard = Math.min(RULE.guard, f.guard + RULE.guardRegen * dt);
+  if (f.parryT > 0) { f.parryT -= dt; const o = other(f); // PARRY: counter straight out of the block, unblockable, fast
+    if (f.state === 'block' && o && !o.ko && flat(f, o).length() < f.def.style.reach + 0.5 && rng() < RULE.parryP * dt * 12) {
+      f.parryT = 0; const m = S.attacks[0]; startAttack(f, { ...m, spd: m.spd * 1.3, dmg: m.dmg * 1.3, counter: true }); stats.parry++;
+      pop(chest(f), teamColor(f.team), 1.1, 0.2, slashTex, 0, 2.5);
+    }
+  }
   if (f.state === 'down' && f.t <= 0) { setState(f, 'getup', dur(f, S.getup, 1.3 * RULE.pace) * 0.9); play(f, S.getup, true, 1.3 * RULE.pace, 0.1); }
   if (f.state === 'getup' && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle, false, 1, 0.25); }
   // knockback slide, ring edge, and no walking through each other
@@ -612,6 +638,8 @@ function hud() {
   if (!a) return;
   document.getElementById('hpA').style.width = Math.max(0, (a.hp / a.def.hp) * 100) + '%';
   document.getElementById('hpB').style.width = Math.max(0, (b.hp / b.def.hp) * 100) + '%';
+  document.getElementById('gdA').style.width = (sum(A, (f) => f.guard) / (A.length * RULE.guard)) * 100 + '%';
+  document.getElementById('gdB').style.width = (sum(B, (f) => f.guard) / (B.length * RULE.guard)) * 100 + '%';
   document.getElementById('barA').classList.toggle('win', b.ko && !a.ko); document.getElementById('barB').classList.toggle('win', a.ko && !b.ko);
 }
 function fight() {
