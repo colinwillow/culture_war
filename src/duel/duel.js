@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=250';
-import { makePops, slashTex } from '../fx/pops.js?v=250';
+import { svg } from '../ui/icons.js?v=251';
+import { makePops, slashTex } from '../fx/pops.js?v=251';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -40,6 +40,7 @@ const RIGS = {
   brute_shooter: { file: 'models/characters/brute_shooter.glb', key: true },
   brute_plated: { file: 'models/characters/brute_plated.glb', key: true },
   brute_hero: { file: 'models/characters/brute_hero.glb', key: true },
+  brute_warboss_armor: { file: 'models/characters/brute_warboss_armor.glb', key: true }, // B251: bare body + 19 armour pieces, each on its bone
   brute_worker: { file: 'models/characters/brute_worker.glb', key: true },
   brute_skater: { file: 'models/characters/brute_skater.glb', key: true },
   brute_heavy: { file: 'models/characters/brute_heavy.glb', key: true },
@@ -68,6 +69,7 @@ const ROSTER = [
   { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blunderbuss' },
   { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'wrenchhammer' },
   { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'cleaver' },
+  { name: 'WARBOSS', rig: 'brute_warboss_armor', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'cleaver' }, // armour comes off piece by piece
   { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'pipewrench' },
   { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'club' },
   { name: 'HEAVY', rig: 'brute_heavy', style: GUN, h: 3.2, hp: 320, speed: 0.75, weapon: 'cannon' }, // the worker's cannon, carried for now (a shoulder mount is later)
@@ -513,6 +515,10 @@ function spawn(def, side, slot = 0, n = 1) {
   const trail = makeTrail(); trail.mesh.visible = true;
   const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, R, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, guard: RULE.guard, parryT: 0, combo: 0, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
+  // ARMOUR (B251, Colin: "you shoot him, his shoulder armour falls off... until he's got no armour on, and that's when
+  // he's vulnerable"): every mesh named armor_<bone> is a rigid piece on that bone with its own health (by size).
+  f.armor = []; model.traverse((o) => { if (o.isMesh && o.name.startsWith('armor_')) { o.geometry.computeBoundingSphere(); f.armor.push({ m: o, hp: 0, r: 0 }); } });
+  for (const a of f.armor) { const sc = new THREE.Vector3(); a.m.getWorldScale(sc); a.r = a.m.geometry.boundingSphere.radius * sc.x; a.hp = ARMOR.hpBase + ARMOR.hpPerM * a.r; }
   if (def.weapon) mountWeapon(f, def.weapon);
   f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
   root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -751,6 +757,40 @@ function blocked(a, b, m, dir, keep) {
   play(b, b.def.style.blockHit, true, 1.2 * RULE.pace, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2 * RULE.pace) * 0.6);
   b.parryT = RULE.parry; // the counter window
 }
+// The nearest armour piece still on (within its own radius + ARMOR.reach of the blow) soaks the hit: it loses the
+// damage, the body takes ARMOR.through of it. At 0 the piece flies off the way the blow went, tumbling, and lies on the
+// sand. No piece near the blow = bare skin = full damage.
+const ARMOR = { hpBase: 18, hpPerM: 90, through: 0.2, reach: 0.25, debrisLife: 7 };
+const debris = [];
+const _ac = new THREE.Vector3();
+function armorHit(b, at, dmg, dir) {
+  if (!b.armor || !b.armor.length) return dmg;
+  let best = null, bd = 1e9;
+  for (const a of b.armor) { if (a.off) continue; a.m.getWorldPosition(_ac); const d = _ac.distanceTo(at) - a.r; if (d < bd) { bd = d; best = a; } }
+  if (!best || bd > ARMOR.reach * b.h / 1.9) return dmg;
+  best.hp -= dmg;
+  best.m.getWorldPosition(_ac); burst(_ac.clone(), dir.clone().negate().add(new THREE.Vector3(0, 0.5, 0)), 0xffd9a0, 10, 3);
+  if (best.hp <= 0) armorOff(b, best, dir); else sound('clang', 0.45);
+  return dmg * ARMOR.through;
+}
+function armorOff(b, a, dir) {
+  a.off = true; scene.attach(a.m); // keeps where it was, now in the world
+  const v = dir.clone().multiplyScalar(3 + Math.random() * 2).add(new THREE.Vector3((Math.random() - 0.5) * 2, 3 + Math.random() * 2.5, (Math.random() - 0.5) * 2));
+  debris.push({ m: a.m, v, w: new THREE.Vector3((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 14, (Math.random() - 0.5) * 14), t: 0, rest: false });
+  a.m.getWorldPosition(_ac); burst(_ac.clone(), new THREE.Vector3(0, 1, 0), 0xffffff, 26, 5); pop(_ac.clone(), 0xffffff, 1.2, 0.18);
+  sound('heavy', 0.7); shake = Math.max(shake, 0.12); stats.armorOff = (stats.armorOff || 0) + 1;
+}
+function stepDebris(dt) {
+  for (let i = debris.length - 1; i >= 0; i--) {
+    const d = debris[i]; d.t += dt;
+    if (!d.rest) {
+      d.v.y -= 16 * dt; d.m.position.addScaledVector(d.v, dt);
+      d.m.rotation.x += d.w.x * dt; d.m.rotation.y += d.w.y * dt; d.m.rotation.z += d.w.z * dt;
+      if (d.m.position.y < 0.08) { d.m.position.y = 0.08; d.v.y = Math.abs(d.v.y) * 0.3; d.v.x *= 0.6; d.v.z *= 0.6; d.w.multiplyScalar(0.5); if (d.v.length() < 0.6) d.rest = true; puff(d.m.position.clone(), 2, { size: 0.25, spread: 0.6, up: 0.3, life: 0.6 }); }
+    }
+    if (d.t > ARMOR.debrisLife) { d.m.scale.multiplyScalar(Math.exp(-dt * 4)); if (d.t > ARMOR.debrisLife + 1.2) { scene.remove(d.m); debris.splice(i, 1); } }
+  }
+}
 const sizeK = (a, b) => { const r = a.h / b.h, Z = RULE.size; return { dmg: Math.min(Z.dmgMax, Math.max(1 / Z.dmgMax, r ** Z.dmg)), knock: Math.min(Z.knockMax, Math.max(0.35, r ** Z.knock)) }; };
 function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   a.landed = true; b.hurtT = 1.2;
@@ -759,6 +799,7 @@ function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   // SIZE (B227, Colin): a big body hits a small one harder and further; a small one barely moves a big one. Melee
   // only -- a bullet does not care who pulled the trigger.
   const sz = sizeK(a, b); if (!(a.move && a.move.ranged)) dmg *= sz.dmg; else sz.knock = 1;
+  dmg = armorHit(b, hp || chest(b), dmg, dir);
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
   const p = hp ? hp.clone() : chest(b).addScaledVector(dir, -0.25); // sparks where it actually struck
   burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), teamColor(a.team).lerp(new THREE.Color(1, 0.95, 0.8), floor ? 0.2 : 0.45), light ? 10 : 24, light ? 2.5 : 4.5);
@@ -1027,6 +1068,7 @@ function fight() {
   for (const p of pickups) scene.remove(p.mesh); pickups.length = 0;
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
   for (const q of scuffs) { scene.remove(q.m); q.m.material.dispose(); } scuffs.length = 0;
+  for (const d of debris) scene.remove(d.m); debris.length = 0;
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
   const n = SIZES[size];
   for (let i = 0; i < n; i++) fighters.push(spawn(ROSTER[picks[0]], -1, i, n), spawn(ROSTER[picks[1]], 1, i, n));
@@ -1072,6 +1114,7 @@ function frame() {
   if (hitstop > 0) { hitstop -= dt; dt *= 0.05; }
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
+  stepDebris(dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
   stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time); stepRays(time); stepPond(time);
   for (const f of fighters) stepTrail(f, dt);
@@ -1087,5 +1130,5 @@ const needRigs = () => [ROSTER[picks[0]].rig, ROSTER[picks[1]].rig].filter((k) =
 const loadCard = (on) => { const el = document.getElementById('load'); if (el) el.hidden = !on; };
 Promise.all([...needRigs().map(ensureRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => { WEAPDATA[k] = w; }))]).then(() => {
   loadCard(false); fight(); frame();
-  window.duel = { FCAM, ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { ARMOR, debris, hurt, FCAM, ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
