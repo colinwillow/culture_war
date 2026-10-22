@@ -2,9 +2,9 @@
 // The geometry worker's batch 10 pieces (models/gen/e_*.glb, one mesh each, origin on the ground) scattered as ONE
 // InstancedMesh per piece: a forest ring round the playable map, rocks and bushes on the lawn edges, tufts everywhere
 // grass is. Seeded, so the same every match. Render only: the sim never sees any of it.
-import { THREE, scene } from './scene.js?v=251';
-import { BLOCKS, BASES, HOME_Z, TREES, walkH } from '../map/layout.js?v=251';
-import { hideOldTrees } from './world.js?v=251';
+import { THREE, scene } from './scene.js?v=252';
+import { BLOCKS, BASES, HOME_Z, TREES, walkH } from '../map/layout.js?v=252';
+import { hideOldTrees } from './world.js?v=252';
 
 const rnd = ((a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(1234);
 const R = (a, b) => a + rnd() * (b - a);

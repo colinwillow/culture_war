@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=251';
-import { makePops, slashTex } from '../fx/pops.js?v=251';
+import { svg } from '../ui/icons.js?v=252';
+import { makePops, slashTex } from '../fx/pops.js?v=252';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -40,7 +40,8 @@ const RIGS = {
   brute_shooter: { file: 'models/characters/brute_shooter.glb', key: true },
   brute_plated: { file: 'models/characters/brute_plated.glb', key: true },
   brute_hero: { file: 'models/characters/brute_hero.glb', key: true },
-  brute_warboss_armor: { file: 'models/characters/brute_warboss_armor.glb', key: true }, // B251: bare body + 19 armour pieces, each on its bone
+  brute_warboss_armor: { file: 'models/characters/brute_warboss_armor.glb', key: true },
+  rept_heavy_armor: { file: 'models/characters/rept_heavy_armor.glb', key: true }, // B252: bare lizard + 17 armour pieces // B251: bare body + 19 armour pieces, each on its bone
   brute_worker: { file: 'models/characters/brute_worker.glb', key: true },
   brute_skater: { file: 'models/characters/brute_skater.glb', key: true },
   brute_heavy: { file: 'models/characters/brute_heavy.glb', key: true },
@@ -55,6 +56,7 @@ const WEAPONS = {
   // The geometry worker's Brute weapons (art/DELIVERED.md): metres, origin at the GRIP, the business end along +Z.
   // Mounted in the right hand pointing the way the body faces at bind, at true size (the hand's scale undone).
   club: { gen: 'models/gen/w_brute_club.glb' },
+  maul: { gen: 'models/gen/w_rept_maul.glb' },
   blunderbuss: { gen: 'models/gen/w_brute_blunderbuss.glb', gun: true },
   wrenchhammer: { gen: 'models/gen/w_brute_wrenchhammer.glb' },
   cleaver: { gen: 'models/gen/w_brute_cleaver.glb' },
@@ -69,6 +71,7 @@ const ROSTER = [
   { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blunderbuss' },
   { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'wrenchhammer' },
   { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'cleaver' },
+  { name: 'SKULLBACK', rig: 'rept_heavy_armor', style: MELEE, h: 2.7, hp: 240, speed: 0.9, weapon: 'maul' }, // the Reptilian heavy
   { name: 'WARBOSS', rig: 'brute_warboss_armor', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'cleaver' }, // armour comes off piece by piece
   { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'pipewrench' },
   { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'club' },
