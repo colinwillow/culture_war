@@ -1,19 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=207';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=207';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=207';
-import { emit } from '../fx/particles.js?v=207';
-import { bark } from '../fx/sfx.js?v=207';
-import { TICK } from '../config/factions.js?v=207';
-import { walkH, CITY } from '../map/layout.js?v=207';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=207';
-import { CAM } from '../camera/camera.js?v=207';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=209';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=209';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=209';
+import { emit } from '../fx/particles.js?v=209';
+import { seen as fogSeen } from './fog.js?v=209';
+import { bark } from '../fx/sfx.js?v=209';
+import { TICK } from '../config/factions.js?v=209';
+import { walkH, CITY } from '../map/layout.js?v=209';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=209';
+import { CAM } from '../camera/camera.js?v=209';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=207';
-import { UI } from '../ui/state.js?v=207';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=207';
+import { Q, pl, getSim } from '../sim/sim.js?v=209';
+import { UI } from '../ui/state.js?v=209';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=209';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=207';
+import { lerpAngle } from '../util/math.js?v=209';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -206,7 +207,7 @@ export function syncRender(S, alpha, dt, time) {
     o.root.position.set(x, walkH(x, z), z);
     if (s.inf > 0 && Math.random() < dt * 8) emit({ x: x + (Math.random() - 0.5) * 0.6, y: walkH(x, z) + 1 + Math.random() * 0.8, z: z + (Math.random() - 0.5) * 0.6, vy: 0.8, c: Math.random() < 0.5 ? 0x7cff4a : 0xc8ff6a, s: 0.18, life: 0.8, g: -0.5, grow: 0.8 }); // goo bubbles
     if (s.thrall > 0 && Math.random() < dt * 6) { const a = Math.random() * 6.28; emit({ x: x + Math.cos(a) * 0.5, y: walkH(x, z) + 1.9, z: z + Math.sin(a) * 0.5, vx: -Math.sin(a), vy: 0.3, vz: Math.cos(a), c: Math.random() < 0.5 ? 0xff5ad1 : 0x5ae0ff, s: 0.14, life: 0.7, g: 0 }); } // hypnotised: a sparkle halo
-    o.root.visible = !s.gar;
+    o.root.visible = !s.gar && (s.owner !== 1 || fogSeen(S, x, z)); // enemy squads only while something of yours is near
     o.yaw = lerpAngle(o.yaw, s.heading, Math.min(1, dt * 10)); o.body.rotation.y = o.yaw;
     const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
     if (o.members.length > 1) { // the squad flows between its LINE (standing, fighting) and its COLUMN (on the move)

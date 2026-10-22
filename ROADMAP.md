@@ -49,6 +49,7 @@ game fun. Research what we're missing. All the aliens have ships: plan flying un
 - [ ] Art: UI images -- title screen, faction badges, class portraits, team banners (Colin generates; we need a list of exactly what sizes/slots).
 - [x] (B206, first half: the models) RTS: the species factions INTO the main game (Brutes first: the four rigged models on the squad slots, their verb EAT already in the sim) instead of the white-box placeholders; the buildings and the city need real art (kit pieces from weirdport) -- "have the strategy game going crazy".
 - [x] (B205) Arena: rigs load ON DEMAND (boot fetches the two on the card; a pick shows LOADING for one file) -- the optimisation half
+- [x] (B209) RTS: soft FOG OF WAR -- enemy squads drawn (and on the minimap) only within 40 m of your squads / 30 m of your buildings; the city stays visible (gaps.md A8; render-only, `cw-fog`=0 turns it off)
 - [ ] Render: stylised look pass (rim light, toon-ish ramp, outline?) -- needs a phone look, not a blind ship; then draw-call/texture passes on the RTS.
 - [ ] Core: move the living city (stepCity/fires/civ/crew/cop/truck + alienVerb) from sim.js into src/core/city.js behind a tiny interface {rng, nearestFree, events}; prove no behaviour change with tools/balance.cjs on fixed seeds before and after (identical winners + times)
 - [ ] Hex: two RTS squads spawn on the hex map and fight along its streets (the merge, first half: squads + pathing only, no economy)
