@@ -1,13 +1,13 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=199';
-import { makePops, slashTex, screenAngle } from './pops.js?v=199';
-import { walkH, CITY } from '../map/layout.js?v=199';
-import { sfx } from './sfx.js?v=199';
-import { shake, CAM } from '../camera/camera.js?v=199';
-import { FC } from '../render/models.js?v=199';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=199';
+import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=200';
+import { makePops, slashTex, screenAngle } from './pops.js?v=200';
+import { walkH, CITY } from '../map/layout.js?v=200';
+import { sfx } from './sfx.js?v=200';
+import { shake, CAM } from '../camera/camera.js?v=200';
+import { FC } from '../render/models.js?v=200';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=200';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }
@@ -348,6 +348,8 @@ const SND = { hit: 'thud', shot: 'pop', boom: 'boom', fwboom: 'boom', wreckboom:
 function playFor(ev) {
   let name = SND[ev.k];
   if ((ev.k === 'deposit' || ev.k === 'income' || ev.k === 'refund' || ev.k === 'scrap') && ev.owner === 0) name = 'ding';
+  if (ev.k === 'hit' && !ev.area && (ev.slot === 'cav' || ev.slot === 'hero' || ev.slot === 'robot')) name = 'heavy'; // the big ones land heavier
+  if (ev.k === 'hit' && ev.tb !== undefined && !ev.area) name = 'clang'; // a blow on a building rings
   if (!name) return;
   const x = ev.tx ?? ev.x, z = ev.tz ?? ev.z, d = x === undefined ? 0 : Math.hypot(x - CAM.tx, z - CAM.tz);
   sfx(name, Math.max(0, 1 - d / (40 + CAM.dist * 0.6)));

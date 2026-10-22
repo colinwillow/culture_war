@@ -2,7 +2,7 @@
 // Map is 120 x 200 m, Y up. Player 0 base at z=+80, player 1 at z=-80.
 // Everything is defined for z > 0 and mirrored through the centre (x,z) -> (-x,-z),
 // so both sides get identical chokepoints (rotational symmetry).
-import { hash, smooth } from '../util/math.js?v=199';
+import { hash, smooth } from '../util/math.js?v=200';
 
 export const MAP = { w: 120, h: 200, cell: 2 };
 MAP.cols = MAP.w / MAP.cell;

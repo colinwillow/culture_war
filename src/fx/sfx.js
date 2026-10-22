@@ -14,6 +14,21 @@ function unlock() {
 }
 window.addEventListener('pointerdown', unlock, { capture: true });
 
+// Colin's own recordings from Weirdport (the arena uses the same files): decoded on the first tap, played for melee
+// hits with a grunt now and then. Everything else stays synthesised. A missing file just falls back to the synth.
+const SAMPLES = { hit: ['hit_sound_01', 'hit_sound_02', 'hit_sound_03'], heavy: ['hit_sound_gound_01'], grunt: ['alien_orc_grunt_01', 'alien_orc_grunt_03', 'alien_orc_grunt_05'], clang: ['metal_clang_01', 'metal_clang_02'] };
+const buf = {}; let loading = false;
+function loadSamples() {
+  if (loading || !ctx) return; loading = true;
+  for (const k in SAMPLES) for (const n of SAMPLES[k]) fetch('audio/duel/' + n + '.mp3').then((r) => r.arrayBuffer()).then((a) => ctx.decodeAudioData(a)).then((b) => (buf[n] = b)).catch(() => {});
+}
+window.addEventListener('pointerdown', loadSamples, { capture: true });
+function sample(kind, vol) {
+  const list = SAMPLES[kind], b = buf[list[(Math.random() * list.length) | 0]]; if (!b) return false;
+  const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = b; src.playbackRate.value = 0.9 + Math.random() * 0.2; g.gain.value = vol;
+  src.connect(g).connect(master); src.start(); return true;
+}
+
 export const isMuted = () => muted;
 export function setMuted(m) {
   muted = m;
@@ -45,7 +60,9 @@ function burst(dur, vol, fc, q = 1, delay = 0) {
 export function sfx(name, k = 1) {
   if (!ctx || muted || ctx.state !== 'running' || k < 0.05) return;
   switch (name) {
-    case 'thud': if (ok(name, 70)) { tone('sine', 140, 60, 0.12, 0.35 * k); burst(0.06, 0.15 * k, 900); } break;
+    case 'thud': if (ok(name, 70)) { if (!sample('hit', 0.6 * k)) { tone('sine', 140, 60, 0.12, 0.35 * k); burst(0.06, 0.15 * k, 900); } if (Math.random() < 0.25 && ok('grunt', 400)) sample('grunt', 0.45 * k); } break;
+    case 'heavy': if (ok(name, 120)) { if (!sample('heavy', 0.7 * k)) sfx('boom', k * 0.5); } break;
+    case 'clang': if (ok(name, 90)) { if (!sample('clang', 0.5 * k)) sfx('thud', k); } break;
     case 'pop': if (ok(name, 60)) { burst(0.08, 0.3 * k, 3000); tone('square', 900, 200, 0.05, 0.05 * k); } break;
     case 'ding': if (ok(name, 90)) { tone('triangle', 1320, 1320, 0.18, 0.18 * k); tone('triangle', 1760, 1760, 0.25, 0.12 * k, 0.07); } break;
     case 'boom': if (ok(name, 150)) { tone('sine', 90, 30, 0.6, 0.6 * k); burst(0.7, 0.5 * k, 1200); } break;
