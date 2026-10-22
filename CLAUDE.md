@@ -70,6 +70,23 @@ Rules that keep this multiplayer-ready (lockstep):
   Commands apply at the start of the next tick.
 - New mechanic = sim change + `S.events.push({k: '...'})` + a case in `fx/handleEvents`.
 
+## Where things stand (Oct 22 2026, B206 -- read this before the older state below)
+- **DIRECTION:** the culture-war factions are tabled. The game is a war between alien SPECIES over the neutral living city
+  (working title *War for the World*). `docs/roster.md` v3 (four launch factions by verb: Greys abduct, Reptilians
+  possess, Brutes/Tuskers eat, Spores infect), `docs/gaps.md` (what a fun match still lacks + the flyers design),
+  `docs/design.md` (portable core, maps-as-strategy). The RTS sim still runs the six old factions; the species ride on
+  them for now (Backwoods wears the Brutes, B206). Say SPECIES / FACTION in game, never "race".
+- **Art pipeline (private repo colinwillow/blender-addons, `pipeline/`):** Colin's image -> `imagegen.py` T-pose (OpenAI
+  image API, Network secret for api.openai.com) -> `tripo_mv.py` + `tripo.py` (Tripo, ~130 credits a character) ->
+  `orient.py` + `run_rig.sh` (Auto-Rig Pro, headless Blender) -> `bake.py` (Colin's + the warrior's clips) -> draco into
+  `models/characters/`. Four Brutes are through it (grunt, shooter, plated, hero). Style rules in `pipeline/refs/colin/STYLE.md`.
+- **Team colour is a KEY:** only pure crimson (hue ~352, sat > .55) on a model is team paint (shoulder plates, banner,
+  emblem); skin can be any colour. The arena's tint shader does this for rigs with `key: true`; `teamtest.py` proves a model.
+- **Arena (`duel.html`):** YOU mode on weirdport's twin-stick map (B197), weapons drop on KO and can be picked up (B204),
+  KO slow-mo moment (B194), rigs load on demand (B205). `window.duel` for live tuning.
+- **Hex city (`hexmap.html`):** street grid + A* + civilians (B196). RTS: arena hit flashes/hitstop (B193), Colin's hit
+  sounds (B200), formations (B201), lingering deaths (B202), leaves + god rays (B191).
+
 ## Current state (greybox 04, build B121 — overnight loop Oct 21 2026; see ROADMAP.md + docs/decisions.md)
 - **6 playable factions** (menu: 2 columns portrait, one row landscape): Backwoods, Activists, Hard Hats (builder),
   Old Money (elite squads of 3, Trust Fund), Street Crew (rush, Hype meter, breakdancers attack by dancing), Nerds
