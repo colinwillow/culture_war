@@ -243,3 +243,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B235: the worker's alien bases stand in the RTS (Brutes containers, Grey saucer, Reptilian temple, Spore mound), scaled to the sim footprint; placeholders remain the fallback.
 - B236: your alien buildings wear your blue where the art is crimson (team key shader, ownKey in sync.js); the enemy's stay crimson.
 - B237: title is Battle for Earth (Colin); text h1 until the worker's ui_logo_bfe lands (REQUESTS batch 9).
+- B238: menu wears the worker's BATTLE FOR EARTH logo (ui_logo_bfe.svg, cracked ringed planet + saucer).
