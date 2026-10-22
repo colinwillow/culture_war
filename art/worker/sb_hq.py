@@ -55,4 +55,9 @@ for a in range(0, 360, 45):
     r = math.radians(a); x, y = cx + math.cos(r) * 2.1, cy + math.sin(r) * 2.1
     cyl(0.07, 1.2, (x, y, 7.4), 'purple', n=5, r2=0.02)
     ball(0.09, (x, y, 6.8), 'gacid', 1)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(5.0, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
+hexplinth(5.0 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(5.0 * 0.06, (math.cos(a) * 5.0, math.sin(a) * 5.0, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
 print(ship('sb_hq', clip=True))

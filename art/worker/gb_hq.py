@@ -55,4 +55,9 @@ cyl(4.92, 0.03, (0, 0, 3.22), 'dark', n=N)
 # ---- detail pass 5 (silhouette): translucent cyan tractor beam from the belly lens to the ground + ground glow ring
 cyl(2.6, 1.55, (0, 0, 0.8), 'ccyan', n=16, r2=1.35)
 torus(2.5, 0.08, (0, 0, 0.06), 'gcyan', n=20, m=4)
-print(ship('gb_hq'))
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(5.0, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
+hexplinth(5.0 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(5.0 * 0.06, (math.cos(a) * 5.0, math.sin(a) * 5.0, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
+print(ship('gb_hq', clip=True))

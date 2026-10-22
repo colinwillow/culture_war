@@ -34,4 +34,9 @@ for z in (2.0, 3.0, 4.0, 5.0): cyl(0.45 - z * 0.037, 0.02, (0, 0, z), 'dark', n=
 torus(0.75, 0.15, (0, 0, 6.5), 'gunmetal', rot=(-10, 6, 0), n=14, m=5)
 torus(0.6, 0.12, (0, 0, 8.45), 'pearl', rot=(12, -8, 0), n=14, m=5)
 for z in (6.5, 8.45): ball(0.12, (0.0, -0.75 if z < 7 else -0.6, z), 'gcyan', 1)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(1.3, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
+hexplinth(1.3 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(1.3 * 0.06, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
 print(ship('gb_tower'))

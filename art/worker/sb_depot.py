@@ -33,4 +33,9 @@ for a in range(0, 360, 30):
 # ---- detail pass 2: crimson crown banner on the neck, goo drips under the puffball, extra pustules
 banner(0.7, 0.8, (0.9, -1.25, 2.3), (0, -1, 0), mark='crown')
 for a in (30, 150, 270): r = math.radians(a); cyl(0.1, 0.5, (math.cos(r) * 1.2, math.sin(r) * 1.2, 2.0), 'goo', n=6, r2=0.03)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(2.1, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
+hexplinth(2.1 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(2.1 * 0.06, (math.cos(a) * 2.1, math.sin(a) * 2.1, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
 print(ship('sb_depot', clip=True))

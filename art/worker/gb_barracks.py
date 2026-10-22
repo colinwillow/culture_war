@@ -39,4 +39,9 @@ for a in (100, 140, 180): r = math.radians(a); box((0.18, 0.06, 0.06), (math.cos
 cyl(0.18, 1.6, (0, 0, 5.0), 'pearl', n=8, r2=0.05)
 torus(0.55, 0.1, (0, 0, 5.2), 'gunmetal', rot=(10, 0, 0), n=12, m=4)
 ball(0.14, (0, 0, 5.85), 'gcyan', 1)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(3.4, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
+hexplinth(3.4 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(3.4 * 0.06, (math.cos(a) * 3.4, math.sin(a) * 3.4, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
 print(ship('gb_barracks', clip=True))

@@ -33,4 +33,9 @@ for a in (0, 120, 240):
 banner(0.5, 0.8, (0, -0.4, 4.0), (0, -1, 0), mark='crown')
 cyl(1.3, 0.03, (0, 0, 5.9), 'dark', n=16)
 for a in range(0, 360, 30): r = math.radians(a); box((0.3, 0.1, 0.06), (math.cos(r) * 1.8, math.sin(r) * 1.8, 0.41), 'orange' if a % 60 else 'dark', rot=(0, 0, a + 90), bevel=0.0)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(2.1, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
+hexplinth(2.1 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(2.1 * 0.06, (math.cos(a) * 2.1, math.sin(a) * 2.1, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
 print(ship('gb_depot'))

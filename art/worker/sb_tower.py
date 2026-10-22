@@ -35,4 +35,9 @@ crown(0.6, (0, -0.85, 0.5), normal=(0, -1, 0.3), up=(0, 0, 1), t=0.02)
 # ---- detail pass 2: crimson crown pennant on the stalk, goo dripping from the lips
 banner(0.5, 0.7, (0, -0.2, 4.6), (0, -1, 0), mark='crown')
 for x in (-0.3, 0.25): cyl(0.07, 0.5, (x, -1.65, 6.3), 'goo', n=5, r2=0.02)
+# ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
+hexplinth(1.3, 0.14, (0, 0, 0), 'goo', bevel=0.04)  # HEX pad
+hexplinth(1.3 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'goo' == 'gunmetal' else 'purple', bevel=0.0)
+for k in range(6):
+    a = math.radians(60 * k); ball(1.3 * 0.06, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0.16), 'gcyan' if 'goo' == 'gunmetal' else 'gacid', 1)
 print(ship('sb_tower', clip=True))
