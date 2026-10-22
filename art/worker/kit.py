@@ -479,3 +479,75 @@ def skull(r, loc, normal=(0, -1, 0), col='ivory'):
         obs.append(ball(r * 0.28, tuple(p + x * s * r * 0.4 + up * r * 0.1 + n * r * 0.45), 'dark', 1))
     obs.append(ball(r * 0.14, tuple(p - up * r * 0.25 + n * r * 0.5), 'dark', 1))
     return obs
+
+# ---------------------------------------------------------------- Reptilian organic parts (Colin's lizard-punk sheets)
+for _k, _h in dict(scale='3f6a6c', scale2='5e7f3c', belly='e6cfa2', spot='2c4a78', leather='4a3022', gold='c99a2e',
+                   web='ead7b0', scaledark='2a3a3a').items():
+    PAL[_k] = _lin(_h)
+
+def hexplinth(r, h, loc=(0, 0, 0), col='stone', bevel=0.08):
+    """Flat-top hexagonal plinth (vertex on +X, like the board's hexes), bottom at loc z."""
+    x, y, z = loc
+    return cyl(r, h, (x, y, z + h / 2), col, rot=(0, 0, 30), n=6, bevel=bevel)   # Blender's cylinder starts at +Y
+
+def horn(r, L, loc, d=(0, 0, 1), bend=(0, 0, 0), segs=3):
+    """Curved horn/spine: tapering cone segments bending toward `bend`; ivory base -> burnt tip."""
+    p = Vector(loc); d = Vector(d).normalized(); b = Vector(bend); obs = []
+    for i in range(segs):
+        t0, t1 = i / segs, (i + 1) / segs
+        seg_len = L / segs
+        r0, r1 = r * (1 - t0 * 0.85), r * (1 - t1 * 0.85) if i < segs - 1 else 0.0
+        col = 'ivory' if i < segs - 1 else 'burnt'
+        q = p + d * seg_len
+        o = cyl(r0, seg_len * 1.05, tuple((p + q) / 2), col, n=6, r2=r1); _aim(o, d); obs.append(o)
+        p = q; d = (d + b * (1.0 / segs)).normalized()
+    return obs
+
+def frill(R, loc, normal=(0, -1, 0), up=(0, 0, 1), spread=200, spines=7, t=0.06, rim='team', spots=True):
+    """Lizard frill fan: webbing wedges between ivory/orange spines, crimson rim, blue spots. Fan opens around `up`."""
+    n = Vector(normal).normalized(); u = Vector(up).normalized(); x = u.cross(n).normalized(); u = n.cross(x).normalized()
+    c = Vector(loc); obs = []
+    a0 = math.radians(90 + spread / 2); a1 = math.radians(90 - spread / 2)
+    angs = [a0 + (a1 - a0) * k / (spines - 1) for k in range(spines)]
+    for k in range(spines - 1):
+        aa, ab = angs[k], angs[k + 1]
+        pa = c + (x * math.cos(aa) + u * math.sin(aa)) * R; pb = c + (x * math.cos(ab) + u * math.sin(ab)) * R
+        mid = (aa + ab) / 2; pm = c + (x * math.cos(mid) + u * math.sin(mid)) * R * 0.82         # scalloped edge dips
+        bm = bmesh.new()
+        vs = [bm.verts.new(tuple(v)) for v in (c, pa, pm, pb)]
+        bm.faces.new(vs)
+        r_ = bmesh.ops.extrude_face_region(bm, geom=bm.faces[:])
+        for v in [g for g in r_['geom'] if isinstance(g, bmesh.types.BMVert)]: v.co += n * t
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        me = bpy.data.meshes.new('w'); bm.to_mesh(me); bm.free()
+        o = bpy.data.objects.new('w', me); bpy.context.scene.collection.objects.link(o); _color(o, 'web'); obs.append(o)
+        # crimson rim band along the scalloped edge
+        for p0, p1 in ((pa, pm), (pm, pb)):
+            dd = p1 - p0; rb = box((0.1 * R, t * 1.6, dd.length), tuple((p0 + p1) / 2 + n * t / 2), rim, bevel=0.0)
+            rb.rotation_euler = dd.to_track_quat('Z', 'Y').to_euler(); obs.append(rb)
+        if spots:
+            for f in (0.45, 0.65):
+                sp = c + (x * math.cos(mid) + u * math.sin(mid)) * R * f
+                s = cyl(R * 0.06 * (1.2 - f * 0.5), t * 1.4, tuple(sp + n * t / 2), 'spot', n=6); _aim(s, n); obs.append(s)
+    for a in angs:                                                     # spines
+        dirv = x * math.cos(a) + u * math.sin(a)
+        obs += horn(R * 0.085, R * 1.12, tuple(c + n * t / 2), tuple(dirv), (0, 0, 0), segs=2)
+    return obs
+
+def spots(obj_center, radius, n_spots, seed=0, col='spot', size=0.12, zmin=None, scale=(1, 1, 1)):
+    """Scatter flattened scale spots on an ellipsoid surface (centre, radius, per-axis scale), sitting just proud."""
+    import random
+    rnd = random.Random(seed); c = Vector(obj_center); obs = []
+    for i in range(n_spots):
+        v = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-0.2, 1))).normalized()
+        p = c + Vector((v.x * scale[0], v.y * scale[1], v.z * scale[2])) * radius * 0.97
+        v = Vector((v.x / scale[0], v.y / scale[1], v.z / scale[2])).normalized()          # ellipsoid normal
+        if zmin is not None and p.z < zmin: continue
+        s = cyl(size * rnd.uniform(0.6, 1.3), size * 0.3, tuple(p), col, n=6); _aim(s, v); obs.append(s)
+    return obs
+
+def studs(points, r=0.03, col='gold'):
+    return [ball(r, p, col, 1) for p in points]
+
+def ring(R, r, loc, rot=(90, 0, 0), col='gold'):
+    return torus(R, r, loc, col, rot=rot, n=10, m=4)
