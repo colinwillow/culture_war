@@ -11,7 +11,8 @@ STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabl
 ### Items
 - [x] B235 alien bases in the RTS: bb_/gb_/rb_/sb_ hq, depot, barracks, tower, wall for Brutes/Greys/Reptilians/Spores (bldMesh -> genBase)
 - [x] B236 Team colour on the gen bases (crimson key -> your blue) so own vs enemy reads from the building, not just the disc
-- [ ] Ships in matches: the Fast/Heavy slot as flyers (s_* pieces, docs/gaps.md)
+- [x] B239 Ships in matches (render): Brute truck + gunship, Grey saucer, Reptilian skiff, Spore cloud on the vehicle slots, hovering
+- [ ] Ships as REAL flyers in the sim (fly over walls/trench, only ranged + towers hit them; docs/gaps.md)
 - [x] B226 menu: War for the World, four species only
 - [x] B227 arena: fist / shooting-pose grips, gunners never club, size drives damage + launch
 - [x] B228 health rings at the feet (segmented per member); RTS Brute props true size

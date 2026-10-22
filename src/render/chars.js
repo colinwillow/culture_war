@@ -2,8 +2,8 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { GENB, BASE_PRE } from './models.js?v=238';
-import { THREE } from './scene.js?v=238';
+import { GENB, BASE_PRE, SHIPS } from './models.js?v=239';
+import { THREE } from './scene.js?v=239';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -194,7 +194,7 @@ export async function loadChars() {
     const keys = Object.keys(CHARS), dk = Object.keys(DONORS);
     const [gl, dl] = await Promise.all([Promise.all(keys.map((k) => load(CHARS[k].file))), Promise.all(dk.map((k) => load(DONORS[k])))]);
     await Promise.all(Object.entries(GEN).map(([k, f]) => loader.loadAsync(ROOT + 'models/gen/' + f).then((g) => { GENS[k] = g.scene; }).catch(() => {})));
-    const bases = Object.values(BASE_PRE).flatMap((p) => ['hq', 'depot', 'barracks', 'tower', 'wall'].map((k) => p + k));
+    const bases = [...Object.values(BASE_PRE).flatMap((p) => ['hq', 'depot', 'barracks', 'tower', 'wall'].map((k) => p + k)), ...Object.values(SHIPS).flatMap((o) => Object.values(o))];
     await Promise.all(bases.map((k) => loader.loadAsync(ROOT + 'models/gen/' + k + '.glb').then((g) => { GENB[k] = g.scene; }).catch(() => {})));
     const donor = {};
     dk.forEach((k, i) => (donor[k] = { bind: bindOf(dl[i].scene), clips: Object.fromEntries(dl[i].animations.map((a) => [a.name, a])) }));

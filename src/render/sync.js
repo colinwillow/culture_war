@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=238';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=238';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=238';
-import { emit } from '../fx/particles.js?v=238';
-import { seen as fogSeen } from './fog.js?v=238';
-import { bark } from '../fx/sfx.js?v=238';
-import { TICK } from '../config/factions.js?v=238';
-import { walkH, CITY } from '../map/layout.js?v=238';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=238';
-import { CAM } from '../camera/camera.js?v=238';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=239';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=239';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=239';
+import { emit } from '../fx/particles.js?v=239';
+import { seen as fogSeen } from './fog.js?v=239';
+import { bark } from '../fx/sfx.js?v=239';
+import { TICK } from '../config/factions.js?v=239';
+import { walkH, CITY } from '../map/layout.js?v=239';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=239';
+import { CAM } from '../camera/camera.js?v=239';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=238';
-import { UI } from '../ui/state.js?v=238';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=238';
+import { Q, pl, getSim } from '../sim/sim.js?v=239';
+import { UI } from '../ui/state.js?v=239';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=239';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=238';
+import { lerpAngle } from '../util/math.js?v=239';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -409,6 +409,7 @@ export function syncRender(S, alpha, dt, time) {
     o.sel.visible = selIds.has(s.id);
     o.team.material.opacity = 0.25 + s.rally * 2 + (s.bull > 0 || s.ot > 0 ? 0.25 : 0);
     o.team.material.color.setHex(s.owner === 2 ? (s.slot === 'worker' ? 0xf28c28 : Math.sin(time * 9) > 0 ? 0xff3030 : 0x3060ff) : s.bull > 0 ? 0xe85d9a : s.ot > 0 ? 0xf2c232 : s.owner === 0 ? 0x7fd1ff : 0xff5a4f); // police discs flash red/blue
+    for (const m of o.members) if (m.userData.hover) m.userData.hover.position.y = 2.4 + Math.sin(time * 2.2 + m.id) * 0.25; // ships bob
     for (const m of o.members) if (m.userData.siren) { const on = Math.sin(time * 9) > 0; m.userData.siren[0].visible = on; m.userData.siren[1].visible = !on; }
     let tot = 0; for (const h of s.members) tot += h;
     setBar(o.bar, s.members.map((x) => x / s.mhp));

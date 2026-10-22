@@ -1,7 +1,7 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera, GLOBE } from '../render/scene.js?v=238';
-import { walkH } from '../map/layout.js?v=238';
-import { smooth } from '../util/math.js?v=238';
+import { camera, GLOBE } from '../render/scene.js?v=239';
+import { walkH } from '../map/layout.js?v=239';
+import { smooth } from '../util/math.js?v=239';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
