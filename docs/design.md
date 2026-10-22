@@ -177,6 +177,11 @@ same two squads do not always end the same way and it is fun to watch up close.
 - **Shared with the third-person game.** The duel rules and the living city are meant to be one system: the RTS war
   can run as the backdrop of Colin's open-world alien game, where the player is a neutral alien quietly keeping the peace.
 - Phone budget: the full duel logic for a few on-screen fights near the camera, simplified dice for the rest.
+- **Open weapon questions (settle in the arena):** shields as a class (block more, slower)? hybrids (blaster + shield, gun
+  + melee fallback - the gunner already melees when cornered)? weapons as pick-ups? disarming - the warrior already has
+  two disarm clips (`standing_disarm_over_shoulder` / `_underarm`), so knocking a weapon out of a hand is cheap to try.
+- **Team colours:** same race, different team = hue-rotated paint (arena TEAM button, B156). Then more than 1v1 in the
+  arena once the duel basics feel right.
 
 ## Globe board (Colin, Oct 22 2026 - idea, look prototyped in B153)
 Wrap the map round a little planet: no edges to turtle against, armies can go round the back, and the mini-world look.

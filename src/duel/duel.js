@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=155';
+import { svg } from '../ui/icons.js?v=157';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -28,13 +28,20 @@ const GUN = {
   shoot: { c: 'rifle_shoot_stationary_01', at: 0.31, dmg: 7, spd: 1 }, fall: 'fall_to_back', getup: 'get_up_from_back',
 };
 const RIGS = {
-  warrior: { file: 'models/characters/alien_warrior.glb', weapon: 'models/weapons/spikey_mace.glb' },
-  demon: { file: 'models/characters/demon.glb', gun: true, tail: /^c_tail_\d+/ },
+  warrior: { file: 'models/characters/alien_warrior.glb', own: 'mace' },   // his own weapon_root bone carries the mace
+  demon: { file: 'models/characters/demon.glb', tail: /^c_tail_\d+/ },
+};
+// Borrowed weapons. A rig with no mount bone still gets the weapon in its RIGHT HAND at the grip the weapon's own rig
+// holds it at in rest pose: offset from the hand / rig height, rotation in model space (both donors read IDENTITY),
+// mount scale / rig height. Measured from the donor files (blender-addons/pipeline/mount.mjs), not typed by eye.
+const WEAPONS = {
+  mace: { file: 'models/weapons/spikey_mace.glb', off: [-0.0817, -0.0321, 0.0023], s: 0.0129 },          // alien_warrior
+  blaster: { file: 'models/weapons/alien_antenna_blaster_game.glb', off: [-0.0877, 0.0171, 0.0425], s: 0.011 }, // zap
 };
 const ROSTER = [
-  { name: 'WARRIOR', rig: 'warrior', style: MELEE, h: 1.9, hp: 150, speed: 1 },
-  { name: 'BRUTE', rig: 'demon', style: MELEE, h: 2.25, hp: 180, speed: 0.9 },
-  { name: 'GUNNER', rig: 'demon', style: GUN, h: 2.05, hp: 130, speed: 1 },
+  { name: 'WARRIOR', rig: 'warrior', style: MELEE, h: 1.9, hp: 150, speed: 1, weapon: 'mace' },
+  { name: 'BRUTE', rig: 'demon', style: MELEE, h: 2.25, hp: 180, speed: 0.9, weapon: 'mace' },
+  { name: 'GUNNER', rig: 'demon', style: GUN, h: 2.05, hp: 130, speed: 1, weapon: 'blaster' },
 ];
 const RULE = {
   think: 0.22,       // seconds between decisions
@@ -97,17 +104,21 @@ function inPlace(clip) { // keep the hips' bob, drop their travel: the duel move
 async function loadRig(key) {
   const R = RIGS[key], g = await load(R.file);
   const clips = {}; for (const c of g.animations) clips[c.name] = inPlace(c);
-  let weapon = null;
-  if (R.weapon) { // his own weapon_root bone and the mace file's agree, so it mounts with identity (as in Weirdport)
-    const w = await load(R.weapon); let root = null;
-    w.scene.traverse((o) => { if (!root && /^weapon_root/.test(o.name)) root = o; });
-    if (root) {
-      w.scene.updateMatrixWorld(true); const inv = root.matrixWorld.clone().invert(); const parts = [];
-      root.traverse((o) => { if (o.isMesh) parts.push({ g: o.geometry, m: o.material, x: new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld) }); });
-      weapon = { root: root.name, parts };
-    }
-  }
-  return { key, scene: g.scene, clips, box: heightOf(g.scene), weapon, R };
+  return { key, scene: g.scene, clips, box: heightOf(g.scene), R };
+}
+async function loadWeapon(key) { // geometry + transform relative to the file's own weapon_root (Weirdport's weaponParts)
+  const w = await load(WEAPONS[key].file); let root = null;
+  w.scene.traverse((o) => { if (!root && /^weapon_root/.test(o.name)) root = o; });
+  if (!root) return null;
+  w.scene.updateMatrixWorld(true); const inv = root.matrixWorld.clone().invert(); const parts = [];
+  root.traverse((o) => { if (o.isMesh) parts.push({ g: o.geometry, m: o.material, x: new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld) }); });
+  return { key, root: root.name, parts };
+}
+const WEAPDATA = {};
+function weaponMesh(W, mats) {
+  const g = new THREE.Group();
+  for (const q of W.parts) { const m = new THREE.Mesh(q.g, tint(q.m.clone(), mats)); m.matrixAutoUpdate = false; m.matrix.copy(q.x); m.castShadow = true; m.frustumCulled = false; g.add(m); }
+  return g;
 }
 
 // ---------------------------------------------------------------- effects
@@ -157,6 +168,28 @@ function sound(kind, vol = 0.7) {
   s.connect(g).connect(actx.destination); s.start();
 }
 
+// ---------------------------------------------------------------- team tint
+// Rotates the HUE of the strongly coloured texels only (painted armour, cloth, skin markings); greys, steel and leather
+// stay put, so "same race, other team" reads at a glance. One uniform object per fighter, shared by all his materials.
+const TEAM_HUE = [0, 2.6];   // radians; the right-hand fighter starts on another team
+const HUES = [0, 1.05, 2.1, 2.6, 3.6, 4.6];
+function tint(mat, list, hue) {
+  mat.emissive = new THREE.Color(0); list.push(mat);
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uHue = mat.userData.hue || hue || { value: 0 };
+    sh.fragmentShader = 'uniform float uHue;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      {
+        vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
+        float w = smoothstep(0.3, 0.5, mx > 0.0 ? (mx - mn) / mx : 0.0) * step(0.001, abs(uHue));
+        const mat3 toY = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);
+        const mat3 toR = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);
+        vec3 y = toY * c; float h = atan(y.z, y.y) + uHue, r = length(y.yz); y.yz = vec2(cos(h), sin(h)) * r;
+        diffuseColor.rgb = mix(c, max(toR * y, 0.0), w);
+      }`);
+  };
+  return mat;
+}
+
 // ---------------------------------------------------------------- fighters
 let rng = Math.random;
 const mulberry = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -165,24 +198,31 @@ const fighters = [];
 function spawn(def, side) {
   const R = RIGDATA[def.rig], model = skClone(R.scene), k = def.h / (R.box.max.y - R.box.min.y);
   const root = new THREE.Group(); model.scale.setScalar(k); model.position.y = -R.box.min.y * k; root.add(model);
-  const mats = [];
+  const mats = [], hue = { value: TEAM_HUE[side < 0 ? 0 : 1] };
   model.traverse((o) => {
     if (!o.isMesh) return; o.castShadow = true; o.frustumCulled = false;
-    o.material = o.material.clone(); o.material.emissive = new THREE.Color(0); mats.push(o.material);
+    o.material = tint(o.material.clone(), mats, hue);
   });
-  if (R.weapon) { let host = null; model.traverse((o) => { if (!host && o.isBone && o.name === R.weapon.root) host = o; });
-    if (host) for (const q of R.weapon.parts) { const m = new THREE.Mesh(q.g, q.m); m.matrixAutoUpdate = false; m.matrix.copy(q.x); m.castShadow = true; m.frustumCulled = false; host.add(m); } }
   let hand = null; model.traverse((o) => { if (!hand && o.isBone && o.name === 'mixamorig_RightHand') hand = o; });
-  if (def.style === GUN && hand) { // a stand-in rifle until a real one is modelled
-    const gun = new THREE.Group(); const s = 1 / k;
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.09 * s, 0.12 * s, 0.75 * s), new THREE.MeshStandardMaterial({ color: 0x2b2b30, metalness: 0.4 }));
-    body.position.set(0, 0.05 * s, 0.22 * s); gun.add(body); hand.add(gun);
+  const W = def.weapon && WEAPDATA[def.weapon];
+  if (W) {
+    let own = null; if (R.R.own === def.weapon) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
+    if (own) own.add(weaponMesh(W, mats)); // his own mount bone: identity
+    else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
+      model.updateMatrixWorld(true);
+      const toModel = model.matrixWorld.clone().invert(), handM = toModel.clone().multiply(hand.matrixWorld);
+      const H = R.box.max.y - R.box.min.y, G = WEAPONS[def.weapon], hp = new THREE.Vector3().setFromMatrixPosition(handM);
+      const want = new THREE.Matrix4().compose(hp.add(new THREE.Vector3(...G.off).multiplyScalar(H)), new THREE.Quaternion(), new THREE.Vector3().setScalar(G.s * H));
+      const mount = new THREE.Group(); mount.matrixAutoUpdate = false; mount.matrix.copy(handM.invert().multiply(want));
+      mount.add(weaponMesh(W, mats)); hand.add(mount);
+    }
   }
+  for (const m of mats) m.userData.hue = hue;
   const tail = []; if (R.R.tail) model.traverse((o) => { if (o.isBone && R.R.tail.test(o.name)) tail.push({ b: o, q: o.quaternion.clone() }); });
   tail.sort((a, b) => a.b.name.localeCompare(b.b.name));
   const mixer = new THREE.AnimationMixer(model), actions = {};
   for (const n in R.clips) actions[n] = mixer.clipAction(R.clips[n]);
-  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
+  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
   root.position.set(side * 3.2, 0, 0); scene.add(root); play(f, def.style.idle);
   return f;
@@ -363,6 +403,9 @@ tap('pickB', () => { picks[1] = (picks[1] + 1) % ROSTER.length; fight(); });
 tap('fight', fight);
 tap('slow', () => { slow = !slow; document.getElementById('slow').classList.toggle('on', slow); });
 tap('view', () => { view.orbit = 0; view.zoom = 1; });
+tap('hue', () => { // the right-hand fighter's team colour, live (no respawn)
+  TEAM_HUE[1] = HUES[(HUES.indexOf(TEAM_HUE[1]) + 1) % HUES.length]; if (fighters[1]) fighters[1].hue.value = TEAM_HUE[1];
+});
 tap('home', () => { location.href = './'; });
 
 // ---------------------------------------------------------------- go
@@ -381,8 +424,8 @@ function frame() {
   stepCamera(dt); hud();
   renderer.render(scene, camera);
 }
-Promise.all(Object.keys(RIGS).map(loadRig)).then((rs) => {
-  for (const r of rs) RIGDATA[r.key] = r;
+Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
+  for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { fighters, RULE, ROSTER, MELEE, GUN, RIGDATA }; // live tuning from a desktop console
+  window.duel = { fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
 });
