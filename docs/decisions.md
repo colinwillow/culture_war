@@ -1,3 +1,4 @@
+- B174: Duel colour system v2. Team colours are ABSOLUTE now: the hue rotation (B156) made one 'team' purple on the warrior and blue on the demon because their paint starts from different hues; the shader now swings every strongly coloured texel (saturation > ~0.35) to the team's YIQ hue, keeping its own brightness and saturation, so a whole team matches. Palette: as painted + red, orange, green, cyan, blue, purple. TAP A SIDE'S HP BAR to step its colour (a swatch beside the name shows it; the two sides never share one); the TEAM button is gone. HP bars, slash trails and hit sparks all take the team colour. Headless: orange warriors vs blue brutes, then purple, 0 errors
 # Decisions and feedback log
 
 Newest first. Colin's feedback in his words where it matters.

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=171';
+import { svg } from '../ui/icons.js?v=174';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -226,7 +226,11 @@ function makeTrail() {
   mesh.frustumCulled = false; scene.add(mesh);
   return { mesh, pts: [] }; // pts: { a: tip, b: base, age }
 }
-const teamColor = (hue) => new THREE.Color().setHSL((0.08 + hue / (Math.PI * 2)) % 1, 0.95, 0.62);
+// a team's colour as a THREE.Color (its palette entry, or the warm default for 'as painted')
+const teamColor = (t) => new THREE.Color(PALETTE[TEAM[t]] ?? 0xffb040);
+// the YIQ hue angle of a colour: what the paint shader swings the coloured texels to
+const yiqAngle = (c) => Math.atan2(0.211 * c.r - 0.523 * c.g + 0.312 * c.b, 0.596 * c.r - 0.274 * c.g - 0.322 * c.b);
+const hueOf = (t) => (PALETTE[TEAM[t]] == null ? 99 : yiqAngle(new THREE.Color(PALETTE[TEAM[t]])));
 const _ta = new THREE.Vector3(), _tb = new THREE.Vector3();
 function stepTrail(f, dt) {
   const T = f.trail, m = f.move;
@@ -241,7 +245,7 @@ function stepTrail(f, dt) {
       T.pts.push({ a: _ta.clone(), b: _tb.clone(), age: 0 }); if (T.pts.length > TRAIL_N) T.pts.shift();
     }
   }
-  const pos = T.mesh.geometry.attributes.position, col = T.mesh.geometry.attributes.color, c = teamColor(f.hue.value);
+  const pos = T.mesh.geometry.attributes.position, col = T.mesh.geometry.attributes.color, c = teamColor(f.team);
   for (let i = 0; i < TRAIL_N; i++) {
     const p = T.pts[Math.min(i, T.pts.length - 1)];
     if (!p) { pos.setXYZ(i * 2, 0, -99, 0); pos.setXYZ(i * 2 + 1, 0, -99, 0); continue; }
@@ -303,8 +307,11 @@ function sound(kind, vol = 0.7) {
 // ---------------------------------------------------------------- team tint
 // Rotates the HUE of the strongly coloured texels only (painted armour, cloth, skin markings); greys, steel and leather
 // stay put, so "same race, other team" reads at a glance. One uniform object per fighter, shared by all his materials.
-const TEAM_HUE = [0, 2.6];   // radians; the right-hand fighter starts on another team
-const HUES = [0, 1.05, 2.1, 2.6, 3.6, 4.6];
+// ABSOLUTE team colours (B172 rotated the hue, so one 'team' came out purple on the warrior and blue on the demon --
+// the paint starts from different hues). Now every strongly coloured texel takes the team's hue outright, keeping its own
+// brightness and saturation, so a whole team matches its swatch. null = as painted.
+const PALETTE = [null, 0xe0402a, 0xf2a020, 0x3fcf5a, 0x2ec8e0, 0x3a62f0, 0xb050f0];
+const TEAM = [0, 5];  // left as painted, right blue
 function tint(mat, list, hue) {
   mat.emissive = new THREE.Color(0); list.push(mat);
   mat.onBeforeCompile = (sh) => {
@@ -312,10 +319,10 @@ function tint(mat, list, hue) {
     sh.fragmentShader = 'uniform float uHue;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       {
         vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
-        float w = smoothstep(0.3, 0.5, mx > 0.0 ? (mx - mn) / mx : 0.0) * step(0.001, abs(uHue));
+        float w = smoothstep(0.28, 0.45, mx > 0.0 ? (mx - mn) / mx : 0.0) * step(uHue, 50.0); // 99 = as painted
         const mat3 toY = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);
         const mat3 toR = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);
-        vec3 y = toY * c; float h = atan(y.z, y.y) + uHue, r = length(y.yz); y.yz = vec2(cos(h), sin(h)) * r;
+        vec3 y = toY * c; float r = length(y.yz); y.yz = vec2(cos(uHue), sin(uHue)) * r; // swing to the team hue
         diffuseColor.rgb = mix(c, max(toR * y, 0.0), w);
       }`);
   };
@@ -330,7 +337,7 @@ const fighters = [];
 function spawn(def, side, slot = 0, n = 1) {
   const R = RIGDATA[def.rig], model = skClone(R.scene), k = def.h / (R.box.max.y - R.box.min.y);
   const root = new THREE.Group(); model.scale.setScalar(k); model.position.y = -R.box.min.y * k; root.add(model);
-  const mats = [], hue = { value: TEAM_HUE[side < 0 ? 0 : 1] }; // one team colour per side
+  const mats = [], hue = { value: hueOf(side < 0 ? 0 : 1) }; // one team colour per side
   model.traverse((o) => {
     if (!o.isMesh) return; o.castShadow = true; o.frustumCulled = false;
     o.material = tint(o.material.clone(), mats, hue);
@@ -456,8 +463,8 @@ function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
   const p = hp ? hp.clone() : chest(b).addScaledVector(dir, -0.25); // sparks where it actually struck
-  burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), floor ? 0xffa040 : 0xffe07a, light ? 10 : 24, light ? 2.5 : 4.5);
-  const tc = teamColor(a.hue.value);
+  burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), teamColor(a.team).lerp(new THREE.Color(1, 0.95, 0.8), floor ? 0.2 : 0.45), light ? 10 : 24, light ? 2.5 : 4.5);
+  const tc = teamColor(a.team);
   pop(p, 0xffffff, light ? 0.55 : floor ? 1.3 : 0.95, light ? 0.12 : 0.18);
   if (!a.move || !a.move.ranged) pop(p, tc, light ? 1.0 : 1.7, 0.16, slashTex, slashAngle(a, dir), 3);
   sound(floor ? 'heavy' : 'hit', light ? 0.45 : 0.8); if (rng() < 0.35) setTimeout(() => sound('grunt', 0.5), 60);
@@ -613,7 +620,7 @@ function fight() {
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
   const n = SIZES[size];
   for (let i = 0; i < n; i++) fighters.push(spawn(ROSTER[picks[0]], -1, i, n), spawn(ROSTER[picks[1]], 1, i, n));
-  view.dir = null; hud();
+  view.dir = null; hud(); paintTeams();
 }
 document.querySelectorAll('[data-i]').forEach((el) => (el.outerHTML = svg(el.dataset.i)));
 const tap = (id, fn) => document.getElementById(id).addEventListener('pointerup', (e) => { e.stopPropagation(); audioOn(); fn(); });
@@ -623,8 +630,20 @@ tap('fight', fight);
 tap('size', () => { size = (size + 1) % SIZES.length; document.querySelector('#size small').textContent = SIZES[size] + 'V' + SIZES[size]; fight(); });
 tap('slow', () => { slow = !slow; document.getElementById('slow').classList.toggle('on', slow); });
 tap('view', () => { view.orbit = 0; view.zoom = 1; });
-tap('hue', () => { // the right-hand fighter's team colour, live (no respawn)
-  TEAM_HUE[1] = HUES[(HUES.indexOf(TEAM_HUE[1]) + 1) % HUES.length]; for (const f of fighters) if (f.team === 1) f.hue.value = TEAM_HUE[1];
+// TEAM COLOURS: tap a side's bar to step its colour; live, no respawn. Paint, trails, sparks, swatch and bar all follow.
+function paintTeams() {
+  for (const t of [0, 1]) {
+    const c = teamColor(t), css = '#' + c.getHexString(), hi = '#' + c.clone().lerp(new THREE.Color(1, 1, 1), 0.45).getHexString();
+    document.getElementById(t ? 'swB' : 'swA').style.background = css;
+    document.getElementById(t ? 'hpB' : 'hpA').style.background = `linear-gradient(${hi}, ${css})`;
+    for (const f of fighters) if (f.team === t) f.hue.value = hueOf(t);
+    document.getElementById(t ? 'swB' : 'swA').classList.toggle('orig', PALETTE[TEAM[t]] == null);
+  }
+}
+for (const [id, t] of [['barA', 0], ['barB', 1]]) document.getElementById(id).addEventListener('pointerup', (e) => {
+  e.stopPropagation(); audioOn();
+  let k = (TEAM[t] + 1) % PALETTE.length; if (k === TEAM[1 - t] && k) k = (k + 1) % PALETTE.length; // never both the same colour
+  TEAM[t] = k; paintTeams();
 });
 tap('home', () => { location.href = './'; });
 
@@ -648,5 +667,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM_HUE }; // live tuning from a desktop console
+  window.duel = { dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });

@@ -12,8 +12,11 @@
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1d24; touch-action: none; -webkit-user-select: none; user-select: none; font-family: 'Lilita One', system-ui, sans-serif; color: #fff; }
   canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-  .bars { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; right: 12px; display: flex; gap: 10px; pointer-events: none; }
-  .bar { flex: 1; } .bar.r { text-align: right; }
+  .bars { position: fixed; z-index: 2; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; right: 12px; display: flex; gap: 10px; pointer-events: none; }
+  .bar { flex: 1; pointer-events: auto; } .bar.r { text-align: right; }
+  /* the team colour: tap a side's bar to change it (the swatch says what it is now) */
+  .sw { display: inline-block; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #fff; vertical-align: -6px; margin: 0 6px; box-shadow: 0 2px 0 #000a; }
+  .sw.orig { background: conic-gradient(#e0402a, #f2a020, #3fcf5a, #2ec8e0, #3a62f0, #b050f0, #e0402a) !important; } /* as painted */
   .bar b { font-family: 'Bungee', sans-serif; font-size: 15px; letter-spacing: 1px; text-shadow: 0 2px 0 #000; }
   .hp { height: 14px; border-radius: 7px; background: #00000080; border: 2px solid #fff; overflow: hidden; margin-top: 3px; }
   .hp i { display: block; height: 100%; width: 100%; background: linear-gradient(#ffd75a, #f28c28); transition: width .25s; }
@@ -32,7 +35,7 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="bars"><div class="bar" id="barA"><b id="nameA"></b><div class="hp"><i id="hpA"></i></div></div><div class="bar r" id="barB"><b id="nameB"></b><div class="hp"><i id="hpB"></i></div></div></div>
+<div class="bars"><div class="bar" id="barA"><i class="sw" id="swA"></i><b id="nameA"></b><div class="hp"><i id="hpA"></i></div></div><div class="bar r" id="barB"><b id="nameB"></b><i class="sw" id="swB"></i><div class="hp"><i id="hpB"></i></div></div></div>
 <div class="dock">
   <button type="button" id="home" aria-label="Back to the game"><span data-i="home"></span><small>MENU</small></button>
   <button type="button" class="pick" id="pickA" aria-label="Left fighter"><b></b></button>
@@ -40,7 +43,6 @@
   <button type="button" class="pick" id="pickB" aria-label="Right fighter"><b></b></button>
   <button type="button" id="size" aria-label="How many a side"><span data-i="people"></span><small>1V1</small></button>
   <button type="button" id="slow" aria-label="Slow motion"><span data-i="pause"></span><small>SLOW</small></button>
-  <button type="button" id="hue" aria-label="Team colour"><span data-i="star"></span><small>TEAM</small></button>
   <button type="button" id="view" aria-label="Side view"><span data-i="eye"></span><small>VIEW</small></button>
 </div>
 <div id="load">LOADING</div>
@@ -52,6 +54,6 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 </script>
-<script type="module" src="./src/duel/duel.js?v=171"></script>
+<script type="module" src="./src/duel/duel.js?v=174"></script>
 </body>
 </html>
