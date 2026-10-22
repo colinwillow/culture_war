@@ -1,0 +1,33 @@
+# Brute gunship: fat riveted flying barge, big rear propeller, open sides, crimson panels.
+# Bottom of the hull at y = 0 (hover height is the game's job), nose +Z (Blender -Y), prop at the back.
+import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
+reset()
+box((4.2, 7.0, 1.1), (0, -0.3, 0.75), 'rust', bevel=0.2, taper=(1.15, 1.0))         # hull (flares out)
+box((3.0, 1.6, 0.9), (0, -4.0, 0.9), 'rust', rot=(-18, 0, 0), bevel=0.2, taper=(1.2, 1))  # blunt bow
+box((2.0, 6.0, 0.5), (0, -0.3, 0.25), 'iron', bevel=0.12)                           # keel
+box((4.6, 7.2, 0.15), (0, -0.4, 1.38), 'wood', bevel=0.04)                          # open deck
+for s in (-1, 1):
+    for y in (-3.4, -1.8, -0.2, 1.4, 2.8):
+        cyl(0.07, 0.8, (s * 2.2, y, 1.8), 'iron', n=5)                              # rail posts
+    box((0.1, 6.4, 0.1), (s * 2.2, -0.3, 2.2), 'iron', bevel=0.0)                   # rail
+    box((0.12, 2.6, 0.7), (s * 2.25, -2.2, 0.85), 'team', bevel=0.02)               # crimson hull panels
+    rivets([(s * 2.32, y, 1.15) for y in (-3.4, -2.4, -1.2, 0.0, 1.2, 2.4)], 0.07, 'bone', 'X')
+    # stubby wing + downward fan pod
+    box((1.4, 1.4, 0.25), (s * 2.55, 0.4, 1.0), 'steel', bevel=0.06)
+    cyl(0.6, 0.6, (s * 2.75, 0.4, 0.75), 'iron', n=10, bevel=0.05)
+    cyl(0.48, 0.08, (s * 2.75, 0.4, 0.42), 'glow', n=10)                              # amber lift glow
+# cabin + gun at the bow
+box((1.6, 1.4, 1.0), (0, 2.0, 1.95), 'steel', bevel=0.1)
+box((1.4, 0.06, 0.35), (0, 1.28, 2.1), 'glow', bevel=0.0)
+cyl(0.35, 0.5, (0, -3.0, 1.7), 'iron', n=8)
+cyl(0.15, 1.6, (0, -3.9, 1.9), 'iron', (90, 0, 0), n=8)
+# big rear propeller on a mount
+box((0.5, 0.9, 1.0), (0, 3.4, 1.7), 'iron', bevel=0.08)
+cyl(0.4, 0.6, (0, 3.9, 1.95), 'steel', (90, 0, 0), n=8)
+torus(1.05, 0.12, (0, 4.15, 1.95), 'orange', rot=(90, 0, 0), n=16, m=5)               # prop guard
+for a in (0, 120, 240):                                                               # three fat blades
+    b = box((0.35, 0.08, 0.95), (0, 4.2, 1.95), 'steel', bevel=0.02)
+    b.rotation_euler = (0, math.radians(a), 0)
+    b.location = (math.sin(math.radians(a)) * 0.5, 4.2, 1.95 + math.cos(math.radians(a)) * 0.5)
+    b.rotation_euler.rotate_axis('Z', math.radians(20))
+print(ship('s_brute_gunship'))
