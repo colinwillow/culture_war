@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=244';
-import { walkH } from '../map/layout.js?v=244';
-import { getSim, command } from '../sim/sim.js?v=244';
-import { UI, select, selSquads } from '../ui/state.js?v=244';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=244';
-import { fxMarker } from '../fx/fx.js?v=244';
-import { ack } from '../render/sync.js?v=244';
+import { THREE, camera, canvas } from '../render/scene.js?v=245';
+import { walkH } from '../map/layout.js?v=245';
+import { getSim, command } from '../sim/sim.js?v=245';
+import { UI, select, selSquads } from '../ui/state.js?v=245';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=245';
+import { fxMarker } from '../fx/fx.js?v=245';
+import { ack } from '../render/sync.js?v=245';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
@@ -107,6 +107,11 @@ function pinchInfo() { const [a, b] = [...pointers.values()]; return { cx: (a.x 
 export function initInput() {
   canvas.addEventListener('pointerdown', (e) => {
     try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+    // STUCK FINGER (B245, Colin: "my finger navigation got stuck ... I couldn't click on any buildings or guys"): a lost
+    // pointerup (touch ended over a HUD button, an iOS system swipe, the tab losing focus) left a ghost finger in the
+    // map, so every later touch read as a PINCH and no tap ever selected. A primary pointer is by definition the first
+    // finger down, so anything still held from before it is stale.
+    if (e.isPrimary && pointers.size) { pointers.clear(); gesture = null; boxEl.style.display = 'none'; ringEl.hidden = true; }
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     clearTimeout(pressTimer);
     fling(0, 0); // a new touch catches the sliding map
@@ -161,6 +166,9 @@ export function initInput() {
   };
   canvas.addEventListener('pointerup', (e) => end(e, false));
   canvas.addEventListener('pointercancel', (e) => end(e, true));
+  canvas.addEventListener('lostpointercapture', (e) => end(e, true));
+  const reset = () => { pointers.clear(); gesture = null; clearTimeout(pressTimer); boxEl.style.display = 'none'; ringEl.hidden = true; };
+  window.addEventListener('blur', reset); document.addEventListener('visibilitychange', reset);
   canvas.addEventListener('wheel', (e) => { e.preventDefault(); CAM.distT *= Math.exp(e.deltaY * 0.0015); clampCam(); }, { passive: false });
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase(), s = 48;
