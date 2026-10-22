@@ -21,4 +21,11 @@ for z in range(1, 9):                                                           
 for x in (-0.3, 0.3):
     box((0.07, 0.07, 6.6), (x, -1.8, 3.3), 'steel', bevel=0.0)
 cyl(0.12, 4.5, (0.6, 0.6, 2.3), 'steel', n=6)                                         # outlet pipe
+
+# ---- v2 detail pass: big crown graffiti on the tank, rust streaks, a leak drip, a warning light on the roof
+crown(1.6, (0, -1.79, 6.2), normal=(0, -1, 0), up=(0, 0, 1), t=0.03)
+for a in (30, 150, 250):
+    r = math.radians(a); box((0.15, 0.03, 1.2), (math.cos(r) * 1.77, math.sin(r) * 1.77, 5.6), 'rust', rot=(0, 0, a + 90), bevel=0.0)
+ball(0.12, (0, 0, 9.2), 'glow', 1)
+cyl(0.04, 0.5, (1.2, -1.2, 4.3), 'blue', n=5)
 print(ship('n_water_tower'))

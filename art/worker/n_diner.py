@@ -22,4 +22,12 @@ box((2.2, 0.56, 1.2), (-3.6, -2.6, 4.2), 'blue', bevel=0.05)
 box((2.8, 0.3, 0.12), (-3.6, -2.6, 5.05), 'glow', bevel=0.0)
 box((2.8, 0.3, 0.12), (-3.6, -2.6, 3.35), 'glow', bevel=0.0)
 cyl(0.45, 0.62, (-3.6, -2.6, 4.2), 'white', (90, 0, 0), n=10)                       # coffee-cup disc
+
+# ---- v2 detail pass: neon outline on the roof edge, crown graffiti on the kitchen block, AC + vent junk, trash bags,
+# a parked shopping cart
+box((7.6, 0.08, 0.08), (-0.6, -1.45, 2.42), 'glow', bevel=0.0)
+crown(1.0, (4.92, 1.5, 1.4), normal=(1, 0, 0), up=(0, 0, 1), t=0.02, col='dark')
+box((1.0, 0.8, 0.6), (3.6, 1.4, 3.05), 'steel', bevel=0.05)
+for (x, y) in ((4.6, 3.0), (4.1, 3.2)): ball(0.35, (x, y, 0.4), 'dark', 1, (1, 1, 0.8))
+box((0.6, 0.9, 0.5), (3.6, -2.6, 0.55), 'steel', bevel=0.0); cyl(0.1, 0.1, (3.4, -2.3, 0.15), 'tire', (0, 90, 0), n=6)
 print(ship('n_diner'))

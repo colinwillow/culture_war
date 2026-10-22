@@ -26,5 +26,16 @@ for x in (-2.6, -0.9, 0.9, 2.6):
     box((0.1, 1.0, 1.2), (3.82, -x, 4.9), 'glass', bevel=0.0)
     box((0.18, 1.2, 0.12), (3.85, -x, 4.25), 'white', bevel=0.0)
 box((1.2, 1.0, 0.9), (-2.0, 2.0, F * 2 + 0.55), 'steel', bevel=0.05)              # rooftop AC
+
+# ---- v2 detail pass: big crown graffiti on the side wall, boarded upstairs window, satellite dish + water tank on the
+# roof, neon strip on the sign, rust streaks, a dangling cable
+crown(1.6, (-3.83, -0.5, 1.5), normal=(-1, 0, 0), up=(0, 0, 1), t=0.03)
+box((0.05, 1.6, 0.18), (-3.83, 1.6, 2.2), 'magenta', rot=(8, 0, 0), bevel=0.0)
+box((1.1, 0.12, 1.3), (-0.9, -3.86, 4.9), 'wood', rot=(0, 6, 0), bevel=0.02)
+c = cyl(0.5, 0.12, (2.4, -2.4, F * 2 + 0.6), 'white', n=10); c.rotation_euler = (math.radians(50), 0, math.radians(30))
+cyl(0.06, 0.5, (2.4, -2.4, F * 2 + 0.3), 'iron', n=5)
+cyl(0.7, 1.2, (2.3, 2.0, F * 2 + 0.7), 'wood', n=10); cyl(0.75, 0.4, (2.3, 2.0, F * 2 + 1.5), 'iron', n=10, r2=0.1)
+for x in (-3.0, 1.2): box((0.15, 0.03, 1.4), (x, -3.83, 2.4), 'rust', bevel=0.0)
+cyl(0.025, 1.8, (3.9, -3.9, 4.3), 'dark', n=4)
 for o in bpy.context.scene.objects: o.location.x -= 0.44; o.location.y += 0.44   # centre incl. awnings
 print(ship('n_shop', chunk_cuts={'x': [-0.44], 'z': [F]}))
