@@ -1,24 +1,24 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=246';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=246';
-import { syncRender, clearRender, bump } from './render/sync.js?v=246';
-import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=246';
-import { newSim, getSim, step } from './sim/sim.js?v=246';
-import { TICK } from './config/factions.js?v=246';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=246';
-import { initInput, lockPageZoom } from './input/input.js?v=246';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=246';
-import { resetUI } from './ui/state.js?v=246';
-import { fillIcons, svg } from './ui/icons.js?v=246';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=246';
-import { updateMinimap } from './ui/minimap.js?v=246';
-import { isMuted, setMuted } from './fx/sfx.js?v=246';
-import { loadChars } from './render/chars.js?v=246';
-import { emit } from './fx/particles.js?v=246';
-import { FC } from './render/models.js?v=246';
-import { renderBattleCam, battleSpot } from './render/battlecam.js?v=246';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=248';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=248';
+import { syncRender, clearRender, bump } from './render/sync.js?v=248';
+import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=248';
+import { newSim, getSim, step } from './sim/sim.js?v=248';
+import { TICK } from './config/factions.js?v=248';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=248';
+import { initInput, lockPageZoom } from './input/input.js?v=248';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=248';
+import { resetUI } from './ui/state.js?v=248';
+import { fillIcons, svg } from './ui/icons.js?v=248';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=248';
+import { updateMinimap } from './ui/minimap.js?v=248';
+import { isMuted, setMuted } from './fx/sfx.js?v=248';
+import { loadChars } from './render/chars.js?v=248';
+import { emit } from './fx/particles.js?v=248';
+import { FC } from './render/models.js?v=248';
+import { renderBattleCam, battleSpot } from './render/battlecam.js?v=248';
 
-export const BUILD = 246; // written by `npm run bump`
+export const BUILD = 248; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -55,8 +55,8 @@ function start(f) {
   cin = null; resetCam(); refreshHUD();
   // Intro: start over the enemy HQ and fly home in ~2.5 s (a tap anywhere skips it).
   const en = getSim().players[1];
-  intro = { t: 0, x0: en.hqx, z0: en.hqz, d0: 46, yaw0: Math.PI * 0.35, x: CAM.tx, z: CAM.tz, d: CAM.dist, yaw: CAM.yaw };
-  CAM.tx = en.hqx; CAM.tz = en.hqz; CAM.dist = CAM.distT = 46; CAM.yaw = intro.yaw0;
+  intro = { t: 0, x0: en.hqx, z0: en.hqz, d0: 76, yaw0: Math.PI * 0.35, x: CAM.tx, z: CAM.tz, d: CAM.dist, yaw: CAM.yaw };
+  CAM.tx = en.hqx; CAM.tz = en.hqz; CAM.dist = CAM.distT = 76; CAM.yaw = intro.yaw0;
 }
 // Difficulty: 1-3 stars on the menu, remembered on this phone.
 let diff = 1;

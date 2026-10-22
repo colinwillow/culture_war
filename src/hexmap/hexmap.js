@@ -6,7 +6,7 @@
 // The hex decides the ZONING (downtown, shops, houses, industrial, park, water); the grid decides the streets.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { svg } from '../ui/icons.js?v=246';
+import { svg } from '../ui/icons.js?v=248';
 
 const R = 12, H = R * Math.sqrt(3) / 2, RW = 2.4, RINGS = 3;    // circumradius, half-height, road width, board radius in hexes
 const ZONE = { downtown: 0x8c93a3, shops: 0xb59a7c, houses: 0xa9b57c, industrial: 0x9a8a7a, park: 0x6fa65a, water: 0x3f8fb0, plaza: 0xc9b08a };

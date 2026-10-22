@@ -1,14 +1,15 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera, GLOBE } from '../render/scene.js?v=246';
-import { walkH } from '../map/layout.js?v=246';
-import { smooth } from '../util/math.js?v=246';
+import { camera, GLOBE } from '../render/scene.js?v=248';
+import { walkH } from '../map/layout.js?v=248';
+import { smooth } from '../util/math.js?v=248';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
-const pitchFor = (d) => 0.38 + (1.12 - 0.38) * smooth(14, 110, d);
+// B247 TELEPHOTO (the references: high, narrow lens, everything readable): fov 28, steeper, distances x1.65
+const pitchFor = (d) => 0.78 + (1.08 - 0.78) * smooth(24, 180, d);
 // CLOSER BY DEFAULT (Colin: "the best part of this game is up close"): a match starts near the action and the camera
 // cannot pull out past ZOOM.max; the whole-map overview is the minimap's job.
-export const ZOOM = { home: 34, homeLand: 28, max: 72, dip: 22, idleT: 6 };
+export const ZOOM = { home: 74, homeLand: 62, max: 130, dip: 44, idleT: 6 };
 export const homeDist = () => (landscape ? ZOOM.homeLand : ZOOM.home);
 
 // AUTO-DIP: no touch for ZOOM.idleT seconds and a fight on screen -> the camera eases down toward it. Any touch ends it.
@@ -47,7 +48,7 @@ export function shake(k, x, z) {
 export function clampCam() {
   CAM.tx = Math.max(-62, Math.min(62, CAM.tx));
   CAM.tz = Math.max(-104, Math.min(104, CAM.tz));
-  CAM.distT = Math.max(12, Math.min(ZOOM.max, CAM.distT));
+  CAM.distT = Math.max(20, Math.min(ZOOM.max, CAM.distT));
 }
 export function panBy(dx, dy) {
   const k = (2 * CAM.dist * Math.tan((camera.fov * Math.PI) / 360)) / window.innerHeight, sp = Math.sin(pitchFor(CAM.dist));

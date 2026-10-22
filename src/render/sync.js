@@ -1,23 +1,24 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=246';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=246';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=246';
-import { emit } from '../fx/particles.js?v=246';
-import { seen as fogSeen } from './fog.js?v=246';
-import { bark } from '../fx/sfx.js?v=246';
-import { TICK } from '../config/factions.js?v=246';
-import { walkH, CITY } from '../map/layout.js?v=246';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=246';
-import { CAM } from '../camera/camera.js?v=246';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=248';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=248';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=248';
+import { emit } from '../fx/particles.js?v=248';
+import { seen as fogSeen } from './fog.js?v=248';
+import { bark } from '../fx/sfx.js?v=248';
+import { TICK } from '../config/factions.js?v=248';
+import { walkH, CITY } from '../map/layout.js?v=248';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=248';
+import { CAM } from '../camera/camera.js?v=248';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=246';
-import { UI } from '../ui/state.js?v=246';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=246';
+import { Q, pl, getSim } from '../sim/sim.js?v=248';
+import { UI } from '../ui/state.js?v=248';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=248';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=246';
+import { lerpAngle } from '../util/math.js?v=248';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
+export const UNIT_K = 1.6;
 const corpses = []; // squads wiped out: their last bodies finish falling before removal
 const dying = []; // buildings collapsing: { root, t, tilt }
 const R = { sq: new Map(), bl: new Map(), nodes: new Map(), zones: new Map(), pend: new Map(), ghost: null };
@@ -50,6 +51,7 @@ function setBar(bar, hp, color) { // hp: one fraction, or an array of per-member
   bar.u.uN.value = n; bar.u.uFix.value = color ? 1 : 0; if (color) bar.u.uCol.value.setHex(color);
 }
 function makeSquadObj(s) {
+  const rr = s.r / UNIT_K; // rings live inside the scaled root
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]], cols = s.def.n > 1 ? column(s.def.n) : [[0, 0]];
   const dg = s.disg > 0, lf = dg ? 'city' : s.f, ls = dg ? 'civ' : s.slot; // possessed: the squad wears civilians
@@ -62,12 +64,12 @@ function makeSquadObj(s) {
   const real = !!members[0].userData.anim;
   // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
   const wait = !real && !!(CAST[lf] && CAST[lf][ls]);
-  const team = new THREE.Mesh(new THREE.CircleGeometry(s.r + 0.25, 28), basic(s.inf > 0 ? 0x7cff4a : s.owner === 0 ? 0x7fd1ff : s.owner === 2 || dg ? 0xf3efe2 : 0xff5a4f, s.inf > 0 ? 0.6 : 0.25));
+  const team = new THREE.Mesh(new THREE.CircleGeometry(rr + 0.25, 28), basic(s.inf > 0 ? 0x7cff4a : s.owner === 0 ? 0x7fd1ff : s.owner === 2 || dg ? 0xf3efe2 : 0xff5a4f, s.inf > 0 ? 0.6 : 0.25));
   team.rotation.x = -Math.PI / 2; team.position.y = 0.08; root.add(team);
-  const sel = ringMesh(s.r + 0.45, s.r + 0.72, selCol(), 0.95); sel.visible = false; root.add(sel);
-  const shield = ringMesh(s.r + 0.15, s.r + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
+  const sel = ringMesh(rr + 0.45, rr + 0.72, selCol(), 0.95); sel.visible = false; root.add(sel);
+  const shield = ringMesh(rr + 0.15, rr + 0.4, 0x6fc3ff, 0.85); shield.visible = false; root.add(shield);
   const h = real ? 1.85 : new THREE.Box3().setFromObject(body).max.y;
-  const bar = makeBar(s.r + 0.8, s.r + 1.05); root.add(bar.g);
+  const bar = makeBar(rr + 0.8, rr + 1.05); root.add(bar.g);
   const stun = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 6, 14), mat(0xffe14d)); stun.rotation.x = Math.PI / 2; stun.position.y = h + 0.25; stun.visible = false; root.add(stun);
   const pie = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat(0xfff8ec)); pie.scale.y = 0.6; pie.position.y = h + 0.05; pie.visible = false; root.add(pie);
   const carry = box(0.5, 0.4, 0.5, 0xf5b83a, 0, h + 0.1, 0); carry.visible = false; root.add(carry);
@@ -76,7 +78,8 @@ function makeSquadObj(s) {
   for (let i = 0; i < nPip; i++) { const d = box(0.2, 0.2, 0.2, 0xf5b83a, (i - (nPip - 1) / 2) * 0.32, 0, 0); d.rotation.z = Math.PI / 4; d.visible = false; rank.add(d); }
   root.add(rank);
   // Veterans wear a second ring under the team disc: silver at rank 1, gold at 2; heroes' glows brighter per level.
-  const vet = ringMesh(s.r + 0.28, s.r + 0.42, 0xd8dde3, 0.9); vet.visible = false; root.add(vet);
+  const vet = ringMesh(rr + 0.28, rr + 0.42, 0xd8dde3, 0.9); vet.visible = false; root.add(vet);
+  root.scale.setScalar(UNIT_K); // B247 (Colin: "I want the guys all to be huge... Warhammer 40K")
   scene.add(root);
   if (dg && s.owner !== 0) bar.g.visible = rank.visible = false;
   return { root, body, members, team, sel, shield, bar, stun, pie, carry, rank, vet, dg, own: s.owner, inf: s.inf > 0, yaw: s.heading, lunge: 0, atk: false, real, wait, lastAlive: s.def.n, confT: 0 };

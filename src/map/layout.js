@@ -2,7 +2,7 @@
 // Map is 120 x 200 m, Y up. Player 0 base at z=+80, player 1 at z=-80.
 // Everything is defined for z > 0 and mirrored through the centre (x,z) -> (-x,-z),
 // so both sides get identical chokepoints (rotational symmetry).
-import { hash, smooth } from '../util/math.js?v=246';
+import { hash, smooth } from '../util/math.js?v=248';
 
 export const MAP = { w: 120, h: 200, cell: 2 };
 MAP.cols = MAP.w / MAP.cell;
@@ -113,13 +113,15 @@ for (const b of BLOCKS) {
     const seed = Math.round(b.x0 * 13 + b.z0 * 7 + k * 31);
     let w = 6 + hash(seed, 3) * 6;
     if (len - pos - w < 4) w = len - pos;
-    const h = 5 + Math.floor(hash(seed, 4) * 4) * 3 + (Math.abs(b.z0) >= 44 ? 3 : 0);
+    // B247 (Colin's RTS references: low buildings, open ground, rooftops read from above): half the old height, same
+    // floor count (the sim smashes floors), so each floor is a squat ~1.6 m slab and the street is not a canyon
+    const h0 = 5 + Math.floor(hash(seed, 4) * 4) * 3 + (Math.abs(b.z0) >= 44 ? 3 : 0), h = h0 * 0.52;
     const x = alongX ? b.x0 + pos + w / 2 : (b.x0 + b.x1) / 2;
     const z = alongX ? (b.z0 + b.z1) / 2 : b.z0 + pos + w / 2;
     const sx = alongX ? w - 0.25 : b.x1 - b.x0, sz = alongX ? b.z1 - b.z0 : w - 0.25;
     // style (Colin: blocks should not all be boxes): 0 flat roof, 1 setback tower, 2 gabled roof, 3 dome, 4 water tower, 5 spire
     const style = Math.floor(hash(seed, 11) * 6);
-    CITY.push({ x, z, sx, sz, h, floors: Math.max(2, Math.round(h / 3)), style, c: hash(seed, 5), sign: hash(seed, 6), ac: style === 0 && hash(seed, 7) > 0.3 ? [(hash(seed, 8) - 0.5) * sx * 0.5, (hash(seed, 9) - 0.5) * sz * 0.5] : null });
+    CITY.push({ x, z, sx, sz, h, floors: Math.max(2, Math.round(h0 / 3)), style, c: hash(seed, 5), sign: hash(seed, 6), ac: style === 0 && hash(seed, 7) > 0.3 ? [(hash(seed, 8) - 0.5) * sx * 0.5, (hash(seed, 9) - 0.5) * sz * 0.5] : null });
     pos += w; k++;
   }
 }

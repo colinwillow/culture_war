@@ -252,3 +252,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B244: city glass is PBR (metal .85, rough .12) mirroring the painted sky, with a cool day glow and warm lit rooms at dusk.
 - B245: stuck touch fixed -- a lost pointerup left a ghost finger so every touch read as a pinch and taps never selected; a primary pointerdown now clears stale fingers, and lostpointercapture / blur / tab switch reset input.
 - B246: battle cam window drags (remembered) and folds to a CAM pill with its x; selection name tag over the selected squad/building (name + small class word); camera NaN guard (white-screen report); squads spaced wider (sqR 1.3 -> 1.65, formation 1.1 -> 1.25).
+- B247/B248: RTS look toward Colin's references: telephoto camera (fov 45 -> 28, steeper pitch, distances x1.65-2.2), city buildings half height (same floor count), units drawn 1.6x (UNIT_K, sqR x1.5, rings compensated).

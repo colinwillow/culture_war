@@ -48,8 +48,8 @@ renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.C
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 export const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa9c8de);
-scene.fog = new THREE.Fog(0xa9c8de, 140, 300);
-export const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 700);
+scene.fog = new THREE.Fog(0xa9c8de, 260, 620);
+export const camera = new THREE.PerspectiveCamera(28, 1, 1, 1100); // B247 telephoto
 // Day light: cool sky fill, warm low-ish sun. ONE shadow-casting light whose small shadow box follows the camera
 // target, and only units + player buildings cast (the city does not), so it stays cheap on a phone.
 renderer.shadowMap.enabled = true;

@@ -10,11 +10,11 @@ import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME, OBJ_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
   ALIEN,
-} from '../config/factions.js?v=246';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=246';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=246';
-import { mulberry32 } from '../util/math.js?v=246';
-import { aiStep } from './ai.js?v=246';
+} from '../config/factions.js?v=248';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=248';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=248';
+import { mulberry32 } from '../util/math.js?v=248';
+import { aiStep } from './ai.js?v=248';
 
 let S = null;
 export const getSim = () => S;
@@ -91,7 +91,7 @@ export const workersOf = (p) => S.squads.filter((s) => s.owner === p.i && s.slot
 const heroBusy = (p) => { const hq = hqOf(p); return S.squads.some((s) => s.owner === p.i && s.slot === 'hero') || (hq && hq.queue.includes('hero')); };
 export const aliveN = (s) => { let n = 0; for (const h of s.members) if (h > 0) n++; return n; };
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
-const sqR = (def, slot) => (def.n > 1 ? 1.65 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1);
+const sqR = (def, slot) => 1.5 * (def.n > 1 ? 1.65 : def.vehicle ? 1.4 : slot === 'hero' ? 0.8 : slot === 'worker' ? 0.6 : 1.1); // B247: units drawn 1.6x (UNIT_K), bodies take room to match
 const byId = (id) => S.squads.find((s) => s.id === id) || S.blds.find((b) => b.id === id) || S.city.find((b) => b.id === id) || null;
 const FLOOR_HP = 120;
 // Downtown HQ upgrades. City Hall (builders): L2 workers rebuild 2x faster + recruiting costs 35; L3 tax x1.75, shops pay 10.
