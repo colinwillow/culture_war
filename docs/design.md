@@ -178,6 +178,12 @@ same two squads do not always end the same way and it is fun to watch up close.
   can run as the backdrop of Colin's open-world alien game, where the player is a neutral alien quietly keeping the peace.
 - Phone budget: the full duel logic for a few on-screen fights near the camera, simplified dice for the rest.
 
+## Globe board (Colin, Oct 22 2026 - idea, look prototyped in B153)
+Wrap the map round a little planet: no edges to turtle against, armies can go round the back, and the mini-world look.
+Plan: (1) look only - curvature shader on the flat board (B153, globe button); (2) gameplay - make the flat map wrap at
+its edges (same strategy as a globe without sphere maths); (3) if both earn it, a real hex-tiled globe (hexes + 12
+pentagons), which is also Colin's Catan hex-city idea. Open question: square city streets on hex tiles.
+
 ## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
 The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping
 it standing; a city meter swings between ruins and metropolis. Fictional groups only, roast both sides, cartoon violence,

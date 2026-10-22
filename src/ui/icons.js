@@ -39,6 +39,7 @@ export const ICON = {
   siren: '<path d="M6 18v-6a6 6 0 0 1 12 0v6"/><path d="M4 21h16"/><path d="M12 2v2M4.2 5.2l1.4 1.4M19.8 5.2l-1.4 1.4"/><path d="M10 13a2 2 0 0 1 2-2"/>',
   shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
   hammer: '<path d="M4 20l7-7"/><path d="M9 6l5-3 5 5-3 5z"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 7h14M5 17h14"/>',
   eye: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   check: '<path d="M4 12l5 5 11-11"/>',
   drag: '<path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',

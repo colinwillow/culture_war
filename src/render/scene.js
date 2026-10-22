@@ -2,6 +2,34 @@
 import * as THREE from 'three';
 
 export { THREE };
+
+// Globe look (prototype, Colin Oct 22): every vertex drops by d^2 / 2R with its ground distance d from the camera's focus,
+// so the flat board reads as a little planet. Render only -- the sim stays flat. Built into three's own vertex chunk, so
+// shadows bend the same way (the bend centre is a shared uniform, NOT the camera, which is the sun during the shadow pass).
+// GLOBE.u = (centre x, centre z, 1/2R); z = 0 is off and costs nothing but a multiply.
+export const GLOBE = { u: { x: 0, y: 0, z: 0 }, R: 110 };
+THREE.ShaderChunk.common = 'uniform vec3 cwGlobe;\n' + THREE.ShaderChunk.common;
+THREE.ShaderChunk.project_vertex = THREE.ShaderChunk.project_vertex.replace('mvPosition = modelViewMatrix * mvPosition;',
+  'vec4 cwW = modelMatrix * mvPosition; vec2 cwD = cwW.xz - cwGlobe.xy; cwW.y -= dot( cwD, cwD ) * cwGlobe.z; mvPosition = viewMatrix * cwW;');
+// A plain object (not a Vector3) is shared by reference when three clones these uniforms into each program.
+for (const k in THREE.ShaderLib) THREE.ShaderLib[k].uniforms.cwGlobe = { value: GLOBE.u };
+export function setGlobe(on) { GLOBE.u.z = on ? 1 / (2 * GLOBE.R) : 0; }
+// A big flat plane only bends at its vertices: split large planes/boxes into ~4 m tiles so the ground curves with the rest.
+export function tessellate(root, step = 4) {
+  const _s = new THREE.Vector3();
+  root.traverse((o) => {
+    if (!o.isMesh || o.isInstancedMesh || !o.geometry.parameters) return;
+    const g = o.geometry, p = g.parameters; o.getWorldScale(_s);
+    const n = (len) => Math.min(120, Math.max(1, Math.ceil(len / step)));
+    if (g.type === 'PlaneGeometry') {
+      const a = n(p.width * _s.x), b = n(p.height * _s.y);
+      if (a * b > 1) { o.geometry = new THREE.PlaneGeometry(p.width, p.height, a, b); g.dispose(); }
+    } else if (g.type === 'BoxGeometry') {
+      const a = n(p.width * _s.x), c = n(p.depth * _s.z);
+      if (a * c > 1) { o.geometry = new THREE.BoxGeometry(p.width, p.height, p.depth, a, 1, c); g.dispose(); }
+    }
+  });
+}
 export const canvas = document.getElementById('c');
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));

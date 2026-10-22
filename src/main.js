@@ -1,26 +1,27 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun } from './render/scene.js?v=152';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=152';
-import { syncRender, clearRender, bump } from './render/sync.js?v=152';
-import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=152';
-import { newSim, getSim, step } from './sim/sim.js?v=152';
-import { TICK } from './config/factions.js?v=152';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=152';
-import { initInput, lockPageZoom } from './input/input.js?v=152';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=152';
-import { resetUI } from './ui/state.js?v=152';
-import { fillIcons, svg } from './ui/icons.js?v=152';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=152';
-import { updateMinimap } from './ui/minimap.js?v=152';
-import { isMuted, setMuted } from './fx/sfx.js?v=152';
-import { loadChars } from './render/chars.js?v=152';
-import { emit } from './fx/particles.js?v=152';
-import { FC } from './render/models.js?v=152';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=153';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=153';
+import { syncRender, clearRender, bump } from './render/sync.js?v=153';
+import { handleEvents, updateFx, clearFx } from './fx/fx.js?v=153';
+import { newSim, getSim, step } from './sim/sim.js?v=153';
+import { TICK } from './config/factions.js?v=153';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=153';
+import { initInput, lockPageZoom } from './input/input.js?v=153';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=153';
+import { resetUI } from './ui/state.js?v=153';
+import { fillIcons, svg } from './ui/icons.js?v=153';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=153';
+import { updateMinimap } from './ui/minimap.js?v=153';
+import { isMuted, setMuted } from './fx/sfx.js?v=153';
+import { loadChars } from './render/chars.js?v=153';
+import { emit } from './fx/particles.js?v=153';
+import { FC } from './render/models.js?v=153';
 
-export const BUILD = 152; // written by `npm run bump`
+export const BUILD = 153; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
+tessellate(scene); // so the ground can bend for the globe look
 initInput();
 loadChars();
 
@@ -87,6 +88,14 @@ function applyGfx() {
 gfxBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); lowGfx = !lowGfx; try { localStorage.setItem('cw-low', lowGfx ? '1' : '0'); } catch (er) {} applyGfx(); });
 gfxBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
 applyGfx();
+// Globe look (prototype): the board curves away like a little planet. Remembered; render only.
+let globe = false;
+try { globe = localStorage.getItem('cw-globe') === '1'; } catch (e) {}
+const globeBtn = document.getElementById('globeBtn');
+function applyGlobe() { setGlobe(globe); globeBtn.innerHTML = svg('globe'); globeBtn.classList.toggle('on', globe); }
+globeBtn.addEventListener('pointerup', (e) => { e.stopPropagation(); globe = !globe; try { localStorage.setItem('cw-globe', globe ? '1' : '0'); } catch (er) {} applyGlobe(); });
+globeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+applyGlobe();
 // Dev aid: long-press any menu button (faction, stars, modes, sound, graphics) to see its name; the press then does nothing.
 {
   let lp = null; const tip = document.getElementById('tip');
