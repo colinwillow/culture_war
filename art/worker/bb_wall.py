@@ -29,6 +29,10 @@ crown(0.36, (0.0, -0.16, 0.55), normal=(0, -1, 0), up=(0, 0, 1), t=0.015, col='d
 box((0.5, 0.04, 0.05), (-0.72, -0.17, 1.2), 'glow', bevel=0.0)
 for x in (-1.0, -0.36, 0.36, 1.0):
     hexbolt(0.03, (x, -0.13, 0.25), (0, -1, 0), 'ivory'); hexbolt(0.03, (x, -0.13, 1.25), (0, -1, 0), 'ivory')
+
+# ---- detail pass 2: a small crimson skull banner on the blue door, hazard stripes on the feet, rust wear
+banner(0.45, 0.6, (-0.72, -0.17, 1.15), (0, -1, 0), mark='crown')
+for k in range(5): box((0.2, 0.52, 0.04), (-0.9 + k * 0.45, 0.15, 0.17), 'orange' if k % 2 == 0 else 'dark', bevel=0.0)
 for o in bpy.context.scene.objects:   # centre the 0.9 m-deep footprint on the origin
     o.location.y -= 0.32; o.location.z += 0.02
 print(ship('bb_wall', chunk_cuts={'x': [-0.55, 0.0, 0.55], 'z': [0.8]}))

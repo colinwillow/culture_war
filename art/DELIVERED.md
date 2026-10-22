@@ -117,3 +117,8 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [w_brute_pipewrench] DETAIL PASS 2 models/gen/w_brute_pipewrench.glb -- 1324 tris, size/origin unchanged from v2: crimson team band on the handle, panel line + rust wear on the hook jaw
 - [w_brute_cannon] DETAIL PASS 2 models/gen/w_brute_cannon.glb -- 1964 tris, size/origin unchanged from v2: crimson stripe on the breech cap, panel lines, rust wear
 - [p_skateboard] DETAIL PASS 2 models/gen/p_skateboard.glb -- 1576 tris, size/origin unchanged from v2: crimson team edge rails, scuff wear on the nose, deck panel line
+- [bb_hq] DETAIL PASS 2 models/gen/bb_hq.glb -- 5896 tris, size/origin unchanged: tattered crimson banners (skull at the gate-left container, crown on the +X roof), orange/black hazard stripes on the gate posts, rust streaks
+- [bb_barracks] DETAIL PASS 2 models/gen/bb_barracks.glb -- 3260 tris, size/origin unchanged: crimson skull + crown banners on the front posts, hazard stripes on the door edges, rust streaks on the side walls
+- [bb_depot] DETAIL PASS 2 models/gen/bb_depot.glb -- 3774 tris, size/origin unchanged: crimson crown banner on the crane mast, hazard stripes on the crane base, rust patch on the fence
+- [bb_tower] DETAIL PASS 2 models/gen/bb_tower.glb -- 2518 tris, size/origin unchanged: long crimson skull banner under the nest front, hazard stripes along the deck edge
+- [bb_wall] DETAIL PASS 2 models/gen/bb_wall.glb -- 1198 tris, 2.2 x 1.7 x 1.08 m, origin unchanged: small crimson crown banner on the blue door, hazard stripes on the feet; _chunks.glb rebuilt (8 chunks, 2108 tris)

@@ -54,4 +54,10 @@ for s in (-1, 1):
     crown(2.2, (s * (Wd / 2 + 0.16), 0.5, 1.9), normal=(s, 0, 0), up=(0, 0, 1), t=0.05)
     box((0.5, 0.12, 0.5), (s * 2.9, -D / 2 - 0.16, Hw - 0.3), 'ivory', bevel=0.04)
     hexbolt(0.07, (s * 2.9, -D / 2 - 0.23, Hw - 0.3), (0, -1, 0))
+
+# ---- detail pass 2: crimson skull banners on the front posts, hazard stripes on the door edges, rust streaks
+for s in (-1, 1):
+    banner(0.7, 1.4, (s * 2.9, -D / 2 - 0.2, Hw - 0.6), (0, -1, 0), mark='skull' if s < 0 else 'crown')
+    for z in (0.5, 1.1, 1.7, 2.3, 2.9): box((0.1, 0.16, 0.3), (s * 2.05, -D / 2 - 0.3, z), 'orange' if int(z * 10) % 12 == 5 else 'dark', bevel=0.0)
+    box((0.04, 0.2, 1.2), (s * (Wd / 2 + 0.16), 2.4, 1.4), 'rust', bevel=0.0)
 print(ship('bb_barracks'))

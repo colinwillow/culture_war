@@ -403,3 +403,34 @@ def chain(p0, p1, r=0.03, col='iron'):
         q = d.normalized().to_track_quat('Y', 'Z')
         o.rotation_euler = (q @ Quaternion(Vector((0, 1, 0)), (i % 2) * math.pi / 2)).to_euler(); obs.append(o)
     return obs
+
+def banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='white'):
+    """Tattered hanging cloth banner (top edge at loc), facing `normal`, with a crown (or skull) mark. Ragged bottom."""
+    n = Vector(normal).normalized(); up = Vector((0, 0, 1)); x = up.cross(n).normalized()
+    p = Vector(loc); obs = []
+    obs.append(box((w + 0.1, 0.06, 0.06), tuple(p), 'iron', bevel=0.0))                     # hanging rod
+    obs[-1].rotation_euler = n.to_track_quat('Y', 'Z').to_euler()
+    c = box((w, 0.03, h), tuple(p - up * h / 2 + n * 0.02), col, bevel=0.0)
+    c.rotation_euler = n.to_track_quat('Y', 'Z').to_euler(); obs.append(c)
+    for k in range(4):                                                                      # ragged tails
+        t = -w / 2 + (k + 0.5) * w / 4
+        L = h * (0.18 + 0.12 * ((k * 7) % 3))
+        tl = box((w / 4 * 0.8, 0.03, L), tuple(p + x * t - up * (h + L / 2 - 0.01) + n * 0.02), col, bevel=0.0, taper=(1.0, 1.0))
+        tl.rotation_euler = n.to_track_quat('Y', 'Z').to_euler(); obs.append(tl)
+    mp = p - up * h * 0.5 + n * 0.04
+    if mark == 'crown':
+        obs.append(crown(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col))
+    else:
+        obs += skull(w * 0.32, tuple(mp), tuple(n), mark_col)
+    return obs
+
+def skull(r, loc, normal=(0, -1, 0), col='ivory'):
+    """Chunky skull badge facing `normal`: dome + jaw, dark eye sockets and nose."""
+    n = Vector(normal).normalized(); up = Vector((0, 0, 1)); x = up.cross(n).normalized(); p = Vector(loc)
+    obs = [ball(r, tuple(p + up * r * 0.2), col, 1, (1, 0.6, 0.9)), box((r * 1.2, r * 0.5, r * 0.6), tuple(p - up * r * 0.6), col, bevel=r * 0.1)]
+    obs[1].rotation_euler = n.to_track_quat('Y', 'Z').to_euler()
+    obs[0].rotation_euler = n.to_track_quat('Y', 'Z').to_euler()
+    for s in (-1, 1):
+        obs.append(ball(r * 0.28, tuple(p + x * s * r * 0.4 + up * r * 0.1 + n * r * 0.45), 'dark', 1))
+    obs.append(ball(r * 0.14, tuple(p - up * r * 0.25 + n * r * 0.5), 'dark', 1))
+    return obs

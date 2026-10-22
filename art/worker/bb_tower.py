@@ -56,4 +56,8 @@ crown(0.9, (0, -1.48, 7.36), normal=(0, -1, 0), up=(0, 0, 1), t=0.03)
 for (x, y) in ((P * 0.9, -P * 0.9), (-P * 0.88, -P * 0.88)):
     canister(0.14, 0.8, (x, y - 0.12, 2.6), (0, 0, 1), 'glow', bars=3, ribs=1)
 spike(0.1, 0.35, (0, 0.6, 9.0), (0, 0, 1))
+
+# ---- detail pass 2: a long crimson skull banner hanging under the nest, hazard stripes on the deck edge, rust
+banner(1.0, 2.2, (0, -1.5, 6.7), (0, -1, 0), mark='skull')
+for k in range(7): box((0.4, 0.05, 0.12), (-1.2 + k * 0.4, -1.42, 6.85), 'orange' if k % 2 else 'dark', bevel=0.0)
 print(ship('bb_tower'))

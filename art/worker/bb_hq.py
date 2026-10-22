@@ -57,4 +57,14 @@ for a in (0, 120, 240):
 for x in (-1.2, 1.2):
     box((0.6, 0.12, 0.3), (x, -1.0, 2.75), 'ivory', bevel=0.03)                    # ivory armour plates on the emblem backing
     hexbolt(0.07, (x, -1.07, 2.75), (0, -1, 0))
+
+# ---- detail pass 2: tattered crimson banners (crown + skull) on the containers, hazard stripes on the gate posts,
+# rust streaks, panel lines
+banner(1.3, 1.5, (-3.3, -4.12, 2.4), (0, -1, 0), mark='skull')
+banner(1.2, 1.8, (4.62, -1.6, 4.9), (1, 0, 0), mark='crown')
+
+for x in (-1.9, 1.9):
+    for z in (0.4, 1.0, 1.6, 2.2): box((0.42, 0.52, 0.18), (x, -3.9, z), 'orange' if int(z * 10) % 12 == 4 or z in (0.4, 1.6) else 'dark', bevel=0.0)
+for (x, y, z) in ((-2.0, -0.12, 4.0), (1.0, -0.12, 3.6), (4.62, 2.8, 1.4)):
+    box((0.12, 0.04, 0.9) if x < 4 else (0.04, 0.12, 0.9), (x, y if x < 4 else y, z), 'rust', bevel=0.0)
 print(ship('bb_hq'))

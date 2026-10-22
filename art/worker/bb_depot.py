@@ -48,4 +48,9 @@ crown(0.7, (0, E + 0.05, 0.8), normal=(0, 1, 0), up=(0, 0, 1), t=0.03)
 crown(0.6, (-E - 0.05, 0, 0.8), normal=(-1, 0, 0), up=(0, 0, 1), t=0.03)
 crown(0.5, (1.3, 0.2 - 0.41, 1.45), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
 chain((1.4, 1.4, 3.55), (1.4, 1.4, 2.1), 0.05)
+
+# ---- detail pass 2: crimson crown banner on the crane mast, hazard stripes on the crane base, rust patches
+banner(0.6, 1.0, (-1.4, 1.2, 3.3), (0, -1, 0), mark='crown')
+for k in range(4): box((0.28, 0.06, 0.5), (-1.85 + k * 0.3, 0.83, 0.4), 'orange' if k % 2 else 'dark', bevel=0.0)
+box((0.6, 0.04, 0.4), (0.8, -E - 0.04, 0.6), 'rust', bevel=0.0)
 print(ship('bb_depot'))
