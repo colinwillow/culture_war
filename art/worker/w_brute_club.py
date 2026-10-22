@@ -1,16 +1,26 @@
-# scrap club: pipe + bolt-studded iron lump. Origin at the grip, head along +Z (Blender -Y).
+# scrap club v2 (detail pass, AESTHETIC.md): pipe handle + a riveted iron head with ivory/orange cone spikes,
+# amber glow slits and a white crown tag. Origin at the grip, head along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
-X = (90, 0, 0)  # cylinder axis -> Y
-cyl(0.022, 0.62, (0, -0.21, 0), 'steel', X, n=8)                 # pipe, y +0.10 .. -0.52
-cyl(0.03, 0.16, (0, 0.0, 0), 'olive', X, n=8, bevel=0.006)        # cloth grip wrap
-cyl(0.032, 0.03, (0, 0.10, 0), 'iron', X, n=8, bevel=0.006)       # pommel cap
-cyl(0.03, 0.03, (0, -0.08, 0), 'rust', X, n=8)                    # wire band
-box((0.09, 0.26, 0.09), (0, -0.66, 0), 'iron', bevel=0.02, taper=None)  # the lump
-box((0.085, 0.06, 0.085), (0, -0.50, 0), 'rust', bevel=0.012)    # collar where pipe meets lump
-for x in (-1, 1):
-    for y in (-0.6, -0.72):
-        cyl(0.011, 0.022, (x * 0.05, y, 0), 'bone', (0, 90 * x, 0), n=6, r2=0.004)   # bolt studs sides
-        cyl(0.011, 0.022, (0, y, x * 0.05), 'bone', (0 if x > 0 else 180, 0, 0), n=6, r2=0.004)    # top/bottom
-cyl(0.011, 0.022, (0, -0.795, 0), 'bone', (90, 0, 0), n=6, r2=0.004)
+X = (90, 0, 0)
+cyl(0.022, 0.62, (0, -0.21, 0), 'steel', X, n=8)                                 # pipe
+cyl(0.03, 0.17, (0, 0.0, 0), 'olive', X, n=8, bevel=0.006)                        # cloth grip wrap
+for y in (0.075, -0.075): cyl(0.033, 0.018, (0, y, 0), 'dark', X, n=8)          # wrap bindings
+cyl(0.036, 0.04, (0, 0.11, 0), 'iron', X, n=6, bevel=0.006)                       # hex pommel
+chain((0, 0.13, -0.01), (0, 0.15, -0.13), 0.012)                                  # dangling chain
+box((0.03, 0.006, 0.04), (0, 0.15, -0.155), 'iron', bevel=0.002)                 # tag
+cyl(0.03, 0.05, (0, -0.47, 0), 'rust', X, n=8, bevel=0.006)                      # collar
+# head: iron block with an orange painted band and glowing slits
+box((0.1, 0.27, 0.1), (0, -0.65, 0), 'iron', bevel=0.016)
+box((0.104, 0.07, 0.104), (0, -0.56, 0), 'burnt', bevel=0.012)
+for s in (-1, 1):
+    box((0.006, 0.08, 0.02), (s * 0.052, -0.69, 0.02), 'glow', bevel=0.0)
+    box((0.006, 0.08, 0.02), (s * 0.052, -0.69, -0.02), 'glow', bevel=0.0)
+crown(0.06, (0, -0.69, 0.0505), normal=(0, 0, 1), up=(0, -1, 0), t=0.003)        # crown tag on top
+for y in (-0.6, -0.75):
+    for d in ((1, 0, 0), (-1, 0, 0), (0, 0, -1)):
+        spike(0.02, 0.065, (d[0] * 0.05, y, d[2] * 0.05), d)
+spike(0.024, 0.07, (0, -0.785, 0), (0, -1, 0))                                    # tip spike
+for p in ((0.05, -0.53, 0.05), (-0.05, -0.53, 0.05), (0.05, -0.77, 0.05), (-0.05, -0.77, 0.05)):
+    hexbolt(0.009, p, (0, 0, 1))
 print(ship('w_brute_club'))

@@ -4,7 +4,7 @@ Every part is a separate object with a bevel; finish() applies everything, joins
 vertex-colour attribute "Col" and one material ("kit"); amber glow parts go to a second emissive material ("glow").
 """
 import bpy, bmesh, math, os, sys
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OUT = os.path.join(ROOT, 'models', 'gen')
@@ -230,14 +230,14 @@ def preview(path, png, dist=None):
     c = (mn + mx) / 2; r = max((mx - mn).length / 2, 0.05)
     cam = bpy.data.cameras.new('cam'); co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co)
     # 3/4 view from front-right, above (front = -Y in Blender)
-    d = Vector((1.0, -1.3, 1.0)).normalized() * r * 3.2
+    d = Vector((1.0, -1.3, 1.0)).normalized() * r * 2.3
     co.location = c + d
     co.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler()
     cam.lens = 50; sc.camera = co
     sc.render.engine = 'BLENDER_WORKBENCH'
     sh = sc.display.shading; sh.color_type = 'VERTEX'; sh.light = 'STUDIO'; sh.show_cavity = True
     sh.background_type = 'VIEWPORT'
-    sc.render.resolution_x = sc.render.resolution_y = 256; sc.render.resolution_percentage = 100
+    sc.render.resolution_x = sc.render.resolution_y = 384; sc.render.resolution_percentage = 100
     sc.render.filepath = png; sc.render.image_settings.file_format = 'PNG'
     w = bpy.data.worlds.new('w'); sc.world = w
     bpy.ops.render.render(write_still=True)
@@ -339,3 +339,67 @@ def gear(r, loc, col='team', teeth=10, bite=2, thick=0.25, rot=(90, 0, 0), hub='
 def torus(R, r, loc=(0, 0, 0), col='steel', rot=(0, 0, 0), n=16, m=6):
     bpy.ops.mesh.primitive_torus_add(major_radius=R, minor_radius=r, major_segments=n, minor_segments=m)
     ob = bpy.context.object; _place(ob, loc, rot); _color(ob, col); return ob
+
+# ---------------------------------------------------------------- detail-pass parts (see AESTHETIC.md)
+PAL['ivory'] = _lin('e9dcc0'); PAL['burnt'] = _lin('c4561a'); PAL['dark'] = _lin('24211f')
+
+def _aim(ob, d):
+    ob.rotation_euler = Vector(d).normalized().to_track_quat('Z', 'Y').to_euler()
+
+def spike(r, h, loc, d=(0, 0, 1), n=6):
+    """Two-tone cone spike pointing along d: ivory base, burnt-orange tip. Base sits at loc."""
+    d = Vector(d).normalized(); p = Vector(loc)
+    a = cyl(r, h * 0.62, tuple(p + d * h * 0.31), 'ivory', n=n, r2=r * 0.5); _aim(a, d)
+    b = cyl(r * 0.5, h * 0.38, tuple(p + d * h * 0.81), 'burnt', n=n, r2=0.0); _aim(b, d)
+    c = cyl(r * 1.15, h * 0.08, tuple(p + d * h * 0.02), 'iron', n=n); _aim(c, d)       # iron collar
+    return [a, b, c]
+
+def hexbolt(r, loc, d=(0, 0, 1), col='steel'):
+    o = cyl(r, r * 0.7, loc, col, n=6); _aim(o, d); return o
+
+def canister(r, L, loc, d=(0, 0, 1), glow='glow', bars=3, ribs=2):
+    """Caged glow tube along d centred at loc: glowing core, iron end caps, bars, rib rings."""
+    d = Vector(d).normalized(); p = Vector(loc); obs = []
+    o = cyl(r * 0.78, L * 0.86, tuple(p), glow, n=8); _aim(o, d); obs.append(o)
+    for s in (-1, 1):
+        o = cyl(r, L * 0.12, tuple(p + d * s * L * 0.44), 'iron', n=8, bevel=r * 0.15); _aim(o, d); obs.append(o)
+    side = d.orthogonal().normalized()
+    for i in range(bars):
+        q = Quaternion(d, 2 * math.pi * i / bars) @ side
+        o = box((r * 0.28, r * 0.28, L * 0.8), tuple(p + q * r * 0.92), 'iron', bevel=0.0)
+        o.rotation_euler = d.to_track_quat('Z', 'Y').to_euler(); obs.append(o)
+    for k in range(ribs):
+        t = (k + 1) / (ribs + 1) - 0.5
+        o = cyl(r * 0.95, L * 0.05, tuple(p + d * t * L * 0.8), 'iron', n=8); _aim(o, d); obs.append(o)
+    return obs
+
+def crown(w, loc, normal=(0, -1, 0), col='white', t=None, up=(0, 0, 1)):
+    """Drippy graffiti crown tag (flat, extruded `t`), width w, facing `normal`, crown points toward `up`."""
+    t = t or w * 0.06; h = w * 0.62
+    pts = [(-0.5, -0.32), (-0.5, 0.42), (-0.28, 0.08), (0.0, 0.5), (0.28, 0.08), (0.5, 0.42), (0.5, -0.32),
+           (0.36, -0.32), (0.36, -0.5), (0.26, -0.5), (0.26, -0.32), (-0.08, -0.32), (-0.08, -0.62), (-0.18, -0.62),
+           (-0.18, -0.32)]                                                   # crown + two drips
+    bm = bmesh.new()
+    vs = [bm.verts.new((x * w, y * h * 1.1, 0)) for x, y in pts]
+    f = bm.faces.new(vs)
+    r = bmesh.ops.extrude_face_region(bm, geom=[f])
+    for v in [e for e in r['geom'] if isinstance(e, bmesh.types.BMVert)]: v.co.z += t
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    me = bpy.data.meshes.new('crown'); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new('crown', me); bpy.context.scene.collection.objects.link(ob)
+    n = Vector(normal).normalized(); u = Vector(up).normalized()
+    x = u.cross(n).normalized(); y = n.cross(x).normalized()
+    M = Matrix((x, y, n)).transposed()
+    ob.matrix_world = Matrix.Translation(Vector(loc)) @ M.to_4x4()
+    _color(ob, col); return ob
+
+def chain(p0, p1, r=0.03, col='iron'):
+    """Chain of alternating links from p0 to p1."""
+    p0, p1 = Vector(p0), Vector(p1); d = p1 - p0; L = d.length; n = max(2, int(L / (r * 2.6)))
+    obs = []
+    for i in range(n):
+        o = torus(r, r * 0.3, tuple(p0 + d * (i + 0.5) / n), col, n=8, m=4)
+        o.scale = (1, 1.6, 1)
+        q = d.normalized().to_track_quat('Y', 'Z')
+        o.rotation_euler = (q @ Quaternion(Vector((0, 1, 0)), (i % 2) * math.pi / 2)).to_euler(); obs.append(o)
+    return obs
