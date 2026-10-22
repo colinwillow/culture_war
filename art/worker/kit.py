@@ -242,10 +242,12 @@ def preview(path, png, dist=None):
     w = bpy.data.worlds.new('w'); sc.world = w
     bpy.ops.render.render(write_still=True)
 
-def ship(name, objs=None, chunk_cuts=None):
-    """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info."""
+def ship(name, objs=None, chunk_cuts=None, clip=False):
+    """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info.
+    clip=True cuts away anything below the ground (y 0)."""
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
     ob = join(name, objs)
+    if clip: clip_ground(ob)
     p = os.path.join(OUT, name + '.glb'); export(p, [ob])
     if chunk_cuts:
         cs = chunks(ob, chunk_cuts, name)
