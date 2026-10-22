@@ -2,6 +2,7 @@
 # Origin ground centre, boarding ramp faces +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 N = 20
 cyl(4.9, 0.8, (0, 0, 2.8), 'pearl', n=N, r2=4.9)                    # rim band body (y 1.9 .. 2.8)
 cyl(4.9, 0.8, (0, 0, 2.0), 'gunmetal', n=N, r2=2.2) .rotation_euler = (math.pi, 0, 0)   # underside cone (wide at top)
@@ -12,7 +13,7 @@ cyl(1.0, 0.3, (0, 0, 5.55), 'gunmetal', n=12)                          # dome ca
 cyl(0.5, 0.25, (0, 0, 5.75), 'gcyan', n=12)                            # cyan beacon
 for i in range(12):                                                    # ring of cyan windows on the upper slope
     a = 2 * math.pi * (i + 0.5) / 12
-    w = box((0.9, 0.12, 0.35), (math.cos(a) * 4.15, math.sin(a) * 4.15, 3.6), 'gcyan', bevel=0.0)
+    w = box((0.9, 0.12, 0.35), (math.cos(a) * 4.15, math.sin(a) * 4.15, 3.6), 'gorange', bevel=0.0)
     w.rotation_euler = (math.radians(-55), 0, a + math.pi / 2)
     w.rotation_euler = (0, 0, a + math.pi / 2); w.rotation_euler.rotate_axis('X', math.radians(-38))
 for i in range(3):                                                     # three landing legs
@@ -57,7 +58,21 @@ cyl(2.6, 1.55, (0, 0, 0.8), 'ccyan', n=16, r2=1.35)
 torus(2.5, 0.08, (0, 0, 0.06), 'gcyan', n=20, m=4)
 # ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
 hexplinth(5.0, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
-hexplinth(5.0 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+hexplinth(5.0 + 0.06, 0.06, (0, 0, 0.1), 'brass', bevel=0.0)
 for k in range(6):
-    a = math.radians(60 * k); ball(5.0 * 0.06, (math.cos(a) * 5.0, math.sin(a) * 5.0, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
+    a = math.radians(60 * k); ball(5.0 * 0.06, (math.cos(a) * 5.0, math.sin(a) * 5.0, 0.16), 'gorange', 1)
+
+# ---- GREY PASS (Colin's Grey sheets): crimson rim plates with the ivory UFO-beam mark, rust speckles on the bone plate,
+# brass rings, speaker discs on the dome, neon tube racks on the legs, orange glowing lenses round the rim
+speckle((0, 0, 3.9), 2.7, 40, seed=41, scale=(1, 1, 0.62), zmin=4.2, size=0.08)
+for a in (30, 150, 270):
+    r = math.radians(a); nx, ny = math.cos(r), math.sin(r)
+    pl = box((1.6, 0.1, 0.7), (nx * 4.98, ny * 4.98, 2.8), 'team', bevel=0.03); pl.rotation_euler = (0, 0, r + math.pi / 2)
+    ufomark(0.65, (nx * 5.04, ny * 5.04, 2.8), (nx, ny, 0), (0, 0, 1), 'ivory')
+for a in (90, 210, 330):
+    r = math.radians(a); speaker(0.45, (math.cos(r) * 2.4, math.sin(r) * 2.4, 4.6), (math.cos(r), math.sin(r), 0.5), 'gorange')
+for i in range(3):
+    a = 2 * math.pi * i / 3 + math.pi / 2 + math.pi / 3; x, y = math.cos(a), math.sin(a)
+    neon_rack((x * 3.3, y * 3.3, 1.8), (0, 0, 1), 3, 0.09, 0.8)
+    ring(0.3, 0.06, (x * 3.6, y * 3.6, 0.9), rot=(0, 0, 0))
 print(ship('gb_hq', clip=True))

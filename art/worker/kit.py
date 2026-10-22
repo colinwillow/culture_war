@@ -27,7 +27,7 @@ PAL = {k: _lin(v) for k, v in dict(
 GLOW = {'glow': 'glow', 'gcyan': 'glow_cyan', 'gmagenta': 'glow_magenta', 'gacid': 'glow_acid', 'glime': 'glow_lime'}
 GLOW_HEX = {'glow': 'ffb347', 'gcyan': '39e0ff', 'gmagenta': 'e0249a', 'gacid': '7cff4a', 'glime': 'a6e22e'}
 # translucent (alpha-blended) parts
-CLEAR = {'ccyan': ('clear_cyan', '39e0ff', 0.45), 'cacid': ('clear_acid', '7cff4a', 0.5), 'cpurple': ('clear_purple', '8a5ac0', 0.55),
+CLEAR = {'corange': ('clear_orange', 'ff8a2a', 0.5), 'ccyan': ('clear_cyan', '39e0ff', 0.45), 'cacid': ('clear_acid', '7cff4a', 0.5), 'cpurple': ('clear_purple', '8a5ac0', 0.55),
          'cglass': ('clear_glass', '9fd8e8', 0.4)}
 for k, h in GLOW_HEX.items(): PAL[k] = _lin(h)
 for k, (n, h, a) in CLEAR.items(): PAL[k] = _lin(h)
@@ -485,7 +485,7 @@ def banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='whi
         obs.append(_CROWN_ORIG(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col) if '_CROWN_ORIG' in globals() else crown(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col))
     elif mark == 'gear':
         obs += gearmark(w * 0.75, tuple(mp), tuple(n), (0, 0, 1), 'ivory' if mark_col == 'white' else mark_col, 0.015)
-    else:
+    elif mark == 'skull':
         obs += skull(w * 0.32, tuple(mp), tuple(n), mark_col)
     return obs
 
@@ -644,3 +644,69 @@ def brute_style():
     g['spike'] = stud_spike; g['crown'] = gear_crown; g['banner'] = gear_banner
     import builtins
     return stud_spike, gear_crown, gear_banner
+
+# ---------------------------------------------------------------- Grey style (Colin's Grey sheets, Oct 22):
+# speckled bone-white plate over dark rusty iron, brass rings, crimson plates with the ivory UFO-and-beam mark,
+# headphone/speaker discs, rainbow neon tubes, orange glowing lenses. Crowns appear only as small tags.
+PAL['brass'] = _lin('b07a32'); PAL['plate'] = _lin('e4dccd'); PAL['rustdk'] = _lin('5a2e1a')
+for _k, _h in dict(gorange='ff8a2a', gneon_g='7cff4a', gneon_m='e04cff', gneon_c='39e0ff').items():
+    PAL[_k] = _lin(_h)
+GLOW.update(gorange='glow_orange', gneon_g='glow_acid', gneon_m='glow_magenta', gneon_c='glow_cyan')
+GLOW_HEX.update(gorange='ff8a2a', gneon_g='7cff4a', gneon_m='e04cff', gneon_c='39e0ff')
+
+def ufomark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None):
+    """Grey brand: a saucer (dome + disc) with a fanned abduction beam of 4 strokes under it, width w."""
+    t = t or w * 0.05; n = Vector(normal).normalized(); u = Vector(up).normalized()
+    x = u.cross(n).normalized(); u = n.cross(x).normalized(); c = Vector(loc)
+    M = Matrix((x, n, u)).transposed().to_4x4(); obs = []
+    def flat(o, px, py, rot=0.0):
+        o.matrix_world = Matrix.Translation(c + x * px + u * py + n * t / 2) @ M @ Matrix.Rotation(rot, 4, 'Y'); return o
+    def oval(rx, rz, px, py):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=1)
+        o = bpy.context.object; _color(o, col)
+        o.matrix_world = Matrix.Translation(c + x * px + u * py + n * t / 2) @ M @ Matrix.Diagonal((rx, t / 2, rz, 1))
+        return o
+    obs.append(oval(w * 0.46, w * 0.075, 0, w * 0.3))                      # disc
+    obs.append(oval(w * 0.19, w * 0.15, 0, w * 0.36))                      # dome
+    for px, ang in ((-0.15, 0.32), (-0.05, 0.11), (0.05, -0.11), (0.15, -0.32)):   # beam fans out downward
+        s_ = box((w * 0.06, t, w * 0.48), (0, 0, 0), col, bevel=0.0); obs.append(flat(s_, w * px * 1.5, -w * 0.02, ang))
+    return obs
+
+def speaker(r, loc, d=(1, 0, 0), lens='gneon_c'):
+    """Headphone/speaker disc: brass ring, bone-white cup, dark grille, glowing centre lens."""
+    d_ = Vector(d).normalized(); p = Vector(loc); obs = []
+    o = cyl(r, r * 0.5, tuple(p), 'plate', n=12, bevel=r * 0.08); _aim(o, d_); obs.append(o)
+    o = cyl(r * 1.05, r * 0.15, tuple(p + d_ * r * 0.22), 'brass', n=12); _aim(o, d_); obs.append(o)
+    o = cyl(r * 0.72, r * 0.1, tuple(p + d_ * r * 0.28), 'iron', n=12); _aim(o, d_); obs.append(o)
+    o = cyl(r * 0.32, r * 0.1, tuple(p + d_ * r * 0.33), lens, n=10); _aim(o, d_); obs.append(o)
+    return obs
+
+def neon_rack(loc, d=(0, 0, 1), n=4, r=0.06, L=0.5, spread=None):
+    """A row of rainbow neon tubes with dark caps (like the Grey DJ's belt)."""
+    cols = ['gneon_g', 'gneon_m', 'gneon_c', 'gneon_g', 'gneon_m']
+    p = Vector(loc); d_ = Vector(d).normalized(); side = d_.orthogonal().normalized(); obs = []
+    sp = spread or r * 2.6
+    for i in range(n):
+        q = p + side * (i - (n - 1) / 2) * sp
+        o = cyl(r, L, tuple(q), cols[i % len(cols)], n=8); _aim(o, d_); obs.append(o)
+        for s in (-1, 1):
+            o = cyl(r * 1.15, L * 0.12, tuple(q + d_ * s * L * 0.5), 'iron', n=8); _aim(o, d_); obs.append(o)
+    return obs
+
+def speckle(center, radius, n, seed=0, scale=(1, 1, 1), zmin=None, size=0.05):
+    """Rust speckles over a bone-white surface (like the Greys' skin and plate)."""
+    return spots(center, radius, n, seed=seed, col='rustdk', size=size, zmin=zmin, scale=scale)
+
+def grey_style():
+    """Call at the top of a Grey script: pearl -> speckled bone plate, gunmetal -> dark rusty iron, crown tags ->
+    ivory UFO-beam marks, banners carry the UFO mark."""
+    PAL['pearl'] = PAL['plate']; PAL['gunmetal'] = _lin('3a2c24')
+    g = globals()
+    def ufo_crown(w, loc, normal=(0, -1, 0), col='white', t=None, up=(0, 0, 1)):
+        return ufomark(w * 1.1, loc, normal, up, 'ivory' if col in ('white', 'ivory') else col, t)
+    def ufo_banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='white'):
+        obs = _BANNER_ORIG(w, h, loc, normal, col, 'none', mark_col)
+        n = Vector(normal).normalized(); mp = Vector(loc) - Vector((0, 0, h * 0.5)) + n * 0.04
+        return obs + ufomark(w * 0.8, tuple(mp), tuple(n), (0, 0, 1), 'ivory', 0.015)
+    g['crown'] = ufo_crown; g['banner'] = ufo_banner
+    return ufo_crown, ufo_banner

@@ -1,6 +1,7 @@
 # Greys tower: probe spire -- thin white needle with a floating ring near the top. Origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 cyl(1.25, 0.4, (0, 0, 0.2), 'gunmetal', n=12, bevel=0.05)                    # base disc
 cyl(1.0, 0.8, (0, 0, 0.8), 'pearl', n=12, r2=0.45)                           # flared foot
 box((0.9, 0.08, 0.35), (0, -0.92, 0.55), 'team', rot=(-20, 0, 0), bevel=0.0)  # crimson panels (front/back)
@@ -36,7 +37,15 @@ torus(0.6, 0.12, (0, 0, 8.45), 'pearl', rot=(12, -8, 0), n=14, m=5)
 for z in (6.5, 8.45): ball(0.12, (0.0, -0.75 if z < 7 else -0.6, z), 'gcyan', 1)
 # ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
 hexplinth(1.3, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
-hexplinth(1.3 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+hexplinth(1.3 + 0.06, 0.06, (0, 0, 0.1), 'brass', bevel=0.0)
 for k in range(6):
-    a = math.radians(60 * k); ball(1.3 * 0.06, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
+    a = math.radians(60 * k); ball(1.3 * 0.06, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0.16), 'gorange', 1)
+
+# ---- GREY PASS: crimson band with the UFO mark on the needle, speaker discs either side (like the headphones),
+# brass rings, a neon rack at the foot, speckles
+cyl(0.43, 0.6, (0, 0, 3.0), 'team', n=10)
+ufomark(0.45, (0, -0.4, 3.0), (0, -1, 0), (0, 0, 1), 'ivory')
+for s_ in (-1, 1): speaker(0.28, (s_ * 0.34, 0, 5.0), (s_, 0, 0), 'gneon_c')
+for z in (4.2, 5.8): ring(0.33, 0.05, (0, 0, z), rot=(0, 0, 0))
+neon_rack((0.0, -0.9, 0.75), (0, 0, 1), 3, 0.06, 0.5)
 print(ship('gb_tower'))

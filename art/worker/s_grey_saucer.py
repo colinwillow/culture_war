@@ -1,6 +1,7 @@
 # Grey saucer: smooth disc, glass dome, ring of cyan lights underneath, crimson rim stripe. Bottom at y 0, front +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 N = 20
 cyl(1.4, 0.55, (0, 0, 0.3), 'gunmetal', n=N, r2=3.0).rotation_euler = (0, 0, 0)   # belly cone (narrow at the bottom)
 cyl(3.0, 0.3, (0, 0, 0.72), 'pearl', n=N)                                          # rim
@@ -28,4 +29,15 @@ for a in (90, 270):
 for x in (-0.4, 0.4): banner(0.35, 0.35, (x, 3.0, 0.85), (0, 1, 0), mark='crown')
 cyl(2.6, 0.02, (0, 0, 1.0), 'dark', n=N); cyl(2.0, 0.02, (0, 0, 1.2), 'dark', n=N)
 for a in range(0, 360, 30): r = math.radians(a); box((0.2, 0.05, 0.05), (math.cos(r) * 3.03, math.sin(r) * 3.03, 0.82), 'gcyan', rot=(0, 0, a + 90), bevel=0.0)
+
+# ---- GREY PASS: crimson rim plates with UFO marks, speckled bone disc, brass ring round the dome, speaker discs on the
+# sides, orange glowing headlights at the front, neon tubes under the rim
+speckle((0, 0, 1.09), 3.0, 30, seed=44, scale=(1, 1, 0.15), size=0.07)
+for a in (-90, 30, 150):
+    r = math.radians(a); nx, ny = math.cos(r), math.sin(r)
+    ufomark(0.5, (nx * 3.06, ny * 3.06, 0.72), (nx, ny, 0), (0, 0, 1), 'ivory')
+torus(1.3, 0.07, (0, 0, 1.3), 'brass', n=16, m=4)
+for s_ in (-1, 1): speaker(0.3, (s_ * 2.0, 0.8, 1.1), (s_, 0, 0.8), 'gneon_c')
+for x in (-0.5, 0.5): ball(0.14, (x, -2.95, 0.7), 'gorange', 1)
+neon_rack((0, 2.2, 0.35), (1, 0, 0), 3, 0.06, 0.6, spread=0.2)
 print(ship('s_grey_saucer'))

@@ -1,6 +1,7 @@
 # Greys wall: energy-fence post pair with a translucent cyan panel between, BREAKABLE. Runs along X, origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 for s in (-1, 1):
     x = s * 0.92
     box((0.5, 0.5, 0.2), (x, 0, 0.1), 'gunmetal', bevel=0.05)                    # foot
@@ -26,4 +27,11 @@ c = cyl(0.025, 1.9, (0, 0.12, 1.62), 'dark', (0, 90, 0), n=5)
 # ---- detail pass 2: crimson crown tag plates on the post tops, a hazard band at the base of the panel
 for s in (-1, 1): box((0.3, 0.05, 0.12), (s * 0.92, -0.19, 1.5), 'team', bevel=0.0)
 for k in range(4): box((0.38, 0.08, 0.08), (-0.57 + k * 0.38, 0, 0.32), 'orange' if k % 2 else 'dark', bevel=0.0)
+
+# ---- GREY PASS: crimson plates with UFO marks on the posts, brass rings, a small speaker on each post top
+for s_ in (-1, 1):
+    x = s_ * 0.92
+    box((0.3, 0.05, 0.36), (x, -0.2, 0.75), 'team', bevel=0.0)
+    ufomark(0.24, (x, -0.23, 0.75), (0, -1, 0), (0, 0, 1), 'ivory')
+    ring(0.2, 0.035, (x, 0, 0.4), rot=(0, 0, 0))
 print(ship('gb_wall', chunk_cuts={'x': [-0.45, 0.45], 'z': [0.95]}))

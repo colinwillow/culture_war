@@ -1,6 +1,7 @@
 # Greys depot: abduction beam dish -- tall dish on a mast pointing up, cyan glow cup. Origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 cyl(1.9, 0.4, (0, 0, 0.2), 'gunmetal', n=12, bevel=0.05)                   # base
 cyl(1.5, 0.3, (0, 0, 0.55), 'pearl', n=12, bevel=0.04)
 box((1.2, 0.08, 0.3), (0, -1.53, 0.55), 'team', bevel=0.0)                   # crimson base plates
@@ -35,7 +36,17 @@ cyl(1.3, 0.03, (0, 0, 5.9), 'dark', n=16)
 for a in range(0, 360, 30): r = math.radians(a); box((0.3, 0.1, 0.06), (math.cos(r) * 1.8, math.sin(r) * 1.8, 0.41), 'orange' if a % 60 else 'dark', rot=(0, 0, a + 90), bevel=0.0)
 # ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
 hexplinth(2.1, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
-hexplinth(2.1 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+hexplinth(2.1 + 0.06, 0.06, (0, 0, 0.1), 'brass', bevel=0.0)
 for k in range(6):
-    a = math.radians(60 * k); ball(2.1 * 0.06, (math.cos(a) * 2.1, math.sin(a) * 2.1, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
+    a = math.radians(60 * k); ball(2.1 * 0.06, (math.cos(a) * 2.1, math.sin(a) * 2.1, 0.16), 'gorange', 1)
+
+# ---- GREY PASS: crimson plate with the UFO mark on the base, brass collars on the mast, speaker disc, speckles on the dish,
+# a neon rack replacing one canister, orange lens on the emitter
+for a in (90, 270):
+    r = math.radians(a); nx, ny = math.cos(r), math.sin(r)
+    ufomark(0.6, (nx * 1.58, ny * 1.58, 0.75), (nx, ny, 0), (0, 0, 1), 'ivory')
+for z in (1.2, 3.8): ring(0.42, 0.06, (0, 0, z), rot=(0, 0, 0))
+speaker(0.35, (0.0, -0.45, 3.0), (0, -1, 0), 'gorange')
+speckle((0, 0, 5.7), 1.6, 18, seed=43, scale=(1, 1, 0.5), zmin=5.8, size=0.06)
+neon_rack((1.4, -1.0, 0.95), (0, 0, 1), 3, 0.07, 0.6)
 print(ship('gb_depot'))

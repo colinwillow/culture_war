@@ -8,7 +8,7 @@ Worker notes; art/STYLE.md still rules (sizes, origin, crimson team key, budgets
   caged by 3-4 bars, iron end caps; on weapons, backs, belts, armour seams. Small glowing slits/vents on plates.
 - **Layered armour plates**: weathered bone-white or orange painted plates over dark iron, big hex bolts at corners,
   hex/octagonal knee/shoulder pads, straps with square buckles, hanging chains and tags.
-- **Brands**: BRUTES = ivory gear-and-wrench mark on orange/crimson plates (bitten gear); REPTILIANS = drippy white 3-point CROWN tag on crimson rags. Brutes: orange painted riveted plate over dark iron, octagonal pads, ammo bandoliers, red armbands, olive cloth, iron studs (few bone spikes). Reptilians: frills, horns, ivory/orange spines, spotted teal scales, gold rings, studded leather, chains.
+- **Brands**: GREYS = ivory UFO-and-beam mark on crimson plates; speckled bone-white plate over dark rusty iron, brass rings, headphone/speaker discs, rainbow neon tubes, orange glowing lenses + orange glass domes (small crown tags OK). BRUTES = ivory gear-and-wrench mark on orange/crimson plates (bitten gear); REPTILIANS = drippy white 3-point CROWN tag on crimson rags. Brutes: orange painted riveted plate over dark iron, octagonal pads, ammo bandoliers, red armbands, olive cloth, iron studs (few bone spikes). Reptilians: frills, horns, ivory/orange spines, spotted teal scales, gold rings, studded leather, chains.
   skull emblems on heavy armour; gear-and-wrench mark for Brute workers.
 - **Weapons are oversized**: hammer/mace heads as riveted canisters or blocks with cone spikes and glowing windows,
   pipe handles with grip wraps and pommel caps, chains dangling from the grip.

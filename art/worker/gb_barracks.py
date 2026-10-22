@@ -1,6 +1,7 @@
 # Greys barracks: cloning lab -- squat dome with 3 glowing pods on the side. Origin ground centre, door faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+crown, banner = grey_style()   # Grey sheets: bone plate + UFO-beam brand
 cyl(3.0, 0.5, (0, 0, 0.25), 'gunmetal', n=16, bevel=0.05)                 # plinth
 cyl(2.8, 1.0, (0, 0, 1.0), 'pearl', n=16)                                  # drum
 ball(2.8, (0, 0, 1.5), 'pearl', 2, (1, 1, 0.85))                           # squat dome (top ~3.9)
@@ -41,7 +42,20 @@ torus(0.55, 0.1, (0, 0, 5.2), 'gunmetal', rot=(10, 0, 0), n=12, m=4)
 ball(0.14, (0, 0, 5.85), 'gcyan', 1)
 # ---- hex board (Colin, Oct 22): flat-top HEX pad under the building, rim lip + 6 corner nubs
 hexplinth(3.4, 0.14, (0, 0, 0), 'gunmetal', bevel=0.04)  # HEX pad
-hexplinth(3.4 + 0.06, 0.06, (0, 0, 0.1), 'cyan' if 'gunmetal' == 'gunmetal' else 'acid', bevel=0.0)
+hexplinth(3.4 + 0.06, 0.06, (0, 0, 0.1), 'brass', bevel=0.0)
 for k in range(6):
-    a = math.radians(60 * k); ball(3.4 * 0.06, (math.cos(a) * 3.4, math.sin(a) * 3.4, 0.16), 'gcyan' if 'gunmetal' == 'gunmetal' else 'gacid', 1)
+    a = math.radians(60 * k); ball(3.4 * 0.06, (math.cos(a) * 3.4, math.sin(a) * 3.4, 0.16), 'gorange', 1)
+
+# ---- GREY PASS: crimson plates with UFO marks on the drum, speckles, speaker discs, a neon tube rack by the door,
+# brass rings round the pods, orange lens over the door
+speckle((0, 0, 1.5), 2.8, 30, seed=42, scale=(1, 1, 0.85), zmin=2.0, size=0.07)
+for a in (120, 240):
+    r = math.radians(a); nx, ny = math.cos(r), math.sin(r)
+    pl = box((1.1, 0.1, 0.6), (nx * 2.86, ny * 2.86, 0.95), 'team', bevel=0.03); pl.rotation_euler = (0, 0, r + math.pi / 2)
+    ufomark(0.5, (nx * 2.92, ny * 2.92, 0.95), (nx, ny, 0), (0, 0, 1), 'ivory')
+for s_ in (-1, 1): speaker(0.35, (s_ * 1.6, -2.3, 2.6), (s_ * 0.5, -1, 0.3), 'gorange')
+neon_rack((-1.2, -2.9, 0.9), (0, 0, 1), 4, 0.07, 0.6)
+for i, a in enumerate((-50, 0, 50)):
+    r = math.radians(a); ring(0.55, 0.06, (math.cos(r) * 3.24, math.sin(r) * 3.24, 0.6), rot=(0, 0, 0))
+ball(0.2, (0, -2.95, 2.3), 'gorange', 1)
 print(ship('gb_barracks', clip=True))
