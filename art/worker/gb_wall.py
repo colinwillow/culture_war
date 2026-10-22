@@ -13,4 +13,13 @@ for s in (-1, 1):
 box((1.5, 0.06, 1.2), (0, 0, 0.95), 'ccyan', bevel=0.0)                           # translucent energy panel
 for z in (0.4, 0.95, 1.5):
     box((1.5, 0.09, 0.04), (0, 0, z), 'gcyan', bevel=0.0)                         # bright scan lines
+
+# ---- v2 detail pass: rust bolted bands on the posts, cyan canister on each foot, crown tag on a post, cable between posts
+for s in (-1, 1):
+    x = s * 0.92
+    box((0.38, 0.38, 0.1), (x, 0, 1.25), 'rust', bevel=0.02)
+    hexbolt(0.03, (x, -0.2, 1.25), (0, -1, 0)); hexbolt(0.03, (x, 0.2, 1.25), (0, 1, 0))
+    canister(0.07, 0.35, (x + s * 0.2, -0.2, 0.3), (0, 0, 1), 'gcyan', bars=3, ribs=1)
+crown(0.26, (-0.92, -0.215, 1.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.01)
+c = cyl(0.025, 1.9, (0, 0.12, 1.62), 'dark', (0, 90, 0), n=5)
 print(ship('gb_wall', chunk_cuts={'x': [-0.45, 0.45], 'z': [0.95]}))

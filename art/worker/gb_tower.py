@@ -15,4 +15,14 @@ for i in range(6):
     a = 2 * math.pi * i / 6
     box((0.3, 0.44, 0.1), (math.cos(a) * 1.0, math.sin(a) * 1.0 * 0.99, 7.6 + math.sin(a) * 0.14), 'gcyan', rot=(8, 0, math.degrees(a) + 90), bevel=0.0)
 ball(0.3, (0, 0, 9.0), 'gcyan', 1)                                           # top glow
+
+# ---- v2 detail pass: rust bands + bolts up the needle, cable spiral, cyan canister pair at the foot, crown tag
+for z in (1.5, 3.4, 5.4):
+    cyl(0.44 - z * 0.035, 0.18, (0, 0, z), 'rust', n=10)
+for a in (45, 225):
+    r = math.radians(a); canister(0.16, 0.9, (math.cos(r) * 1.0, math.sin(r) * 1.0, 1.0), (0, 0, 1), 'gcyan', bars=3, ribs=1)
+for i in range(10):
+    a = i * 0.9; z = 1.4 + i * 0.55; rr = 0.48 - z * 0.035
+    ball(0.07, (math.cos(a) * rr, math.sin(a) * rr, z), 'dark', 1)
+crown(0.6, (0, -0.56, 1.1), normal=(0, -1, 0.35), up=(0, 0, 1), t=0.02)
 print(ship('gb_tower'))

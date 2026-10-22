@@ -26,4 +26,22 @@ for i in range(3):                                                     # three l
 r = box((1.8, 3.0, 0.15), (0, -2.6, 1.0), 'pearl', rot=(-34, 0, 0), bevel=0.03)
 box((0.3, 2.8, 0.05), (0, -2.55, 1.1), 'gcyan', rot=(-34, 0, 0), bevel=0.0)
 cyl(1.4, 0.12, (0, 0, 1.6), 'gcyan', n=12)
+
+# ---- v2 detail pass (scrappy Greys): rust patch plates with bolts on the hull, antenna masts, cyan canisters on the legs,
+# cables, crown tags on the rim
+for a in (20, 110, 200, 290):
+    r = math.radians(a); x, y = math.cos(r) * 3.9, math.sin(r) * 3.9
+    p = box((1.6, 1.0, 0.1), (x, y, 3.62), 'rust', bevel=0.03); p.rotation_euler = (0, 0, r + math.pi / 2)
+    p.rotation_euler.rotate_axis('X', math.radians(23))
+    for k in (-0.4, 0.4): hexbolt(0.06, (x + math.cos(r + math.pi / 2) * k, y + math.sin(r + math.pi / 2) * k, 3.75), (math.cos(r), math.sin(r), 0.8))
+for a in (60, 240):
+    r = math.radians(a); x, y = math.cos(r) * 1.6, math.sin(r) * 1.6
+    cyl(0.05, 2.2, (x, y, 5.6), 'rust', n=5); ball(0.12, (x, y, 6.75), 'gcyan', 1)
+    cyl(0.18, 0.12, (x, y, 5.9), 'gunmetal', n=6)
+for i in range(3):
+    a = 2 * math.pi * i / 3 + math.pi / 2 + math.pi / 3; x, y = math.cos(a), math.sin(a)
+    canister(0.22, 1.0, (x * 3.75, y * 3.75, 1.1), (x * 0.4, y * 0.4, 1), 'gcyan', bars=3, ribs=1)
+for a in (0, 90, 180, 270):
+    r = math.radians(a + 45)
+    crown(0.75, (math.cos(r) * 4.97, math.sin(r) * 4.97, 2.62), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.03)
 print(ship('gb_hq'))

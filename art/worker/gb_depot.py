@@ -17,4 +17,15 @@ cyl(0.6, 1.4, (0, 0, 5.7), 'pearl', n=16, r2=2.0)                             # 
 cyl(1.75, 0.06, (0, 0, 6.43), 'gcyan', n=16)                           # glowing inner face
 cyl(0.25, 0.6, (0, 0, 6.7), 'gunmetal', n=8)                                  # emitter post
 ball(0.55, (0, 0, 7.0), 'gcyan', 2)                                           # glow cup
+
+# ---- v2 detail pass: rust struts + bolts, cyan canisters round the base, cable up the mast, crown tag, antenna spikes
+for a in (30, 150, 270):
+    r = math.radians(a)
+    canister(0.18, 0.8, (math.cos(r) * 1.55, math.sin(r) * 1.55, 0.95), (0, 0, 1), 'gcyan', bars=3, ribs=1)
+cyl(0.06, 4.0, (0.42, 0, 2.7), 'dark', n=5)
+for z in (2.0, 3.5): box((0.2, 0.2, 0.2), (0.4, 0, z), 'rust', bevel=0.02)
+crown(0.9, (0, -1.53, 0.95), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+for a in (0, 120, 240):
+    r = math.radians(a); cyl(0.04, 0.8, (math.cos(r) * 1.9, math.sin(r) * 1.9, 6.75), 'rust', n=4, r2=0.0)
+    hexbolt(0.07, (math.cos(r) * 1.8, math.sin(r) * 1.8, 6.38), (0, 0, 1))
 print(ship('gb_depot'))

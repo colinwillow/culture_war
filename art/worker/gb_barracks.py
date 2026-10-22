@@ -19,4 +19,14 @@ for i, a in enumerate((-50, 0, 50)):
     cyl(0.3, 2.3, (x, y, 1.55), 'gcyan', n=8)                              # glowing fluid core
     ball(0.5, (x, y, 2.9), 'gunmetal', 1, (1, 1, 0.6))                     # pod cap
     box((0.2, 0.9, 0.2), ((x + math.cos(r) * 2.5) / 2 + 0.6, y * 0.85, 2.7), 'gunmetal', rot=(0, 0, a), bevel=0.02)  # feed pipe
+
+# ---- v2 detail pass: rust bolted patches, cables from the dome to each pod, antenna, crown tags, cyan vents
+for a in (150, 210, 270):
+    r = math.radians(a); x, y = math.cos(r) * 2.6, math.sin(r) * 2.6
+    p = box((1.0, 0.08, 0.7), (x, y, 2.2), 'rust', bevel=0.02); p.rotation_euler = (0, 0, r + math.pi / 2); p.rotation_euler.rotate_axis('X', math.radians(-30))
+    hexbolt(0.06, (x * 1.02, y * 1.02, 2.45), (math.cos(r), math.sin(r), 0.5))
+cyl(0.05, 1.6, (-0.8, 0.8, 4.5), 'rust', n=5); ball(0.12, (-0.8, 0.8, 5.3), 'gcyan', 1)
+for a in (90, 200):
+    r = math.radians(a); crown(1.0, (math.cos(r) * 2.82, math.sin(r) * 2.82, 1.0), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.03)
+crown(0.7, (0, -2.98, 2.35), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
 print(ship('gb_barracks', clip=True))
