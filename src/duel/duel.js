@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=202';
-import { makePops, slashTex } from '../fx/pops.js?v=202';
+import { svg } from '../ui/icons.js?v=204';
+import { makePops, slashTex } from '../fx/pops.js?v=204';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -465,19 +465,7 @@ function spawn(def, side, slot = 0, n = 1) {
     o.material = o.material.clone(); o.material.userData.key = !!RIGS[def.rig].key; o.material = tint(o.material, mats, hue);
   });
   let hand = null; model.traverse((o) => { if (!hand && o.isBone && o.name === 'mixamorig_RightHand') hand = o; });
-  const W = def.weapon && WEAPDATA[def.weapon]; let weaponTip = null;
-  if (W) {
-    let own = null; if (R.R.own === def.weapon) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
-    if (own) { const wm = weaponMesh(W, mats); own.add(wm); weaponTip = wm.userData.tip; } // his own mount bone: identity
-    else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
-      model.updateMatrixWorld(true);
-      const toModel = model.matrixWorld.clone().invert(), handM = toModel.clone().multiply(hand.matrixWorld);
-      const H = R.box.max.y - R.box.min.y, G = WEAPONS[def.weapon], hp = new THREE.Vector3().setFromMatrixPosition(handM);
-      const want = new THREE.Matrix4().compose(hp.add(new THREE.Vector3(...G.off).multiplyScalar(H)), new THREE.Quaternion(), new THREE.Vector3().setScalar(G.s * H));
-      const mount = new THREE.Group(); mount.matrixAutoUpdate = false; mount.matrix.copy(handM.invert().multiply(want));
-      const wm = weaponMesh(W, mats); mount.add(wm); hand.add(mount); weaponTip = wm.userData.tip;
-    }
-  }
+  const weaponTip = null;
   for (const m of mats) m.userData.hue = hue;
   const tail = []; if (R.R.tail) model.traverse((o) => { if (o.isBone && R.R.tail.test(o.name)) tail.push({ b: o, q: o.quaternion.clone() }); });
   tail.sort((a, b) => a.b.name.localeCompare(b.b.name));
@@ -486,12 +474,55 @@ function spawn(def, side, slot = 0, n = 1) {
   let foot = null, footL = null, hips = null;
   model.traverse((o) => { if (!o.isBone) return; if (o.name === 'mixamorig_RightToeBase') foot = o; if (o.name === 'mixamorig_LeftToeBase') footL = o; if (o.name === 'mixamorig_Hips') hips = o; });
   const trail = makeTrail(); trail.mesh.visible = true;
-  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, guard: RULE.guard, parryT: 0, combo: 0, cur: null, state: 'idle', t: 0, think: 0,
+  const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, R, foot, footL, hips, feetUp: [false, false], fell: false, trail, hp: def.hp, guard: RULE.guard, parryT: 0, combo: 0, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
+  if (def.weapon) mountWeapon(f, def.weapon);
   f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
   root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
   scene.add(root); play(f, def.style.idle);
   return f;
+}
+// WEAPONS CHANGE HANDS (Colin): a KO'd fighter drops its weapon on the sand; the player stands over one and taps a
+// stick to swap (his own goes down where he stands). The style follows the weapon: a gun makes a gunner of anyone
+// whose rig carries the rifle clips; a mace makes a brawler.
+const pickups = []; // { key, mesh, x, z }
+function mountWeapon(f, key) {
+  const W = WEAPDATA[key]; if (!W) return;
+  const { model, hand, mats, R } = f;
+  let own = null; if (R.R.own === key) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
+  let wm = null;
+  if (own) { wm = weaponMesh(W, mats); own.add(wm); } // his own mount bone: identity
+  else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
+    model.updateMatrixWorld(true);
+    const toModel = model.matrixWorld.clone().invert(), handM = toModel.clone().multiply(hand.matrixWorld);
+    const H = R.box.max.y - R.box.min.y, G = WEAPONS[key], hp = new THREE.Vector3().setFromMatrixPosition(handM);
+    const want = new THREE.Matrix4().compose(hp.add(new THREE.Vector3(...G.off).multiplyScalar(H)), new THREE.Quaternion(), new THREE.Vector3().setScalar(G.s * H));
+    const mount = new THREE.Group(); mount.matrixAutoUpdate = false; mount.matrix.copy(handM.invert().multiply(want));
+    wm = weaponMesh(W, mats); mount.add(wm); hand.add(mount);
+  }
+  if (!wm) return;
+  for (const m of mats) m.userData.hue = f.hue;
+  f.wgroup = wm; f.tip = wm.userData.tip; f.weapon = key;
+  const gun = key === 'blaster' && f.actions['rifle_shoot_stationary_01'];
+  f.def = { ...f.def, weapon: key, style: gun ? GUN : MELEE };
+}
+function dropWeapon(f, dir) {
+  const wm = f.wgroup; if (!wm) return;
+  const p = new THREE.Vector3(); wm.getWorldPosition(p);
+  const holder = wm.parent; holder.remove(wm); if (holder !== f.hand && holder.parent === f.hand) f.hand.remove(holder);
+  const sc = new THREE.Vector3(); wm.getWorldScale(sc); // keep the size it had in his hand
+  wm.matrixAutoUpdate = true; wm.matrix.identity(); wm.scale.copy(sc);
+  const x = f.root.position.x + (dir ? dir.x * 0.9 : 0.6), z = f.root.position.z + (dir ? dir.z * 0.9 : 0);
+  wm.position.set(x, 0.12, z); wm.rotation.set(Math.PI / 2, 0, rng() * 6.28); scene.add(wm);
+  pickups.push({ key: f.weapon, mesh: wm, x, z });
+  f.wgroup = null; f.tip = null; f.weapon = null;
+  f.def = { ...f.def, weapon: null, style: MELEE }; // bare hands: the brawler set (fists), no reach
+}
+function nearPickup(f) { let best = null, bd = 1.3; for (const p of pickups) { const d = Math.hypot(p.x - f.root.position.x, p.z - f.root.position.z); if (d < bd) { bd = d; best = p; } } return best; }
+function takePickup(f, p) {
+  pickups.splice(pickups.indexOf(p), 1); scene.remove(p.mesh);
+  if (f.wgroup) dropWeapon(f, null);
+  mountWeapon(f, p.key); play(f, f.def.style.idle, false, 1, 0.1);
 }
 function play(f, name, once = false, speed = 1, fade = 0.15, fallback = null) {
   const a = f.actions[name] || (fallback && f.actions[fallback]); if (!a) return null;
@@ -525,7 +556,7 @@ function padStep(f, dt) {
     play(f, S.run, false, 1.6, 0.06); puff(f.root.position.clone(), 4, { size: 0.3, spread: 1, up: 0.5, life: 0.6 });
   }
   PAD.flick = null;
-  if (PAD.jump && !busy && !f.air) { f.air = 4.6; puff(f.root.position.clone(), 3, { size: 0.25, spread: 0.6, up: 0.3, life: 0.5 }); } // a hop; no clip for it yet
+  if (PAD.jump && !busy && !f.air) { const pk = nearPickup(f); if (pk) { PAD.jump = false; takePickup(f, pk); sound('clang', 0.4); return; } f.air = 4.6; puff(f.root.position.clone(), 3, { size: 0.25, spread: 0.6, up: 0.3, life: 0.5 }); } // a hop; no clip for it yet
   PAD.jump = false;
   if (f.air !== undefined && f.air !== null) { f.root.position.y += f.air * dt; f.air -= 14 * dt; if (f.root.position.y <= 0) { f.root.position.y = 0; f.air = null; } }
   const up = PAD.rhold && -PAD.ry > (PAD.firing ? RPAD.keepAt : RPAD.fireAt) && Math.abs(PAD.rx) < RPAD.arc + 0.2;
@@ -703,6 +734,7 @@ let koCam = null; // { t, who }
 function ko(b, dir) {
   if (fighters.filter((f) => f.team === b.team && f !== b).every((f) => f.ko)) koCam = { t: 0, who: b };
   b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3);
+  dropWeapon(b, dir);
   sound('heavy', 0.9); shake = 0.3; hud();
 }
 let hitstop = 0;
@@ -886,6 +918,7 @@ function hud() {
 }
 function fight() {
   koCam = null;
+  for (const p of pickups) scene.remove(p.mesh); pickups.length = 0;
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
   for (const q of scuffs) { scene.remove(q.m); q.m.material.dispose(); } scuffs.length = 0;
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
@@ -943,5 +976,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
