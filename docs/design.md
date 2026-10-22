@@ -214,6 +214,15 @@ same two squads do not always end the same way and it is fun to watch up close.
 - **Team colours:** same race, different team = hue-rotated paint (arena TEAM button, B156). Then more than 1v1 in the
   arena once the duel basics feel right.
 
+## Maps as strategy: overpasses, rivers, floating bits (Colin, Oct 22 2026 - idea, parked)
+Colin, thinking out loud: the freeway trench and overpasses already give the map a second level, and without a jump in
+the game that level IS strategy: a highway over a river is the only crossing, a ramp is a chokepoint, going "up and
+over" is a different route with a different cost than going straight. Open questions he raised, none decided:
+- One map or many? Each map could have its own dynamic: a river down the middle with bridges, a giant body of water,
+  floating sci-fi platforms, or always a normal city (New York / LA scale, real-city feel).
+- Hex map (B189) is the place to prototype this: a river hex row with bridge hexes, an elevated highway hex type.
+Not for the loop; brainstorm first.
+
 ## Globe board (Colin, Oct 22 2026 - idea, look prototyped in B153)
 Wrap the map round a little planet: no edges to turtle against, armies can go round the back, and the mini-world look.
 Plan: (1) look only - curvature shader on the flat board (B153, globe button); (2) gameplay - make the flat map wrap at

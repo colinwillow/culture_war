@@ -1,6 +1,6 @@
 # Roadmap
 
-## EVENING LOOP (Oct 22 2026) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
+## EVENING LOOP (Oct 22 2026) -- PAUSED by Colin at 02:55 UTC after B191 (roster + art prompts first) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
 Loop rules: `git pull origin main`, read this file, take the FIRST unchecked item in THIS section, ship it as ONE build
 (`npm run bump`, boot check of index.html AND duel.html, push to `main`), tick it with the build number, one line in
 `docs/decisions.md`, end the pass. Too big? Split it here and ship the first half. Never ship a page that does not boot.
