@@ -16,5 +16,14 @@ for x in (-0.6, 0.6):
     cyl(0.4, 0.4, (x, 3.1, 0.75), 'iron', rot=(90, 0, 0), n=8)
 box((1.2, 1.6, 0.06), (0, 0.6, 0.29), 'iron', bevel=0.0)                                         # belly hatch
 box((1.0, 1.4, 0.06), (0, 0.6, 0.26), 'gmagenta', bevel=0.0)                                     # glowing seam inside
+
+# ---- v2 detail pass: magenta engine canisters, cone spikes on the nose + fin roots, a crown tag on the spine, chains
+for x in (-0.6, 0.6):
+    canister(0.22, 0.9, (x, 2.8, 0.52), (0, 1, 0), 'gmagenta', bars=3, ribs=1)
+spike(0.12, 0.5, (0, -3.1, 0.55), (0, -1, 0.1))
+for s in (-1, 1):
+    spike(0.08, 0.35, (s * 0.9, 0.2, 0.9), (s * 0.5, 0.2, 1))
+crown(0.7, (0, 0.6, 1.5), normal=(0, 0.25, 1), up=(0, -1, 0), t=0.02)
+chain((1.5, 1.6, 0.6), (1.55, 1.7, 0.3), 0.04)
 for o in bpy.context.scene.objects: o.location.z -= 0.23   # belly on y 0
 print(ship('s_rept_skiff'))

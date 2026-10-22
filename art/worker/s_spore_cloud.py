@@ -21,4 +21,17 @@ for i in range(7):                                                              
     zt = rnd.uniform(0.0, 0.3) if i else 0.0
     seg2 = cyl(0.09, 0.75 - zt, (x1 * 1.05, y1 * 1.05, 0.35 + zt / 2), 'goo', n=5, r2=0.03)
     ball(0.1, (x1 * 1.05, y1 * 1.05, zt + 0.0 + 0.08), 'gacid', 1)                # glowing drip tips
+
+# ---- v2 detail pass: scavenged harness -- an iron band + bolts round the sac, two acid canisters hung off it with
+# chains, thorn spikes on the knot, a crown tag on the band
+torus(1.98, 0.08, (0, 0, 3.0), 'iron', n=16, m=4)
+for a in range(0, 360, 60):
+    r = math.radians(a); hexbolt(0.06, (math.cos(r) * 2.05, math.sin(r) * 2.05, 3.0), (math.cos(r), math.sin(r), 0))
+for a in (60, 240):
+    r = math.radians(a); x, y = math.cos(r) * 2.05, math.sin(r) * 2.05
+    chain((x, y, 2.95), (x * 1.02, y * 1.02, 2.3), 0.04)
+    canister(0.14, 0.55, (x * 1.02, y * 1.02, 1.95), (0, 0, 1), 'gacid', bars=3, ribs=1)
+for a in (0, 120, 240):
+    r = math.radians(a); spike(0.08, 0.35, (math.cos(r) * 0.6, math.sin(r) * 0.6, 1.75), (math.cos(r), math.sin(r), -0.3))
+crown(0.45, (0, -2.07, 3.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.015)
 print(ship('s_spore_cloud'))

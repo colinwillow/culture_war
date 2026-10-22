@@ -12,4 +12,15 @@ for i in range(10):                                                             
     a = 2 * math.pi * i / 10
     ball(0.17, (math.cos(a) * 2.05, math.sin(a) * 2.05, 0.2), 'gcyan', 1)
 cyl(0.7, 0.08, (0, 0, 0.04), 'gcyan', n=12)                                        # tractor-beam lens
+
+# ---- v2 detail pass (scrappy Greys): bolted rust patches on the disc, rear thruster canisters, antenna, crown tags
+for a in (40, 160, 280):
+    r = math.radians(a); x, y = math.cos(r) * 2.3, math.sin(r) * 2.3
+    p = box((0.9, 0.55, 0.06), (x, y, 1.15), 'rust', bevel=0.02); p.rotation_euler = (0, 0, r + math.pi / 2); p.rotation_euler.rotate_axis('X', math.radians(17))
+    hexbolt(0.05, (x, y, 1.2), (0, 0, 1))
+for x in (-0.7, 0.7):
+    canister(0.18, 0.8, (x, 2.75, 0.75), (0, 1, 0), 'gcyan', bars=3, ribs=1)        # rear thrusters
+cyl(0.03, 0.9, (0.5, 0.4, 2.2), 'rust', n=4); ball(0.07, (0.5, 0.4, 2.65), 'gcyan', 1)
+for a in (90, 270):
+    r = math.radians(a + 45); crown(0.5, (math.cos(r) * 3.04, math.sin(r) * 3.04, 0.72), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.015)
 print(ship('s_grey_saucer'))
