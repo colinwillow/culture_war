@@ -31,4 +31,8 @@ for (x, z) in ((-1.0, 7.0), (1.0, 6.9), (0.0, 7.95)):
     spike(0.1, 0.4, (x, -0.4, z), (x, 0.2, 0.6 if z < 7.5 else 1))
 canister(0.16, 0.7, (0.0, -0.05, 2.8), (0, 0.15, 1), 'gacid', bars=3, ribs=1)
 crown(0.6, (0, -0.85, 0.5), normal=(0, -1, 0.3), up=(0, 0, 1), t=0.02)
+
+# ---- detail pass 2: crimson crown pennant on the stalk, goo dripping from the lips
+banner(0.5, 0.7, (0, -0.2, 4.6), (0, -1, 0), mark='crown')
+for x in (-0.3, 0.25): cyl(0.07, 0.5, (x, -1.65, 6.3), 'goo', n=5, r2=0.02)
 print(ship('sb_tower', clip=True))

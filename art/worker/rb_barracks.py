@@ -40,4 +40,9 @@ for s in (-1, 1):
 for i in (0, 6):
     a = 2 * math.pi * (i + 0.5) / N
     cyl(0.42, 0.35, (math.cos(a) * 2.9, math.sin(a) * 2.9, 1.5), 'magenta', n=5)
+
+# ---- detail pass 2: crimson crown banners on two teeth by the entrance, moss tufts, sand stains in the pit
+for (a, k) in ((-75, 0), (-105, 1)):
+    r = math.radians(a); banner(0.5, 0.8, (math.cos(r) * 3.0, math.sin(r) * 3.0 - 0.4, 1.9), (0, -1, 0), mark='crown')
+for (x, y) in ((0.6, 0.8), (-1.0, -0.4)): cyl(0.5, 0.01, (x, y, 0.105), 'rust', n=8)
 print(ship('rb_barracks'))

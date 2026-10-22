@@ -53,4 +53,10 @@ crown(1.6, (0, -3.53, 3.35), normal=(0, -1, 0), up=(0, 0, 1), t=0.04)
 for x in (-4.86, 4.86):
     box((0.08, 1.6, 1.2), (x, -1.0, 0.75), 'magenta', bevel=0.0)                        # cloth drapes on the sides
 chain((-1.55, -5.1, 3.3), (0, -5.2, 2.7), 0.09); chain((0, -5.2, 2.7), (1.55, -5.1, 3.3), 0.09)
+
+# ---- detail pass 2: long crimson crown banners down the shrine front, moss drips, panel lines on the billboard
+for x in (-1.3, 1.3):
+    banner(0.8, 1.6, (x, -1.75, 5.1), (0, -1, 0), mark='crown')
+for x in (-4.0, -1.0, 2.5): box((0.3, 0.05, 0.5), (x, -4.53, 1.15), 'moss', bevel=0.0)
+box((4.4, 0.03, 0.04), (0, 0.79, 7.1), 'dark', bevel=0.0)
 print(ship('rb_hq'))

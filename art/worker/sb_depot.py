@@ -29,4 +29,8 @@ for a in (200, 330):
 crown(0.9, (0, -1.85, 3.2), normal=(0, -1, 0), up=(0, 0, 1), t=0.03)
 for a in range(0, 360, 30):
     r = math.radians(a); torus(0.09, 0.03, (math.cos(r) * 1.28, math.sin(r) * 1.28, 1.75), 'iron', rot=(0, 90 * (a // 30 % 2), a), n=8, m=4)
+
+# ---- detail pass 2: crimson crown banner on the neck, goo drips under the puffball, extra pustules
+banner(0.7, 0.8, (0.9, -1.25, 2.3), (0, -1, 0), mark='crown')
+for a in (30, 150, 270): r = math.radians(a); cyl(0.1, 0.5, (math.cos(r) * 1.2, math.sin(r) * 1.2, 2.0), 'goo', n=6, r2=0.03)
 print(ship('sb_depot', clip=True))

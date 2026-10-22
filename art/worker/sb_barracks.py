@@ -21,4 +21,9 @@ for a in (120, 240):
     r = math.radians(a); canister(0.2, 0.9, (math.cos(r) * 3.3, math.sin(r) * 3.3, 0.6), (0, 0, 1), 'gacid', bars=3, ribs=1)
 for a in (60, 300):
     r = math.radians(a); crown(0.6, (math.cos(r) * 3.55, math.sin(r) * 3.55, 0.45), normal=(math.cos(r), math.sin(r), 0.4), up=(0, 0, 1), t=0.02)
+
+# ---- detail pass 2: crimson crown pennants on two stakes by the pool, goo drips on the rim
+for a in (-60, -120):
+    r = math.radians(a); x, y = math.cos(r) * 3.4, math.sin(r) * 3.4
+    cyl(0.05, 1.6, (x, y, 0.8), 'iron', n=4); banner(0.5, 0.6, (x, y - 0.05, 1.55), (0, -1, 0), mark='crown')
 print(ship('sb_barracks', clip=True))

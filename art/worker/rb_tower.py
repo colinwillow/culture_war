@@ -39,4 +39,8 @@ crown(0.7, (0, -1.32, z + 0.55), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
 for x in (-1.1, 1.1):
     canister(0.1, 0.4, (x, -1.1, z + 1.25), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
 spike(0.12, 0.5, (0, 0, z + 2.45), (0, 0, 1))
+
+# ---- detail pass 2: crimson crown banner below the lookout, moss on the head tops, panel lines between heads
+banner(0.8, 1.2, (0, -0.78, 6.35), (0, -1, 0), mark='crown')
+for k in range(4): ball(0.35, (0.3, 0.3, 0.45 + 1.5 * k + 1.5), 'moss', 1, (1.2, 1.2, 0.3))
 print(ship('rb_tower'))

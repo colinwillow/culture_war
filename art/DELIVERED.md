@@ -122,3 +122,20 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [bb_depot] DETAIL PASS 2 models/gen/bb_depot.glb -- 3774 tris, size/origin unchanged: crimson crown banner on the crane mast, hazard stripes on the crane base, rust patch on the fence
 - [bb_tower] DETAIL PASS 2 models/gen/bb_tower.glb -- 2518 tris, size/origin unchanged: long crimson skull banner under the nest front, hazard stripes along the deck edge
 - [bb_wall] DETAIL PASS 2 models/gen/bb_wall.glb -- 1198 tris, 2.2 x 1.7 x 1.08 m, origin unchanged: small crimson crown banner on the blue door, hazard stripes on the feet; _chunks.glb rebuilt (8 chunks, 2108 tris)
+- [s_brute_gunship] DETAIL PASS 2 models/gen/s_brute_gunship.glb -- 4142 tris, size/origin unchanged: crimson crown banner off the stern, ivory skull on the bow armour, hazard stripes on the stern
+- [s_brute_truck] DETAIL PASS 2 models/gen/s_brute_truck.glb -- 3094 tris, size/origin unchanged: ivory skull on the grille, crimson crown flag on a whip pole (adds height, 3.2 m), hazard stripes on the bed tail
+- [gb_hq] DETAIL PASS 2 models/gen/gb_hq.glb -- 3280 tris, size/origin unchanged: crimson crown banners hanging under the rim either side of the ramp, ring of cyan running lights on the rim, panel line
+- [gb_barracks] DETAIL PASS 2 models/gen/gb_barracks.glb -- 2034 tris, size/origin unchanged: crimson crown banner by the door, panel lines on the drum, cyan status lights
+- [gb_depot] DETAIL PASS 2 models/gen/gb_depot.glb -- 2162 tris, size/origin unchanged: crimson crown pennant on the mast, dish panel line, orange/black hazard ring on the base
+- [gb_tower] DETAIL PASS 2 models/gen/gb_tower.glb -- 1770 tris, size/origin unchanged: crimson crown pennant below the ring, panel lines up the needle
+- [gb_wall] DETAIL PASS 2 models/gen/gb_wall.glb -- 1224 tris, size/origin unchanged: crimson plates on the post tops, hazard band along the panel foot (chunks rebuilt)
+- [rb_hq] DETAIL PASS 2 models/gen/rb_hq.glb -- 4010 tris, size/origin unchanged: crimson crown banners down the shrine front, moss drips, billboard panel line
+- [rb_barracks] DETAIL PASS 2 models/gen/rb_barracks.glb -- 2428 tris, size/origin unchanged: crimson crown banners on the entrance teeth, stains in the pit
+- [rb_depot] DETAIL PASS 2 models/gen/rb_depot.glb -- 2404 tris, size/origin unchanged: crimson crown banner on the upper stall, counter panel lines, moss tuft on the roof
+- [rb_tower] DETAIL PASS 2 models/gen/rb_tower.glb -- 2858 tris, size/origin unchanged: crimson crown banner below the lookout, moss caps on the heads
+- [rb_wall] DETAIL PASS 2 models/gen/rb_wall.glb -- 902 tris, size/origin unchanged: crimson crown banner over the face, panel lines between blocks (chunks rebuilt)
+- [sb_hq] DETAIL PASS 2 models/gen/sb_hq.glb -- 3778 tris, size/origin unchanged: crimson crown banner between the stems, goo drips under the caps with glowing drops
+- [sb_barracks] DETAIL PASS 2 models/gen/sb_barracks.glb -- 2266 tris, size/origin unchanged: crimson crown pennants on two stakes by the pool
+- [sb_depot] DETAIL PASS 2 models/gen/sb_depot.glb -- 2718 tris, size/origin unchanged: crimson crown banner on the neck, goo drips under the puffball
+- [sb_tower] DETAIL PASS 2 models/gen/sb_tower.glb -- 1478 tris, size/origin unchanged: crimson crown pennant on the stalk, goo dripping from the lips
+- [sb_wall] DETAIL PASS 2 models/gen/sb_wall.glb -- 1274 tris, size/origin unchanged: small crimson crown banner on a thorn, goo drips down the face (chunks rebuilt)

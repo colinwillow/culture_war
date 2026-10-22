@@ -28,4 +28,9 @@ crown(0.9, (0, -1.53, 0.95), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
 for a in (0, 120, 240):
     r = math.radians(a); cyl(0.04, 0.8, (math.cos(r) * 1.9, math.sin(r) * 1.9, 6.75), 'rust', n=4, r2=0.0)
     hexbolt(0.07, (math.cos(r) * 1.8, math.sin(r) * 1.8, 6.38), (0, 0, 1))
+
+# ---- detail pass 2: crimson crown pennant on the mast, panel line on the dish, hazard ring on the base
+banner(0.5, 0.8, (0, -0.4, 4.0), (0, -1, 0), mark='crown')
+cyl(1.3, 0.03, (0, 0, 5.9), 'dark', n=16)
+for a in range(0, 360, 30): r = math.radians(a); box((0.3, 0.1, 0.06), (math.cos(r) * 1.8, math.sin(r) * 1.8, 0.41), 'orange' if a % 60 else 'dark', rot=(0, 0, a + 90), bevel=0.0)
 print(ship('gb_depot'))

@@ -46,4 +46,9 @@ for (x, y) in ((-1.4, 0.9), (-1.4, 1.6), (1.5, 1.2)):
     box((0.6, 0.6, 0.6), (x, y, 1.75), 'wood', bevel=0.04); box((0.62, 0.1, 0.62), (x, y, 1.75), 'iron', bevel=0.0)
 cyl(0.28, 0.75, (1.5, -2.4, 1.83), 'burnt', n=8, bevel=0.03); cyl(0.28, 0.75, (1.0, -2.6, 1.83), 'rust', n=8, bevel=0.03)
 chain((2.2, -1.0, 2.2), (2.25, -1.0, 1.4), 0.06); chain((-2.2, 1.0, 2.2), (-2.25, 1.0, 1.4), 0.06)
+
+# ---- detail pass 2: crimson crown banner off the stern mount, skull on the bow armour, hazard stripes on the stern
+banner(0.9, 1.0, (0, 3.6, 2.3), (0, 1, 0), mark='crown')
+skull(0.3, (0, -4.62, 1.15), (0, -1, -0.3), 'ivory')
+for k in range(6): box((0.5, 0.1, 0.25), (-1.25 + k * 0.5, 3.12, 1.1), 'orange' if k % 2 else 'dark', bevel=0.0)
 print(ship('s_brute_gunship'))

@@ -22,4 +22,8 @@ for s in (-1, 1):
     canister(0.07, 0.35, (x + s * 0.2, -0.2, 0.3), (0, 0, 1), 'gcyan', bars=3, ribs=1)
 crown(0.26, (-0.92, -0.215, 1.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.01)
 c = cyl(0.025, 1.9, (0, 0.12, 1.62), 'dark', (0, 90, 0), n=5)
+
+# ---- detail pass 2: crimson crown tag plates on the post tops, a hazard band at the base of the panel
+for s in (-1, 1): box((0.3, 0.05, 0.12), (s * 0.92, -0.19, 1.5), 'team', bevel=0.0)
+for k in range(4): box((0.38, 0.08, 0.08), (-0.57 + k * 0.38, 0, 0.32), 'orange' if k % 2 else 'dark', bevel=0.0)
 print(ship('gb_wall', chunk_cuts={'x': [-0.45, 0.45], 'z': [0.95]}))

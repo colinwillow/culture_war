@@ -29,4 +29,9 @@ cyl(0.05, 1.6, (-0.8, 0.8, 4.5), 'rust', n=5); ball(0.12, (-0.8, 0.8, 5.3), 'gcy
 for a in (90, 200):
     r = math.radians(a); crown(1.0, (math.cos(r) * 2.82, math.sin(r) * 2.82, 1.0), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.03)
 crown(0.7, (0, -2.98, 2.35), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+
+# ---- detail pass 2: crimson crown banner by the door, panel lines on the dome drum, cyan status lights
+banner(0.7, 1.0, (-1.2, -2.85, 2.3), (0, -1, 0), mark='crown')
+for z in (0.7, 1.2): cyl(2.82, 0.03, (0, 0, z), 'dark', n=16)
+for a in (100, 140, 180): r = math.radians(a); box((0.18, 0.06, 0.06), (math.cos(r) * 2.83, math.sin(r) * 2.83, 1.85), 'gcyan', rot=(0, 0, a + 90), bevel=0.0)
 print(ship('gb_barracks', clip=True))

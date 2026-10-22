@@ -41,4 +41,10 @@ for x in (-2.0, 2.0):
     h = cyl(0.08, 1.4, (x * 0.6, -2.2, 1.6), 'dark', n=5); h.rotation_euler = Vector((-x * 0.4, -0.3, 0.5)).to_track_quat('Z', 'Y').to_euler()
 crown(1.3, (cx, cy - 2.2, 8.55), normal=(0, -0.6, 0.8), up=(0, 0.8, 0.6), t=0.04)
 chain((-1.4, -3.0, 2.6), (0, -3.6, 1.9), 0.08); chain((0, -3.6, 1.9), (1.4, -3.0, 0.5), 0.08)
+
+# ---- detail pass 2: crimson crown banners strung between the shroom stems, goo drips under the caps, spore glow dots
+banner(1.0, 1.4, (-1.4, -0.1, 4.2), (0, -1, 0), mark='crown')
+for (x, y, z) in ((-0.8, -1.5, 7.6), (0.9, -1.2, 7.7), (-2.6, -0.4, 4.2), (2.5, -0.4, 4.9)):
+    cyl(0.12, 0.6, (x, y, z), 'goo', n=6, r2=0.03)
+    ball(0.1, (x, y, z - 0.35), 'gacid', 1)
 print(ship('sb_hq', clip=True))

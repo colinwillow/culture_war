@@ -26,4 +26,8 @@ crown(0.45, (0.72, -0.385, 0.95), normal=(0, -1, 0), up=(0, 0, 1), t=0.012)
 for x in (-0.6, 0.15, 0.85):
     spike(0.06, 0.25, (x, 0, 1.45), (x * 0.2, 0, 1))
 box((0.3, 0.86, 0.3), (-0.82, 0, 0.93), 'magenta', bevel=0.02)
+
+# ---- detail pass 2: a crimson crown banner hung over the face, panel lines between blocks
+banner(0.5, 0.6, (-0.15, -0.44, 1.25), (0, -1, 0), mark='crown')
+for x in (-0.38, 0.38): box((0.02, 0.82, 0.6), (x, 0, 0.3), 'dark', bevel=0.0)
 print(ship('rb_wall', chunk_cuts={'x': [-0.4, 0.38], 'z': [0.64]}))

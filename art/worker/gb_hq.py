@@ -44,4 +44,11 @@ for i in range(3):
 for a in (0, 90, 180, 270):
     r = math.radians(a + 45)
     crown(0.75, (math.cos(r) * 4.97, math.sin(r) * 4.97, 2.62), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.03)
+
+# ---- detail pass 2: crimson crown banners hanging under the rim at the ramp, cyan running lights on the rim, panel lines
+for x in (-1.6, 1.6):
+    banner(0.8, 1.2, (x, -4.3, 2.35), (0, -1, 0), mark='crown')
+for a in range(0, 360, 30):
+    r = math.radians(a); box((0.25, 0.06, 0.06), (math.cos(r) * 4.93, math.sin(r) * 4.93, 3.12), 'gcyan', rot=(0, 0, a + 90), bevel=0.0)
+cyl(4.92, 0.03, (0, 0, 3.22), 'dark', n=N)
 print(ship('gb_hq'))

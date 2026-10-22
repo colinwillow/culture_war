@@ -39,4 +39,10 @@ for s in (-1, 1):
 for x in (-0.6, -0.15):
     canister(0.18, 0.8, (x, 2.0, 2.25), (0, 0, 1), 'glow', bars=3, ribs=1)
 chain((1.2, -2.3, 0.75), (1.25, -2.0, 0.35), 0.04)
+
+# ---- detail pass 2: ivory skull on the grille, crimson crown flag on a whip pole, hazard stripes on the bed tail
+skull(0.22, (0, -2.33, 1.35), (0, -1, 0), 'ivory')
+cyl(0.03, 1.4, (1.0, 2.9, 2.5), 'iron', n=4)
+banner(0.5, 0.6, (1.0, 2.9, 3.15), (1, 0, 0), mark='crown')
+for k in range(6): box((0.4, 0.05, 0.3), (-1.0 + k * 0.4, 3.16, 1.4), 'orange' if k % 2 else 'dark', bevel=0.0)
 print(ship('s_brute_truck'))

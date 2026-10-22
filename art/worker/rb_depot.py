@@ -37,4 +37,9 @@ for x in (-1.7, 1.7):
     spike(0.1, 0.45, (x, 1.9, 3.95), (x * 0.1, 0.3, 1))
     spike(0.1, 0.45, (x, -0.7, 3.65), (x * 0.1, -0.3, 1))
 chain((2.0, -1.8, 2.3), (2.0, -1.8, 1.6), 0.04)
+
+# ---- detail pass 2: crimson crown banner on the upper stall, panel lines on the counter, a moss tuft on the roof
+banner(0.7, 0.8, (1.2, -0.62, 3.5), (0, -1, 0), mark='crown')
+for x in (-1.0, 1.0): box((0.03, 0.06, 0.9), (x, -1.71, 0.65), 'dark', bevel=0.0)
+ball(0.3, (-1.4, 1.6, 3.95), 'moss', 1, (1.4, 1, 0.4))
 print(ship('rb_depot'))
