@@ -39,7 +39,7 @@ game fun. Research what we're missing. All the aliens have ships: plan flying un
 - [x] (B193) RTS: the arena's slash trails + impact flashes + hitstop on squad fights near the camera (reuse duel.js code via a shared module; the sim is untouched)
 - [x] (B194) Arena: KO moment -- slow-mo on the final blow, camera push-in on the loser, a beat before the winner's taunt; footstep sounds from weirdport's footsteps folder
 - [x] (B195) Arena: YOU vs one -- a left virtual stick to move, two big buttons (ATTACK / BLOCK), dodge on a stick flick; the AI fighter opposite; same rules
-- [ ] Hex: street walkability grid + A* on the hex city, a dozen wandering civilians on its streets (the first step toward the hex board carrying the living city)
+- [x] (B196) Hex: street walkability grid + A* on the hex city, a dozen wandering civilians on its streets (the first step toward the hex board carrying the living city)
 - [ ] Core: move the living city (stepCity/fires/civ/crew/cop/truck + alienVerb) from sim.js into src/core/city.js behind a tiny interface {rng, nearestFree, events}; prove no behaviour change with tools/balance.cjs on fixed seeds before and after (identical winners + times)
 - [ ] Hex: two RTS squads spawn on the hex map and fight along its streets (the merge, first half: squads + pathing only, no economy)
 - [ ] Plan: docs/gaps.md -- what a fun RTS match still lacks here vs BFME2/Warcraft (unit abilities, formations, veterancy feel, map objectives, base defence, sound) ranked by fun-per-build; plus a FLYERS design: each species' ship as its Fast or Heavy (saucer, dropship, hive flyer, spore cloud), how flyers path over the hex board, what counters them. No code.

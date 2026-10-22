@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=195';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=195';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=195';
-import { emit } from '../fx/particles.js?v=195';
-import { bark } from '../fx/sfx.js?v=195';
-import { TICK } from '../config/factions.js?v=195';
-import { walkH, CITY } from '../map/layout.js?v=195';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=195';
-import { CAM } from '../camera/camera.js?v=195';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=196';
+import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=196';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=196';
+import { emit } from '../fx/particles.js?v=196';
+import { bark } from '../fx/sfx.js?v=196';
+import { TICK } from '../config/factions.js?v=196';
+import { walkH, CITY } from '../map/layout.js?v=196';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=196';
+import { CAM } from '../camera/camera.js?v=196';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=195';
-import { UI } from '../ui/state.js?v=195';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=195';
+import { Q, pl, getSim } from '../sim/sim.js?v=196';
+import { UI } from '../ui/state.js?v=196';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=196';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=195';
+import { lerpAngle } from '../util/math.js?v=196';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
