@@ -1,14 +1,14 @@
 // Visual effects. Reads sim events, never changes the sim.
 // To add an effect for a new mechanic: emit S.events.push({k:'myThing', ...}) in the sim,
 // then add a case in handleEvents below.
-import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=236';
-import { makePops, slashTex, screenAngle } from './pops.js?v=236';
-import { noteHit } from '../render/battlecam.js?v=236';
-import { walkH, CITY } from '../map/layout.js?v=236';
-import { sfx } from './sfx.js?v=236';
-import { shake, CAM } from '../camera/camera.js?v=236';
-import { FC } from '../render/models.js?v=236';
-import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=236';
+import { THREE, scene, camera, mat, cyl, box, basic, disposeObj } from '../render/scene.js?v=237';
+import { makePops, slashTex, screenAngle } from './pops.js?v=237';
+import { noteHit } from '../render/battlecam.js?v=237';
+import { walkH, CITY } from '../map/layout.js?v=237';
+import { sfx } from './sfx.js?v=237';
+import { shake, CAM } from '../camera/camera.js?v=237';
+import { FC } from '../render/models.js?v=237';
+import { emit, updateParticles, clearParticles, burstHit, burstShot, burstCoins } from './particles.js?v=237';
 
 const fx = [];
 function addFx(obj, life, upd) { scene.add(obj); fx.push({ obj, life, t: 0, upd }); }

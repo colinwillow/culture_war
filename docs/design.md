@@ -149,7 +149,7 @@ end-of-match camera swoop, hero entrance spotlight, faction-coloured HUD accents
 ## DIRECTION CHANGE (Colin, Oct 22 2026): species war, culture war tabled
 The culture-war factions are shelved. The game is a war for Earth between ALIEN SPECIES, MONSTERS, ROBOTS and HUMANS,
 over the living city (which stays neutral and computer-run). Classes, ranks, factions and sub-factions: `docs/roster.md`.
-Working title: War for the World. Say "species" or "faction" in the game, never "race".
+Working title: Battle for Earth. Say "species" or "faction" in the game, never "race".
 
 ## The portable core: one "world war" dynamic for every game (Colin, Oct 22 2026)
 Colin wants the species-war dynamic (neutral living city + warring factions + per-soldier duels) to carry into his

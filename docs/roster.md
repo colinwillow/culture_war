@@ -21,7 +21,7 @@ The test for any new faction or unit: what does it do to the city that nothing e
 
 Later camps: Mantids (mind-control), Monsters, and Colin's own inventions. 4 x 7 = 28 characters at launch.
 
-**Working titles:** *War for the World* (front-runner), *World War Weird*, *Planet Brawl*, *Invasion Block*.
+**Working titles:** *Battle for Earth* (front-runner), *World War Weird*, *Planet Brawl*, *Invasion Block*.
 "Race War" is a no: an app store will not take it and it reads as the real thing whatever the joke is. *The War of the
 Worlds* is public domain but crowded. **Wording rule in the game:** they are SPECIES / FACTIONS, never "races".
 

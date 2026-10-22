@@ -6,6 +6,7 @@ art/DELIVERED.md lists; never edit models/gen/ or DELIVERED.md. EVERY pass first
 there, wiring it into the game (weapon on its rig / prop in the city / building) can be that pass's build.
 STEER (Colin, 08:40): the game must be seen UP CLOSE -- the arena's side-on fights are the look. No Tripo models until
 Colin signs off a species row on the roster board.
+STEER (Colin, 10:40): title is BATTLE FOR EARTH.
 STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabled, B226). UI is game too.
 ### Items
 - [x] B235 alien bases in the RTS: bb_/gb_/rb_/sb_ hq, depot, barracks, tower, wall for Brutes/Greys/Reptilians/Spores (bldMesh -> genBase)

@@ -72,7 +72,7 @@ Rules that keep this multiplayer-ready (lockstep):
 
 ## Where things stand (Oct 22 2026, B206 -- read this before the older state below)
 - **DIRECTION:** the culture-war factions are tabled. The game is a war between alien SPECIES over the neutral living city
-  (working title *War for the World*). `docs/roster.md` v3 (four launch factions by verb: Greys abduct, Reptilians
+  (working title *Battle for Earth*). `docs/roster.md` v3 (four launch factions by verb: Greys abduct, Reptilians
   possess, Brutes/Tuskers eat, Spores infect), `docs/gaps.md` (what a fun match still lacks + the flyers design),
   `docs/design.md` (portable core, maps-as-strategy). The RTS sim still runs the six old factions; the species ride on
   them for now (Backwoods wears the Brutes, B206). Say SPECIES / FACTION in game, never "race".

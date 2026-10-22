@@ -82,3 +82,6 @@ Species colours for reference: Brutes #ff7a2e, Greys #7fe3ff, Reptilians #9dff4a
 - [ui_em_rept] Reptilian emblem: a slit-pupil eye or a grinning mask
 - [ui_em_spore] Spore emblem: a bursting spore pod / cluster
 - [ui_ic_*] command icons in the same style, 24x24 viewBox, stroke-only (`stroke="currentColor"`, width 2.2, round joins): train, build, attack, move, stop, power, repair, hero
+
+## Batch 9 -- title rename (Colin, 10:40): the game is BATTLE FOR EARTH
+- [ui_logo_bfe] models/gen/ui/ui_logo_bfe.svg -- same spec as ui_logo (outlined paths, fill=currentColor, prefixed mask ids): "BATTLE FOR" over a big "EARTH"; the A or the H can carry the ringed planet / a cracked Earth with a saucer -- your call. ui_logo.svg stays as is.

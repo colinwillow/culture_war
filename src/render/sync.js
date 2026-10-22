@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=236';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=236';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=236';
-import { emit } from '../fx/particles.js?v=236';
-import { seen as fogSeen } from './fog.js?v=236';
-import { bark } from '../fx/sfx.js?v=236';
-import { TICK } from '../config/factions.js?v=236';
-import { walkH, CITY } from '../map/layout.js?v=236';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=236';
-import { CAM } from '../camera/camera.js?v=236';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=237';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=237';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=237';
+import { emit } from '../fx/particles.js?v=237';
+import { seen as fogSeen } from './fog.js?v=237';
+import { bark } from '../fx/sfx.js?v=237';
+import { TICK } from '../config/factions.js?v=237';
+import { walkH, CITY } from '../map/layout.js?v=237';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=237';
+import { CAM } from '../camera/camera.js?v=237';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=236';
-import { UI } from '../ui/state.js?v=236';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=236';
+import { Q, pl, getSim } from '../sim/sim.js?v=237';
+import { UI } from '../ui/state.js?v=237';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=237';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=236';
+import { lerpAngle } from '../util/math.js?v=237';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
