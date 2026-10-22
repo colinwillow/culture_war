@@ -294,6 +294,7 @@ def budget_for(name):
 def fit_budget(ob, limit):
     """Collapse-decimate `ob` to just under `limit` triangles (keeps vertex colours, UV-free)."""
     t = tris(ob)
+    print('PRE-BUDGET', ob.name, t, '/', limit)
     if t <= limit: return t
     bpy.context.view_layer.objects.active = ob
     m = ob.modifiers.new('dec', 'DECIMATE'); m.decimate_type = 'COLLAPSE'; m.ratio = limit / t * 0.97
@@ -363,7 +364,7 @@ def container(length, loc, col='rust', axis='Y', h=2.6, w=2.4, ribs=True, doors=
     L, Wd = (length, w)
     size = (Wd, L, h) if axis == 'Y' else (L, Wd, h)
     obs = [box(size, (x, y, z + h / 2), col, bevel=0.06)]
-    n = max(2, int(L / 0.7))
+    n = max(2, int(L / 1.5))
     if ribs:
         for i in range(n):
             t = -L / 2 + (i + 0.5) * L / n
@@ -373,7 +374,7 @@ def container(length, loc, col='rust', axis='Y', h=2.6, w=2.4, ribs=True, doors=
     # corner castings
     for a in (-1, 1):
         for b in (-1, 1):
-            for c in (0.12, h - 0.12):
+            for c in (h - 0.12,):
                 p = (x + a * (Wd / 2 - 0.08), y + b * (L / 2 - 0.08)) if axis == 'Y' else (x + a * (L / 2 - 0.08), y + b * (Wd / 2 - 0.08))
                 obs.append(box((0.24, 0.24, 0.24), (p[0], p[1], z + c), 'iron', bevel=0.0))
     return obs
@@ -461,7 +462,7 @@ def chain(p0, p1, r=0.03, col='iron'):
     p0, p1 = Vector(p0), Vector(p1); d = p1 - p0; L = d.length; n = max(2, int(L / (r * 2.6)))
     obs = []
     for i in range(n):
-        o = torus(r, r * 0.3, tuple(p0 + d * (i + 0.5) / n), col, n=8, m=4)
+        o = torus(r, r * 0.3, tuple(p0 + d * (i + 0.5) / n), col, n=6, m=3)
         o.scale = (1, 1.6, 1)
         q = d.normalized().to_track_quat('Y', 'Z')
         o.rotation_euler = (q @ Quaternion(Vector((0, 1, 0)), (i % 2) * math.pi / 2)).to_euler(); obs.append(o)
@@ -577,7 +578,7 @@ def ring(R, r, loc, rot=(90, 0, 0), col='gold'):
 # dark iron, octagonal pads, ammo bandoliers (orange/red shells), red armbands, olive cloth. Crowns are Reptilian.
 PAL['paint'] = _lin('d8641e'); PAL['paint2'] = _lin('b8471a'); PAL['shell'] = _lin('c23a1c')
 
-def gearmark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None, teeth=8):
+def gearmark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None, teeth=6):
     """Flat Brute brand: a gear ring with a wrench cutting up through it (extruded `t`), width w, facing `normal`."""
     t = t or w * 0.06; n = Vector(normal).normalized(); u = Vector(up).normalized()
     x = u.cross(n).normalized(); u = n.cross(x).normalized(); c = Vector(loc); obs = []
@@ -587,10 +588,10 @@ def gearmark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None, teeth
         M = Matrix((x, n, u)).transposed().to_4x4()
         o.matrix_world = Matrix.Translation(c + x * px + u * py + n * t / 2) @ M @ Matrix.Rotation(rot, 4, 'Y')
         return o
-    for k in range(12):                                              # ring as 12 short slabs
-        a = 2 * math.pi * k / 12
+    for k in range(9):                                               # ring as 9 short slabs
+        a = 2 * math.pi * k / 9
         if 0.2 < (a % (2 * math.pi)) < 1.1: continue                 # the bitten gap (upper right)
-        obs.append(flat(R * 0.6, R * 0.28, math.cos(a) * R, math.sin(a) * R, -(a + math.pi / 2)))
+        obs.append(flat(R * 0.78, R * 0.28, math.cos(a) * R, math.sin(a) * R, -(a + math.pi / 2)))
     for k in range(teeth):                                           # teeth
         a = 2 * math.pi * (k + 0.5) / teeth
         if 0.2 < (a % (2 * math.pi)) < 1.1: continue
@@ -620,8 +621,8 @@ def bandolier(p0, p1, r=0.09, col_a='paint2', col_b='shell'):
     side = d.normalized().orthogonal().normalized()
     for i in range(n):
         p = p0 + d * (i + 0.5) / n
-        o = cyl(r * 0.8, r * 2.2, tuple(p), col_a if i % 2 else col_b, n=8); _aim(o, side); obs.append(o)
-        o = cyl(r * 0.82, r * 0.5, tuple(p + side * r * 1.0), 'gold', n=8); _aim(o, side); obs.append(o)
+        o = cyl(r * 0.8, r * 2.2, tuple(p), col_a if i % 2 else col_b, n=6); _aim(o, side); obs.append(o)
+        o = cyl(r * 0.82, r * 0.5, tuple(p + side * r * 1.0), 'gold', n=6); _aim(o, side); obs.append(o)
     return obs
 
 _SPIKE_ORIG = spike

@@ -50,12 +50,12 @@ for x in (-3.3, 3.3):                                                           
     spike(0.2, 0.6, (x, -4.25, 4.2), (0, 0, 1))
 crown(2.0, (2.0, -4.02, 1.4), normal=(0, -1, 0), up=(0, 0, 1), t=0.06)             # giant crown tag on the gate panel
 crown(1.6, (4.56, 1.5, 1.4), normal=(1, 0, 0), up=(0, 0, 1), t=0.05)              # and on the side container
-for x0, x1 in ((-1.9, -0.4), (0.4, 1.9)):                                           # chains swagging over the gate
+for x0, x1 in ((-1.9, 1.9),):                                           # chains swagging over the gate
     chain((x0, -4.15, 2.6), ((x0 + x1) / 2, -4.2, 2.1), 0.16); chain(((x0 + x1) / 2, -4.2, 2.1), (x1, -4.15, 2.6), 0.16)
 cyl(0.62, 0.2, (-3.3, 3.2, 6.0), 'glow', n=10)                                     # glowing band on the stack
 for a in (0, 120, 240):
     r = math.radians(a); spike(0.14, 0.5, (-3.3 + math.cos(r) * 0.7, 3.2 + math.sin(r) * 0.7, 7.85), (math.cos(r), math.sin(r), 1.2))
-for x in (-1.2, 1.2):
+for x in ():
     box((0.6, 0.12, 0.3), (x, -1.0, 2.75), 'ivory', bevel=0.03)                    # ivory armour plates on the emblem backing
     hexbolt(0.07, (x, -1.07, 2.75), (0, -1, 0))
 
@@ -64,7 +64,7 @@ for x in (-1.2, 1.2):
 banner(1.3, 1.5, (-3.3, -4.12, 2.4), (0, -1, 0), mark='skull')
 banner(1.2, 1.8, (4.62, -1.6, 4.9), (1, 0, 0), mark='crown')
 
-for x in (-1.9, 1.9):
+for x in ():
     for z in (0.4, 1.0, 1.6, 2.2): box((0.42, 0.52, 0.18), (x, -3.9, z), 'orange' if int(z * 10) % 12 == 4 or z in (0.4, 1.6) else 'dark', bevel=0.0)
 for (x, y, z) in ((-2.0, -0.12, 4.0), (1.0, -0.12, 3.6), (4.62, 2.8, 1.4)):
     box((0.12, 0.04, 0.9) if x < 4 else (0.04, 0.12, 0.9), (x, y if x < 4 else y, z), 'rust', bevel=0.0)
@@ -79,8 +79,8 @@ for s_ in (-1, 1):
 for (x, y, z, nrm) in ((-3.3, -4.07, 1.3, (0, -1, 0)), (4.57, 0.2, 1.3, (1, 0, 0)), (-4.57, 0.2, 1.3, (-1, 0, 0))):
     pl = box((2.0, 0.12, 1.6) if nrm[1] else (0.12, 2.0, 1.6), (x, y, z), 'paint', bevel=0.06)
     gearmark(1.3, (x + nrm[0] * 0.07, y + nrm[1] * 0.07, z), nrm, (0, 0, 1), 'ivory')
-for (x, z) in ((-1.6, 1.0), (1.6, 1.0)): octpad(0.9, (x, -4.15, z), (0, -1, 0))
+for (x, z) in ((-1.6, 1.0),): octpad(0.9, (x, -4.15, z), (0, -1, 0))
 bandolier((-4.5, -4.0, 2.55), (-2.0, -4.0, 4.9), 0.14)
-bandolier((4.6, -2.0, 5.2), (4.6, 2.0, 2.7), 0.14)
+
 for z in (4.3, 6.6): cyl(0.6, 0.35, (-3.3, 3.2, z), 'team', n=10)
 print(ship('bb_hq'))
