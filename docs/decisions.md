@@ -246,3 +246,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B238: menu wears the worker's BATTLE FOR EARTH logo (ui_logo_bfe.svg, cracked ringed planet + saucer).
 - B239: the worker's ships drive the vehicle slots (render only): bw cav truck + siege gunship, nd cav saucer, ac siege skiff, hh siege spore cloud; fliers hover and bob.
 - B240: Colin's art on the menu -- his floating-islands splash as the background (cover, dark fade under the cards) and his graffiti BATTLE FOR EARTH logo; short portrait phones get a smaller logo.
+- B241: Greys' heavy (Tripod) is the worker's s_grey_tripod walker, on the ground; Grey bases/saucer carry the new Grey pass.

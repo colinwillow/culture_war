@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=240';
+import { THREE, box, cyl, mat } from './scene.js?v=241';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -34,13 +34,13 @@ const tagWheels = (g) => { g.userData.wheels = g.children.filter((c) => c.geomet
 /** One member of a squad (a squad of 5 farmers = 5 of these). */
 // SHIPS (B239): the worker's species craft on the vehicle slots, render only (the sim still drives them on the ground;
 // real flyers are docs/gaps.md). Fliers hover and bob; the truck stays on its wheels. Loaded with the bases.
-export const SHIPS = { bw: { cav: 's_brute_truck', siege: 's_brute_gunship' }, nd: { cav: 's_grey_saucer' }, ac: { siege: 's_rept_skiff' }, hh: { siege: 's_spore_cloud' } };
+export const SHIPS = { bw: { cav: 's_brute_truck', siege: 's_brute_gunship' }, nd: { cav: 's_grey_saucer', siege: 's_grey_tripod' }, ac: { siege: 's_rept_skiff' }, hh: { siege: 's_spore_cloud' } };
 function genShip(f, slot) {
   const k = SHIPS[f] && SHIPS[f][slot], src = k && GENB[k]; if (!src) return null;
   const g = new THREE.Group(), m = src.clone(true), sz = new THREE.Box3().setFromObject(src).getSize(new THREE.Vector3());
   m.scale.setScalar(Math.min(1, 5 / Math.max(sz.x, sz.z, 0.01)));
   m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } });
-  if (k !== 's_brute_truck') { m.position.y = 2.4; g.userData.hover = m; }
+  if (k !== 's_brute_truck' && k !== 's_grey_tripod') { m.position.y = 2.4; g.userData.hover = m; } // the truck and the walker stay on the ground
   g.add(m); return g;
 }
 export function makeMember(f, slot) {
