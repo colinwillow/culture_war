@@ -25,7 +25,8 @@ item says so.
 - [x] (B180) Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips
 - [x] (B166) Duel: BRAWL mode -- 2v2 and 3v3 in the ring (target choice, flanking), same rules
 - [x] (B181) Atmosphere (arena first): wind-blown low-poly LEAVES + debris (instanced, cheap), pushed away by swings, bodies and knockbacks
-- [ ] Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade; a small pond with a real WATER shader (waves, fresnel, foam ring)
+- [x] (B183) Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade
+- [ ] Atmosphere: a small pond in the arena with a real WATER shader (waves, fresnel, foam ring), leaves float on it
 - [ ] Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
 - [ ] Map: buildings on the hex districts -- low-poly procedural blocks per district type (downtown towers, shops, houses, park, industrial), varied silhouettes
 - [ ] Map: hex board under the globe bend (B153) -- does the little-planet look sell it?

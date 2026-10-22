@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=181';
+import { svg } from '../ui/icons.js?v=183';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -77,10 +77,19 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x2b2f3a); scene.fog = new THREE.Fog(0x2b2f3a, 18, 40);
+scene.background = new THREE.Color(0x2e3140); scene.fog = new THREE.Fog(0x3a3d4c, 14, 42);
+// GRADE: warm key light, cool fill and shadows, filmic tone curve (the duel reads like late afternoon)
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+// HEIGHT FOG: three's fog is by distance only; this makes it thicker near the ground (a haze that pools in the ring
+// and thins out above head height), by patching the fog chunks every material in this page uses.
+THREE.ShaderChunk.fog_pars_vertex = THREE.ShaderChunk.fog_pars_vertex.replace('varying float vFogDepth;', 'varying float vFogDepth; varying float vFogH;');
+THREE.ShaderChunk.fog_vertex = THREE.ShaderChunk.fog_vertex.replace('vFogDepth = - mvPosition.z;', 'vFogDepth = - mvPosition.z; vFogH = ( modelMatrix * vec4( position, 1.0 ) ).y;' /* position, not transformed: Points and Sprites have no transformed */);
+THREE.ShaderChunk.fog_pars_fragment = THREE.ShaderChunk.fog_pars_fragment.replace('varying float vFogDepth;', 'varying float vFogDepth; varying float vFogH;');
+THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace('float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );',
+  'float fogFactor = smoothstep( fogNear, fogFar, vFogDepth ); fogFactor = clamp( fogFactor * mix( 1.4, 0.35, clamp( vFogH / 5.0, 0.0, 1.0 ) ) + 0.10 * ( 1.0 - clamp( vFogH / 1.6, 0.0, 1.0 ) ) * smoothstep( 2.0, 12.0, vFogDepth ), 0.0, 1.0 );');
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x4a3c2c, 1.3));
-const sun = new THREE.DirectionalLight(0xfff1dc, 2.4); sun.position.set(6, 12, 4); sun.castShadow = true;
+scene.add(new THREE.HemisphereLight(0xa9c4ef, 0x5a4330, 1.15)); // cool sky, warm bounce off the sand
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.6); sun.position.set(6, 12, 4); sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 30 });
 scene.add(sun);
 const rim = new THREE.DirectionalLight(0x9fc6ff, 1.1); rim.position.set(-6, 5, -8); scene.add(rim);
@@ -96,6 +105,27 @@ const rim = new THREE.DirectionalLight(0x9fc6ff, 1.1); rim.position.set(-6, 5, -
     p.position.set(Math.cos(a) * (RULE.ring + 0.3), 0.7, Math.sin(a) * (RULE.ring + 0.3)); p.castShadow = true; scene.add(p);
   }
 }
+
+// GOD RAYS: no post-processing on a phone, so the shafts are billboards: long soft planes hung along the sun's own
+// direction, additive, slowly breathing. One draw call each, six of them.
+const rays = new THREE.Group(); scene.add(rays);
+{
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(255,230,190,0)'); g.addColorStop(0.3, 'rgba(255,230,190,.9)'); g.addColorStop(1, 'rgba(255,230,190,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 256);
+  const side = x.createLinearGradient(0, 0, 64, 0); side.addColorStop(0, 'rgba(0,0,0,1)'); side.addColorStop(0.5, 'rgba(0,0,0,0)'); side.addColorStop(1, 'rgba(0,0,0,1)');
+  x.globalCompositeOperation = 'destination-out'; x.fillStyle = side; x.fillRect(0, 0, 64, 256);
+  const tex = new THREE.CanvasTexture(c), dir = sun.position.clone().normalize();
+  for (let i = 0; i < 6; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.4 + Math.random() * 1.6, 22), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    // hang the shaft along the sun vector, spread across the ring, each turned a little about the sun axis
+    const a = (i / 6) * Math.PI * 2, off = new THREE.Vector3(Math.cos(a) * 4.5, 0, Math.sin(a) * 4.5);
+    m.position.copy(dir).multiplyScalar(6).add(off); m.position.y = 7 + Math.random() * 2;
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); m.rotateY(Math.random() * Math.PI);
+    m.userData = { base: 0.11 + Math.random() * 0.08, ph: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15 }; m.renderOrder = 3; rays.add(m);
+  }
+}
+function stepRays(time) { for (const m of rays.children) m.material.opacity = m.userData.base * (0.6 + 0.4 * Math.sin(time * m.userData.sp + m.userData.ph)); }
 
 // ---------------------------------------------------------------- loading
 const ROOT = new URL('../../', import.meta.url).href;
@@ -758,7 +788,7 @@ function frame() {
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
-  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time);
+  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time); stepRays(time);
   for (const f of fighters) stepTrail(f, dt);
   for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.t -= dt; t.l.material.opacity = Math.max(0, t.t / 0.09); if (t.t <= 0) { scene.remove(t.l); t.l.geometry.dispose(); tracers.splice(i, 1); } }
   stepCamera(dt); hud();
