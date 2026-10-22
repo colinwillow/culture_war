@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=205';
+import { THREE } from './scene.js?v=206';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -13,6 +13,7 @@ const BASE = ROOT + 'models/characters/';
 const HIPS = 'mixamorig_Hips', HAND = 'mixamorig_RightHand';
 
 // Characters. h = drawn height in metres (humans ~1.6). own = clips the file carries that we use as-is.
+const BRUTE_OWN = { idle: 'standing_idle', walk: 'standing_walk_forward', run: 'standing_run_forward', hit: 'Hit_To_Body', die: 'Shoulder_Hit_And_Fall', swing: 'standing_melee_attack_horizontal', stab: 'standing_melee_attack_downward', shoot: 'rifle_shoot_stationary_01' };
 const CHARS = {
   hick: { file: 'hick_skinny.glb', h: 1.72, own: { idle: 'drunk_idle', walk: 'walking', run: 'running' } },
   biker1: { file: 'fat_biker_01.glb', h: 1.7 },
@@ -26,6 +27,12 @@ const CHARS = {
   blonde: { file: 'beautiful_blonde.glb', h: 1.66 },
   asian: { file: 'beautiful_asian.glb', h: 1.62, own: { walk: 'female_walk' } },
   officer: { file: 'dummy_officer.glb', h: 1.8 },
+  // Colin's Brutes (Oct 22): Tripo meshes off his art, ARP rigs renamed to Mixamo, the warrior's + Colin's clips
+  // baked in, so every state is an OWN clip (no retarget). The shooter walks with the rifle set.
+  brute_grunt: { file: 'brute_grunt.glb', h: 1.5, own: BRUTE_OWN },
+  brute_plated: { file: 'brute_plated.glb', h: 2.2, own: BRUTE_OWN },
+  brute_hero: { file: 'brute_hero.glb', h: 2.4, own: BRUTE_OWN },
+  brute_shooter: { file: 'brute_shooter.glb', h: 2.1, own: { ...BRUTE_OWN, idle: 'rifle_idle_01', walk: 'rifle_walk_fwd_01', run: 'rifle_run' } },
   builder: { file: 'contruction_worker.glb', h: 1.76, own: { idle: 'idle', walk: 'walk_fwd', swing: '1-handed_swing_01', stab: '2-handed-swing', hit: 'take_damage_01', die: 'hit_and_fall' } },
 };
 // Clip donors: our state name -> [donor key, clip name in that file].
@@ -52,11 +59,14 @@ const DANCE = new Set(['dance1', 'dance2', 'dance3']);
 // Who plays which unit. Members of a squad cycle through the list. prop = what is in the right hand.
 // Slots not listed (vehicles, heroes, bikes) keep their placeholder.
 export const CAST = {
+  // Backwoods wears the BRUTES for now (Colin, Oct 22: "implement the alien race into the main game"): the species
+  // factions are not in the sim yet, so the first species rides the first faction's slots. Grunts swarm, the plated
+  // Brute and the Hero share the melee line, the thin Shooter shoots. Fists, no props: their swings are their own.
   bw: {
-    worker: { who: ['hick'], atk: 'swing' },
-    pike: { who: ['hick'], prop: 'pitchfork', atk: 'stab' },
-    melee: { who: ['biker1', 'biker2'], prop: 'bottle', atk: 'swing' },
-    ranged: { who: ['hick'], prop: 'shotgun', atk: 'shoot' },
+    worker: { who: ['brute_grunt'], atk: 'swing' },
+    pike: { who: ['brute_grunt'], atk: ['swing', 'stab'] },
+    melee: { who: ['brute_plated', 'brute_hero'], atk: ['swing', 'stab'] },
+    ranged: { who: ['brute_shooter'], prop: 'shotgun', atk: 'shoot' },
   },
   om: {
     worker: { who: ['guard'], atk: 'swing' },
