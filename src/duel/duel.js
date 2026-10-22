@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=180';
+import { svg } from '../ui/icons.js?v=181';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -219,6 +219,51 @@ function scuff(p, dir, len, wid) {
   scuffs.push({ m, t: 25 }); if (scuffs.length > 40) { const o = scuffs.shift(); scene.remove(o.m); o.m.material.dispose(); }
 }
 function stepScuffs(dt) { for (const q of scuffs) { q.t -= dt; q.m.material.opacity = Math.min(1, q.t / 6); } }
+// LEAVES + DEBRIS (Colin: "little stuff like leaves that blow in the wind... when people swing stuff they push out of
+// the way"). One InstancedMesh of tiny two-triangle quads, no texture: a gusting wind field drifts them, they tumble
+// in the air and skid on the sand, and anything moving fast near them (a body, a knockback, a weapon tip mid-swing)
+// shoves them away. Cheap: 1 draw call, ~5 ms of maths per 1000 at 60 fps on a phone.
+const LEAF_N = 420, LEAF_R = RULE.ring + 4;
+const leafGeo = (() => { const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([-0.07, 0, -0.04, 0.07, 0, -0.04, 0.05, 0, 0.06, -0.05, 0, 0.06], 3));
+  g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); return g; })();
+const leafMesh = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ vertexColors: false, side: THREE.DoubleSide, roughness: 1 }), LEAF_N);
+leafMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(LEAF_N * 3), 3);
+leafMesh.frustumCulled = false; leafMesh.castShadow = false; scene.add(leafMesh);
+const leaves = [];
+{ const palette = [0xc96a2b, 0xd9a441, 0x8b5a2b, 0xb8432a, 0x6b6b58, 0x9c8b6a]; // autumn leaves + a few grey scraps
+  for (let i = 0; i < LEAF_N; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * LEAF_R;
+    leaves.push({ p: new THREE.Vector3(Math.cos(a) * r, Math.random() < 0.8 ? 0.01 : Math.random() * 2.5, Math.sin(a) * r), v: new THREE.Vector3(), rot: new THREE.Euler(0, Math.random() * 6.28, 0), spin: new THREE.Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6), s: 0.7 + Math.random() * 0.7, k: Math.random() });
+    leafMesh.setColorAt(i, new THREE.Color(palette[i % palette.length]).offsetHSL(0, 0, (Math.random() - 0.5) * 0.15));
+  }
+  leafMesh.instanceColor.needsUpdate = true; }
+const _lm = new THREE.Matrix4(), _lq = new THREE.Quaternion(), _ls = new THREE.Vector3(), _wind = new THREE.Vector3(), _tipP = new THREE.Vector3();
+const wind = { dir: 0.9, t: 0 };
+function stepLeaves(dt, time) {
+  // a slow-turning wind with gusts: base breeze + a sine gust + a rare strong one that lifts the settled ones
+  wind.t += dt; wind.dir += Math.sin(time * 0.11) * 0.08 * dt;
+  const gust = Math.max(0, Math.sin(time * 0.6) + Math.sin(time * 1.7) * 0.5) ; const big = Math.sin(time * 0.23) > 0.97 ? 1 : 0;
+  const w = 0.35 + gust * 0.9 + big * 3; _wind.set(Math.cos(wind.dir), 0, Math.sin(wind.dir)).multiplyScalar(w);
+  // shovers: every fighter's feet (with his velocity), plus the weapon tip of anyone mid-swing
+  const sh = [];
+  for (const f of fighters) { sh.push({ p: f.root.position, r: 0.9, v: f.vel, push: 1.5 + f.vel.length() * 0.6 + (f.state === 'move' ? 1.2 : 0) }); if (f.state === 'attack' && f.tip && f.move && !f.move.ranged && f.prog > f.move.at - 0.25) { f.tip.getWorldPosition(_tipP); sh.push({ p: _tipP.clone(), r: 1.1, v: null, push: 7 }); } }
+  for (let i = 0; i < LEAF_N; i++) {
+    const L = leaves[i], onGround = L.p.y <= 0.012;
+    // wind: airborne leaves take it fully; settled ones only in a gust strong enough to lift them (per-leaf threshold)
+    if (!onGround) L.v.addScaledVector(_wind, dt * 1.6); else if (w > 1.1 + L.k * 1.6) { L.v.addScaledVector(_wind, dt * 2.5); L.v.y += (0.6 + Math.random() * 1.2); }
+    for (const q of sh) { const dx = L.p.x - q.p.x, dz = L.p.z - q.p.z, d2 = dx * dx + dz * dz; if (d2 < q.r * q.r && d2 > 1e-4) { const d = Math.sqrt(d2), k = (1 - d / q.r) * q.push; L.v.x += (dx / d) * k * dt * 8; L.v.z += (dz / d) * k * dt * 8; L.v.y += k * dt * 4 * (q.v ? 0.6 : 1.4); if (q.v) L.v.addScaledVector(q.v, k * dt * 2); } }
+    L.v.y -= (onGround ? 0 : 2.6) * dt; L.v.multiplyScalar(Math.exp(-(onGround ? 4.5 : 1.3) * dt)); // leaves fall slowly (drag), skid briefly on the ground
+    L.p.addScaledVector(L.v, dt);
+    if (L.p.y < 0.01) { L.p.y = 0.01; L.v.y = 0; }
+    const r = Math.hypot(L.p.x, L.p.z); if (r > LEAF_R) { const a = Math.atan2(-L.p.z, -L.p.x) + (Math.random() - 0.5); L.p.set(Math.cos(a) * LEAF_R * 0.98, 0.01, Math.sin(a) * LEAF_R * 0.98); L.v.set(0, 0, 0); } // blown out: come back in upwind
+    const sp = L.v.length();
+    if (!onGround || sp > 0.3) { L.rot.x += L.spin.x * dt * (0.3 + sp); L.rot.y += L.spin.y * dt * (0.3 + sp); L.rot.z += L.spin.z * dt * (0.3 + sp); } // tumble in the air, lie still on the ground
+    else { L.rot.x *= 1 - 3 * dt; L.rot.z *= 1 - 3 * dt; } // settle flat
+    _lq.setFromEuler(L.rot); _ls.setScalar(L.s); _lm.compose(L.p, _lq, _ls); leafMesh.setMatrixAt(i, _lm);
+  }
+  leafMesh.instanceMatrix.needsUpdate = true;
+}
 const tracers = [];
 function tracer(a, b, hit) {
   const g = new THREE.BufferGeometry().setFromPoints([a, b]);
@@ -713,7 +758,7 @@ function frame() {
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
-  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt);
+  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time);
   for (const f of fighters) stepTrail(f, dt);
   for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.t -= dt; t.l.material.opacity = Math.max(0, t.t / 0.09); if (t.t <= 0) { scene.remove(t.l); t.l.geometry.dispose(); tracers.splice(i, 1); } }
   stepCamera(dt); hud();
@@ -722,5 +767,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
