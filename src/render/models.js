@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=245';
+import { THREE, box, cyl, mat } from './scene.js?v=246';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -414,7 +414,7 @@ export function nodeMesh() {
 // Squad shapes (body space, +z is the way the squad faces). LINE: two rows, the front row wider, the back row
 // staggered into the gaps, so a squad reads as a rank facing the enemy. COLUMN: two abreast for the road.
 export function formation(n) {
-  const front = Math.ceil(n / 2), back = n - front, sp = 1.1, out = [];
+  const front = Math.ceil(n / 2), back = n - front, sp = 1.25, out = [];
   for (let i = 0; i < front; i++) out.push([(i - (front - 1) / 2) * sp, 0.5]);
   for (let i = 0; i < back; i++) out.push([(i - (back - 1) / 2) * sp, -0.55]);
   return out;

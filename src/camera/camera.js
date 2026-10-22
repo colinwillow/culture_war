@@ -1,7 +1,7 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera, GLOBE } from '../render/scene.js?v=245';
-import { walkH } from '../map/layout.js?v=245';
-import { smooth } from '../util/math.js?v=245';
+import { camera, GLOBE } from '../render/scene.js?v=246';
+import { walkH } from '../map/layout.js?v=246';
+import { smooth } from '../util/math.js?v=246';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
@@ -17,6 +17,9 @@ addEventListener('pointerdown', () => { lastTouch = clock; }, { capture: true })
 addEventListener('wheel', () => { lastTouch = clock; }, { capture: true, passive: true });
 export function applyCam(dt, spot) {
   clock += dt; updateFling(dt);
+  // NaN guard (B246, Colin: "at one point the screen went completely white and stayed white"): one bad number in the
+  // camera (a zero-length pinch, a NaN spot) poisons it for good and the view is all sky/fog. Snap back home instead.
+  if (![CAM.tx, CAM.tz, CAM.dist, CAM.distT, CAM.yaw].every(Number.isFinite)) { CAM.tx = 0; CAM.tz = 58; CAM.dist = CAM.distT = ZOOM.home; CAM.yaw = 0; }
   if (spot && clock - lastTouch > ZOOM.idleT && Math.hypot(spot[0] - CAM.tx, spot[1] - CAM.tz) < CAM.dist * 0.9) {
     const k = 1 - Math.exp(-dt * 0.6); CAM.tx += (spot[0] - CAM.tx) * k; CAM.tz += (spot[1] - CAM.tz) * k; CAM.distT += (ZOOM.dip - CAM.distT) * k;
   }

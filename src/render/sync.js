@@ -1,20 +1,20 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=245';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=245';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=245';
-import { emit } from '../fx/particles.js?v=245';
-import { seen as fogSeen } from './fog.js?v=245';
-import { bark } from '../fx/sfx.js?v=245';
-import { TICK } from '../config/factions.js?v=245';
-import { walkH, CITY } from '../map/layout.js?v=245';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=245';
-import { CAM } from '../camera/camera.js?v=245';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=246';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=246';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=246';
+import { emit } from '../fx/particles.js?v=246';
+import { seen as fogSeen } from './fog.js?v=246';
+import { bark } from '../fx/sfx.js?v=246';
+import { TICK } from '../config/factions.js?v=246';
+import { walkH, CITY } from '../map/layout.js?v=246';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=246';
+import { CAM } from '../camera/camera.js?v=246';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=245';
-import { UI } from '../ui/state.js?v=245';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=245';
+import { Q, pl, getSim } from '../sim/sim.js?v=246';
+import { UI } from '../ui/state.js?v=246';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=246';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=245';
+import { lerpAngle } from '../util/math.js?v=246';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -223,8 +223,34 @@ export function ack(ids, attack) {
 }
 const hop = (o, i) => { if (!(o.ack > 0)) return 0; const k = 1 - o.ack / 0.45 - i * 0.04; return k > 0 && k < 1 ? Math.sin(k * Math.PI) * 0.4 : 0; };
 
+// NAME TAG (B246, Colin: "when you've selected a group or a person or a base there should be a label on its head --
+// the special name, and under it, small, in another colour, the general class"). One DOM tag over the selection.
+const CLASS_WORD = { worker: 'worker', pike: 'grunt', melee: 'brute', ranged: 'shooter', cav: 'fast', siege: 'heavy', hero: 'hero', hq: 'headquarters', depot: 'depot', barracks: 'barracks', tower: 'tower', wall: 'wall' };
+let tagEl = null; const _tp = new THREE.Vector3();
+function selTag(S) {
+  if (!tagEl) { tagEl = document.createElement('div'); tagEl.id = 'selTag'; tagEl.innerHTML = '<b></b><small></small>'; document.body.appendChild(tagEl); }
+  const sel = UI.sel; let x = null, z = null, y = 0, name = '', cls = '';
+  if (sel && sel.type === 'sq' && sel.ids && sel.ids.length) {
+    const sq = S.squads.filter((q) => sel.ids.includes(q.id)); if (sq.length) {
+      for (const q of sq) { x = (x || 0) + q.x / sq.length; z = (z || 0) + q.z / sq.length; }
+      const q = sq[0]; y = q.def.flies ? 7 : 5;
+      name = sq.length > 1 ? sq.length + ' squads' : q.def.name; cls = sq.length > 1 ? 'army' : CLASS_WORD[q.slot] || q.slot;
+    }
+  } else if (sel && sel.type === 'bld') {
+    const b = S.blds.find((q) => q.id === sel.id); if (b) {
+      const o = R.bl.get(b.id); x = b.x; z = b.z; y = (o ? o.h : 5) + 1.5;
+      name = (FACTIONS[b.f] && FACTIONS[b.f].bldNames && FACTIONS[b.f].bldNames[b.kind]) || CLASS_WORD[b.kind]; cls = CLASS_WORD[b.kind] || b.kind;
+    }
+  }
+  if (x === null) { tagEl.hidden = true; return; }
+  _tp.set(x, walkH(x, z) + y, z).project(camera);
+  if (_tp.z > 1) { tagEl.hidden = true; return; }
+  tagEl.hidden = false; tagEl.children[0].textContent = name; tagEl.children[1].textContent = cls;
+  tagEl.style.left = ((_tp.x + 1) / 2) * innerWidth + 'px'; tagEl.style.top = ((1 - _tp.y) / 2) * innerHeight + 'px';
+}
 export function syncRender(S, alpha, dt, time) {
   const selIds = new Set(UI.sel && UI.sel.type === 'sq' ? UI.sel.ids : []);
+  selTag(S);
   hillRender(S, time);
   driftRender(S, time);
   fireRender(S, dt);

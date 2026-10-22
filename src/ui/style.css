@@ -255,3 +255,6 @@ body.show-mute #duelBtn { display: grid; }
 @media (orientation: landscape) { #menu h1 img.logo { height: min(34vh, 220px); } }
 @media (orientation: portrait) { #menu { gap: 12px; justify-content: flex-end; padding-top: calc(56px + env(safe-area-inset-top, 0px)); } #menu h1 span { margin-top: 2px; } }
 @media (orientation: portrait) and (max-height: 760px) { #menu h1 img.logo { height: 17vh; } #menu { gap: 8px; } .pick.sp { padding: 8px 6px; } .pick.sp .em { width: 36px; height: 36px; } }
+#selTag { position: fixed; z-index: 3; transform: translate(-50%, -100%); pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; white-space: nowrap; }
+#selTag b { font: 15px/1 var(--num); color: #fff; text-shadow: 0 2px 0 #000, 0 0 10px color-mix(in srgb, var(--fc) 80%, transparent); letter-spacing: .02em; }
+#selTag small { font: 11px/1 var(--display); color: var(--fc2); text-transform: uppercase; letter-spacing: .18em; text-shadow: 0 1px 0 #000; }
