@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=162';
+import { svg } from '../ui/icons.js?v=163';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -45,7 +45,8 @@ const ROSTER = [
   { name: 'GUNNER', rig: 'demon', style: GUN, h: 2.05, hp: 130, speed: 1, weapon: 'blaster' },
 ];
 const RULE = {
-  think: 0.22,       // seconds between decisions
+  pace: 1.35,        // EVERYTHING plays this much faster than authored (Colin: "a little quicker")
+  think: 0.14,       // seconds between decisions
   // (no dice for a MISS any more: a swing misses when the weapon physically does not reach the body -- see touches)
   reachTol: 0.28,    // m of slack round the body capsule for a weapon tip (fists/feet get 60% of it)
   dodge: 0.08,       // defender steps out of it (only if not busy)
@@ -332,23 +333,23 @@ function brain(f, dt) {
   if ((f.think -= dt) > 0) return; f.think = RULE.think * (0.6 + rng() * 0.8);
   // seeing a swing coming: block it
   if (o.state === 'attack' && o.move && o.prog < o.move.at && d < o.move.reach + 0.6 && rng() < RULE.readBlock) {
-    setState(f, 'block', 0.5 + rng() * 0.5); play(f, S.block); return;
+    setState(f, 'block', 0.35 + rng() * 0.35); play(f, S.block); return;
   }
   if (S.shoot && d > S.keep[0] && d < S.keep[1]) return startShot(f);
   const want = S.shoot && d > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15); // whiffing? step in
   if (d > want + 0.2) { setState(f, 'move', 0); return; }
   const r = rng();
   if (r < 0.62) startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]);
-  else if (r < 0.8) { setState(f, 'block', 0.4 + rng() * 0.6); play(f, S.block); }
-  else { setState(f, 'idle', 0); f.think = 0.3 + rng() * 0.4; play(f, S.idle); }
+  else if (r < 0.8) { setState(f, 'block', 0.3 + rng() * 0.4); play(f, S.block); }
+  else { setState(f, 'idle', 0); f.think = 0.15 + rng() * 0.25; play(f, S.idle); }
 }
 function startAttack(f, m) {
   stats.swings++; f.lastStrike = null;
-  f.move = m; f.prog = 0; f.swingDone = false; setState(f, 'attack', dur(f, m.c, m.spd)); play(f, m.c, true, m.spd, 0.1); sound('swing', 0.35);
+  f.move = m; f.prog = 0; f.swingDone = false; const sp = m.spd * RULE.pace; f.move = { ...m, spd: sp }; setState(f, 'attack', dur(f, m.c, sp)); play(f, m.c, true, sp, 0.08); sound('swing', 0.35);
 }
 function startShot(f) {
   const m = f.def.style.shoot; f.move = { ...m, reach: 99, ranged: true }; f.prog = 0; f.swingDone = false;
-  setState(f, 'attack', dur(f, m.c, m.spd)); play(f, m.c, true, m.spd, 0.1);
+  const sp = m.spd * RULE.pace; f.move.spd = sp; setState(f, 'attack', dur(f, m.c, sp)); play(f, m.c, true, sp, 0.08);
 }
 function resolve(a, hp) { // the moment of contact: block, dodge, glance, hit or floor (a miss never gets here)
   const b = other(a), m = a.move, d = flat(a, b).length(), dir = flat(a, b).normalize(), at = chest(b);
@@ -388,7 +389,7 @@ function whereHit(b, p) { // head / gut / body, or the side it came from (in the
 }
 function blocked(a, b, m, dir, keep) {
   stats.block++;
-  b.hp -= m.dmg * keep; play(b, b.def.style.blockHit, true, 1.2, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2) * 0.7);
+  b.hp -= m.dmg * keep; play(b, b.def.style.blockHit, true, 1.2 * RULE.pace, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2 * RULE.pace) * 0.6);
   b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3);
   pop(chest(b).addScaledVector(dir, -0.35), 0x9fe0ff, 0.8, 0.14); sound('clang', 0.5); shake = Math.max(shake, 0.06);
   if (b.hp <= 0) ko(b, dir);
@@ -405,10 +406,10 @@ function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   b.vel.addScaledVector(dir, knock * 2.2);
   if (b.hp <= 0) return ko(b, dir);
   const S = b.def.style;
-  if (floor) { setState(b, 'down', dur(b, S.fall, 1.2) * 0.85); play(b, S.fall, true, 1.2, 0.08); b.vel.addScaledVector(dir, 2.5); return; }
+  if (floor) { setState(b, 'down', dur(b, S.fall, 1.2 * RULE.pace) * 0.85); play(b, S.fall, true, 1.2 * RULE.pace, 0.08); b.vel.addScaledVector(dir, 2.5); return; }
   const where = hp ? whereHit(b, hp) : null, want = where && S.react && S.react[where];
   const h = want && b.actions[want] ? want : light ? S.hits[1] : S.hits[(rng() * S.hits.length) | 0];
-  setState(b, 'hit', dur(b, h, 1.4) * 0.75); play(b, h, true, 1.4, 0.06);
+  setState(b, 'hit', dur(b, h, 1.4 * RULE.pace) * 0.65); play(b, h, true, 1.4 * RULE.pace, 0.06);
 }
 function ko(b, dir) {
   b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3);
@@ -428,7 +429,7 @@ function stepFighter(f, dt) {
   if (f.state === 'move') {
     const d = flat(f, o), dist = d.length(), want = S.shoot && dist > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15);
     if (dist <= want) { setState(f, 'idle', 0); play(f, S.idle); }
-    else { const run = dist > 4.5, sp = (run ? 3.4 : 1.4) * f.def.speed * (f.h / 1.9); play(f, run ? S.run : S.walk); f.root.position.addScaledVector(d.normalize(), sp * dt); }
+    else { const run = dist > 3.2, sp = (run ? 4.2 : 1.8) * f.def.speed * (f.h / 1.9); play(f, run ? S.run : S.walk); f.root.position.addScaledVector(d.normalize(), sp * dt); }
   }
   if (f.state === 'attack') {
     f.prog = 1 - f.t / dur(f, f.move.c, f.move.spd);
@@ -442,10 +443,10 @@ function stepFighter(f, dt) {
       if (hp) { f.swingDone = true; resolve(f, hp); }
       else if (f.prog > f.move.at + 0.07) { f.swingDone = true; sound('swing', 0.3); f.whiffs = (f.whiffs || 0) + 1; stats.whiff++; }
     }
-    if (f.t <= 0) { setState(f, 'idle', 0); f.think = 0.15 + rng() * 0.35; play(f, S.idle); }
+    if (f.t <= 0 || f.prog > 0.8) { setState(f, 'idle', 0); f.think = 0.05 + rng() * 0.2; play(f, S.idle, false, 1, 0.2); } // cut the long recoveries
   }
   if ((f.state === 'block' || f.state === 'hit') && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle); }
-  if (f.state === 'down' && f.t <= 0) { setState(f, 'getup', dur(f, S.getup, 1.3) * 0.9); play(f, S.getup, true, 1.3, 0.1); }
+  if (f.state === 'down' && f.t <= 0) { setState(f, 'getup', dur(f, S.getup, 1.3 * RULE.pace) * 0.9); play(f, S.getup, true, 1.3 * RULE.pace, 0.1); }
   if (f.state === 'getup' && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle, false, 1, 0.25); }
   // knockback slide, ring edge, and no walking through each other
   f.root.position.addScaledVector(f.vel, dt); f.vel.multiplyScalar(Math.exp(-6 * dt));
