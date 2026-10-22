@@ -11,3 +11,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [c_car_van] models/gen/c_car_van.glb -- 1272 tris, 2.2 x 2.3 x 5.06 m, origin ground centre, front +Z, white with orange stripe, 1 material; c_car_van_chunks.glb = 6 capped chunks (left/right x cab/mid/rear), 1736 tris
 - [c_bus] models/gen/c_bus.glb -- 1440 tris, 2.78 x 3.15 x 11.1 m (mirrors stick out; body 2.45 wide), origin ground centre, front +Z, doors on the -X side, yellow, 2 materials: kit + glow (amber destination sign)
 - [c_lamp] models/gen/c_lamp.glb -- 452 tris, 0.4 x 5.5 x 0.4 m, origin at the base centre on the ground, post-top lantern (kept to the 0.4 m footprint, no overhanging arm), 2 materials: kit + glow (lantern)
+- [c_hydrant] models/gen/c_hydrant.glb -- ~800 tris, 0.44 x 0.78 x 0.41 m, origin base centre on the ground, hazard ORANGE not red (red is the team key), 1 material
