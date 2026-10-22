@@ -156,3 +156,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [n_water_tower] DETAIL PASS 2 models/gen/n_water_tower.glb -- 1220 tris, size/origin unchanged: plank lines round the tank, a hanging rope
 - [b_roof_edge] DETAIL PASS 2 models/gen/b_roof_edge.glb -- 376 tris, size/origin unchanged: mortar cracks, a moss tuft on the coping
 - [c_tree, b_rubble, ui_*] DETAIL PASS 2 -- skipped this round (trees + rubble got pass 1; UI gets its own pass next)
+- [ui_em_*] DETAIL PASS 2 models/gen/ui/ui_em_{brute,grey,rept,spore}.svg -- same viewBox/colour rules, 0.5-1.3 KB: brute gains rivet holes round the gear + a crack; grey gains an antenna and a little abductee silhouette cut out of the beam; rept gains two fangs under the eye; spore gains a goo drip and two ring spores
