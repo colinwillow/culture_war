@@ -1,6 +1,17 @@
 # Roadmap
 
-## EVENING LOOP (Oct 22 2026) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
+## NIGHT LOOP 2 (Oct 22 2026, from 06:35 UTC, no stop time: Colin "go for it") -- same rules as the evening loop below.
+### Items (Colin picked the order: objectives, hero abilities, walls, species factions)
+- [ ] Objectives: 2-3 neutral spots on the map (power plant, bank, radio tower) that pay a small bonus (+income or +power) to whoever holds them (a squad inside, no enemy inside); ring + flag like the hill; minimap marks; the AI contests them. Versus mode only at first. Sim + fx + minimap.
+- [ ] Species hero ability #1 on the Brutes' Hero (ridden by Backwoods for now): EAT -- gulps the nearest civilian for a big heal + a roar that scares enemy squads back for 2 s (sim `heroAbility` case, fx, the arena's grunt sound).
+- [ ] Walls: a cheap breakable WALL piece (build menu) that blocks pathing on the grid, and a GATE that lets your own squads through; the AI's pathing respects them; a wall in the hex city later.
+- [ ] Species factions in the sim: a real `brutes` faction (traits eat + its own numbers), on the menu beside the six, Backwoods goes back to the hicks; then `greys` (abduct) on the Nerds' art until they have their own.
+- [ ] Smarter AI: counter-pick from the player's army mix, send the Fast class round the back, use its powers.
+- [ ] A second resource from the verb (TECH) that gates T2/T3.
+- [ ] Arena: AI fighters pick up dropped weapons; carry slots per class (Grunt 1, Shooter gun + melee, Brute melee only, big guys 2).
+- [ ] Hex: two RTS squads fight on the hex map (first step of the merge).
+
+
 Loop rules: `git pull origin main`, read this file, take the FIRST unchecked item in THIS section, ship it as ONE build
 (`npm run bump`, boot check of index.html AND duel.html, push to `main`), tick it with the build number, one line in
 `docs/decisions.md`, end the pass. Too big? Split it here and ship the first half. Never ship a page that does not boot.
