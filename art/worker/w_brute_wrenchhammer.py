@@ -30,4 +30,10 @@ for y in (-1.04, -1.16):
     for z in (-0.055, 0.055):
         spike(0.022, 0.06, (-0.13, y, z), (-1, 0, 0))
 spike(0.03, 0.09, (0, -1.22, 0), (0, -1, 0))                                         # top spike
+
+# ---- detail pass 2: crimson team strip round the head, panel lines, rust wear on the jaw, a second chain
+box((0.154, 0.035, 0.204), (0, -1.21, 0), 'team', bevel=0.01)
+for y in (-1.06, -1.15): box((0.152, 0.006, 0.202), (0, y, 0), 'dark', bevel=0.0)
+box((0.06, 0.05, 0.01), (0.13, -1.03, 0.086), 'rust', bevel=0.0)
+chain((-0.03, 0.13, -0.03), (-0.05, 0.15, -0.13), 0.011)
 print(ship('w_brute_wrenchhammer'))

@@ -33,4 +33,9 @@ for s in (-1, 1):
 box((0.3, 0.4, 0.06), (0, 0.0, 0.0), 'iron', bevel=0.02)
 box((0.12, 0.3, 0.1), (0, 0.0, 0.07), 'burnt', bevel=0.02)
 box((0.06, 0.1, 0.14), (0.0, 0.32, 0.43), 'steel', bevel=0.015)                   # sight block
+
+# ---- detail pass 2: panel lines on the rings, rust wear, a crimson stripe on the breech cap, hazard notch on the muzzle
+for y in (0.28, 0.38): cyl(0.223, 0.012, (0, y, ZC), 'dark', (90, 0, 0), n=10)
+box((0.06, 0.18, 0.01), (0.12, -0.25, ZC + 0.2), 'rust', rot=(0, 30, 0), bevel=0.0)
+cyl(0.224, 0.04, (0, 0.33, ZC), 'team', (90, 0, 0), n=10)
 print(ship('w_brute_cannon'))

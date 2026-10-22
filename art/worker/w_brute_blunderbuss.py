@@ -25,4 +25,9 @@ for a in range(45, 360, 90):
 box((0.012, 0.05, 0.03), (0, 0.04, Z0 + 0.05), 'iron', bevel=0.004)                   # hammer
 box((0.015, 0.06, 0.012), (0, 0.04, -0.02), 'iron', bevel=0.004)                      # trigger guard
 chain((0.0, 0.03, -0.09), (0.02, 0.06, -0.19), 0.01)
+
+# ---- detail pass 2: crimson team band on the barrel, panel line on the receiver, rust wear on the flare
+cyl(0.04, 0.035, (0, -0.33, Z0), 'team', (90, 0, 0), n=8)
+box((0.087, 0.006, 0.087), (0, -0.04, Z0), 'dark', bevel=0.0)
+box((0.03, 0.06, 0.006), (0.02, -0.66, Z0 + 0.06), 'rust', rot=(-14, 0, 0), bevel=0.0)
 print(ship('w_brute_blunderbuss'))

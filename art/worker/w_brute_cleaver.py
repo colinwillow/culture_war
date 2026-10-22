@@ -25,4 +25,9 @@ box((0.04, 0.13, 0.025), (0, -0.785, 0.17), 'iron', bevel=0.006)
 for y in (-0.26, -0.38, -0.5): spike(0.016, 0.05, (0, y, 0.18), (0, -0.25, 1))       # spine spikes
 for s in (-1, 1):
     for y in (-0.24, -0.82): hexbolt(0.011, (s * 0.017, y, 0.06), (s, 0, 0), 'ivory')
+
+# ---- detail pass 2: crimson team stripe along the spine, panel lines on the blade, rust wear near the edge
+box((0.042, 0.41, 0.03), (0, -0.395, 0.135), 'team', bevel=0.004)
+for y in (-0.46, -0.8): box((0.037, 0.006, 0.2), (0, y, -0.06), 'dark', bevel=0.0)
+box((0.036, 0.08, 0.03), (0, -0.7, -0.16), 'rust', bevel=0.0)
 print(ship('w_brute_cleaver'))

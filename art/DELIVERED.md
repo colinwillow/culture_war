@@ -110,3 +110,10 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [b_roof_edge] v2 DETAIL PASS models/gen/b_roof_edge.glb -- ~340 tris, 4.0 x 0.63 x 0.45 m, origin unchanged: crown graffiti + magenta streak on the outer face, a rust downspout, a cracked coping patch, 1 material
 - [b_rubble] v2 DETAIL PASS models/gen/b_rubble.glb -- 2022 tris total (s 472 / m 662 / l 888), same three named meshes + node layout, each pile gains extra rebar, a brick slab with a white crown tag and a small glowing amber ember, 2 materials: kit + glow
 - [c_tree] v2 DETAIL PASS models/gen/c_tree.glb -- ~1520 tris total (tree_a ~570, tree_b ~310, tree_c ~640), same three named meshes + node layout, each origin at its trunk base: root flares (flat-cut at y 0), extra two-tone leaf clusters, a small white crown tag sprayed on each trunk, 1 material
+- [w_brute_club] DETAIL PASS 2 models/gen/w_brute_club.glb -- 1294 tris, size/origin unchanged from v2: crimson team wrap on the head, panel-line grooves, rust wear, orange tip collar
+- [w_brute_wrenchhammer] DETAIL PASS 2 models/gen/w_brute_wrenchhammer.glb -- 2042 tris, size/origin unchanged from v2: crimson team strip round the head tip, panel lines, rust wear on the jaw, a second chain
+- [w_brute_blunderbuss] DETAIL PASS 2 models/gen/w_brute_blunderbuss.glb -- 1584 tris, size/origin unchanged from v2: crimson team band on the barrel, receiver panel line, rust wear on the flare
+- [w_brute_cleaver] DETAIL PASS 2 models/gen/w_brute_cleaver.glb -- 1414 tris, size/origin unchanged from v2: crimson team stripe along the spine, blade panel lines, rust wear near the edge
+- [w_brute_pipewrench] DETAIL PASS 2 models/gen/w_brute_pipewrench.glb -- 1324 tris, size/origin unchanged from v2: crimson team band on the handle, panel line + rust wear on the hook jaw
+- [w_brute_cannon] DETAIL PASS 2 models/gen/w_brute_cannon.glb -- 1964 tris, size/origin unchanged from v2: crimson stripe on the breech cap, panel lines, rust wear
+- [p_skateboard] DETAIL PASS 2 models/gen/p_skateboard.glb -- 1576 tris, size/origin unchanged from v2: crimson team edge rails, scuff wear on the nose, deck panel line

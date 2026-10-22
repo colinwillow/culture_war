@@ -22,4 +22,9 @@ for s in (-1, 1):
         cyl(0.05, 0.05, (x * 0.125, y, 0.05), 'dark', (0, 90, 0), n=8, bevel=0.012)
         cyl(0.028, 0.054, (x * 0.125, y, 0.05), 'glow', (0, 90, 0), n=8)                  # glowing hubs
 chain((0.13, 0.05, DZ - 0.01), (0.15, 0.12, DZ - 0.06), 0.009)
+
+# ---- detail pass 2: crimson team edge rails, scuff wear on the nose, panel line across the deck
+for x in (-0.135, 0.135): box((0.012, 0.6, 0.02), (x, 0, DZ + 0.005), 'team', bevel=0.0)
+box((0.12, 0.06, 0.006), (0.04, -0.37, DZ + 0.055), 'rust', rot=(-20, 0, 0), bevel=0.0)
+box((0.27, 0.006, 0.014), (0, 0.12, DZ + 0.025), 'steel', bevel=0.0)
 print(ship('p_skateboard'))

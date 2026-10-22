@@ -23,4 +23,10 @@ for y in (-0.6, -0.75):
 spike(0.024, 0.07, (0, -0.785, 0), (0, -1, 0))                                    # tip spike
 for p in ((0.05, -0.53, 0.05), (-0.05, -0.53, 0.05), (0.05, -0.77, 0.05), (-0.05, -0.77, 0.05)):
     hexbolt(0.009, p, (0, 0, 1))
+
+# ---- detail pass 2: crimson team wrap on the head, panel-line grooves, rust wear, a bigger tip spike collar
+box((0.106, 0.035, 0.106), (0, -0.72, 0), 'team', bevel=0.01)
+for y in (-0.6, -0.66): box((0.104, 0.006, 0.104), (0, y, 0), 'dark', bevel=0.0)
+box((0.03, 0.06, 0.004), (-0.02, -0.66, -0.051), 'rust', bevel=0.0)
+cyl(0.034, 0.02, (0, -0.79, 0), 'burnt', (90, 0, 0), n=6)
 print(ship('w_brute_club'))

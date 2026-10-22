@@ -25,4 +25,9 @@ box((0.075, 0.22, 0.06), (0, -0.48, 0.20), 'iron', bevel=0.014)                 
 box((0.075, 0.05, 0.07), (0, -0.565, 0.155), 'steel', bevel=0.01)
 for x in (-0.039, 0.039): hexbolt(0.01, (x, -0.42, 0.2), (1 if x > 0 else -1, 0, 0), 'ivory')
 cyl(0.02, 0.012, (0.036, -0.43, 0.02), 'glow', (0, 90, 0), n=8)                      # tiny glowing gauge
+
+# ---- detail pass 2: crimson team band on the handle, panel line, rust wear on the hook jaw
+box((0.056, 0.04, 0.066), (0, -0.33, 0), 'team', bevel=0.006)
+box((0.077, 0.006, 0.062), (0, -0.44, 0.2), 'dark', bevel=0.0)
+box((0.04, 0.05, 0.006), (0.0, -0.5, 0.232), 'rust', bevel=0.0)
 print(ship('w_brute_pipewrench'))
