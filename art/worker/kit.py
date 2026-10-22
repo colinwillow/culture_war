@@ -266,12 +266,32 @@ def preview(path, png, dist=None):
     w = bpy.data.worlds.new('w'); sc.world = w
     bpy.ops.render.render(write_still=True)
 
+GROUND_DIRT = (0.8, 0.3)   # detail pass 4: (height m, strength) of the grime gradient at the base of grounded pieces
+
+def ground_dirt(ob):
+    """Darken vertex colours near y=0 toward a dirt brown (kit faces only; glow/clear/team untouched)."""
+    h, k = GROUND_DIRT; me = ob.data; a = me.color_attributes.get('Col')
+    if not a or k <= 0: return
+    dirt = _lin('3b3026'); team = PAL['team']
+    kit_idx = [i for i, m in enumerate(me.materials) if m and m.name == 'kit']
+    for p in me.polygons:
+        if p.material_index not in kit_idx: continue
+        for li in p.loop_indices:
+            z = me.vertices[me.loops[li].vertex_index].co.z
+            if z >= h: continue
+            c = a.data[li].color
+            if all(abs(c[i] - team[i]) < 1e-3 for i in range(3)): continue
+            f = k * (1 - max(z, 0) / h)
+            a.data[li].color = tuple(c[i] * (1 - f) + dirt[i] * f for i in range(3)) + (1.0,)
+
 def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None, chunk_tilt=0.35):
     """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info.
     clip=True cuts away anything below the ground (y 0)."""
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
     ob = join(name, objs)
     if clip: clip_ground(ob)
+    if not name.startswith(('w_', 'p_', 's_')) or name == 's_brute_truck':
+        ground_dirt(ob)
     if fit:   # non-uniform squash in Blender axes (x, y=depth, z=up) about the origin
         ob.data.transform(Matrix.Diagonal((fit[0], fit[1], fit[2], 1.0)))
     p = os.path.join(OUT, name + '.glb'); export(p, [ob])
@@ -310,6 +330,7 @@ def ship_multi(name, groups, spacing=0.0, clip=False):
     for i, (n, obs) in enumerate(groups.items()):
         ob = join(n, obs); out.append(ob)
         if clip: clip_ground(ob)
+        ground_dirt(ob)
     for i, ob in enumerate(out):
         ob.location.x = (i - (len(out) - 1) / 2) * spacing
     p = os.path.join(OUT, name + '.glb'); export(p, out)
