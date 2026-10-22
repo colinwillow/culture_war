@@ -31,15 +31,9 @@
   .dock button.pick b { font-family: 'Bungee', sans-serif; font-size: 11px; }
   .dock button.on { color: #ffd75a; border-color: #ffd75a; }
   /* YOU mode: a stick appears under the left thumb; two big buttons for the right */
-  #stick { position: fixed; z-index: 3; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 3px solid #ffffff80; background: #ffffff18; pointer-events: none; }
-  #stick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0008; }
-  .fight { position: fixed; z-index: 3; right: calc(env(safe-area-inset-right, 0px) + 14px); bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); display: none; flex-direction: column; gap: 14px; }
-  body.you .fight { display: flex; }
+  #stick, #rstick { position: fixed; z-index: 3; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 3px solid #ffffff80; background: #ffffff18; pointer-events: none; }
+  #stick i, #rstick i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0008; }
   body.you .dock button:not(#you):not(#home) { display: none; }
-  .fight button { width: 96px; height: 96px; border-radius: 50%; border: 4px solid #fff; color: #fff; font: inherit; box-shadow: 0 5px 0 #0008; touch-action: none; }
-  .fight button b { font-family: 'Bungee', sans-serif; font-size: 12px; letter-spacing: 1px; }
-  #atk { background: #d8352ae0; } #blk { background: #2e78d8e0; }
-  .fight button:active { transform: translateY(3px); box-shadow: 0 2px 0 #0008; }
   #load { position: fixed; inset: 0; display: grid; place-items: center; font-family: 'Bungee', sans-serif; font-size: 18px; background: #1b1d24; }
   #err { position: fixed; left: 10px; right: 10px; top: 60px; background: #a01818; padding: 8px; font: 12px monospace; white-space: pre-wrap; }
 </style>
@@ -58,7 +52,7 @@
   <button type="button" id="you" aria-label="Play the left fighter yourself"><span data-i="hero"></span><small>YOU</small></button>
 </div>
 <div id="stick" hidden><i id="knob"></i></div>
-<div class="fight" id="fightpad"><button type="button" id="blk"><b>BLOCK</b></button><button type="button" id="atk"><b>ATTACK</b></button></div>
+<div id="rstick" hidden><i id="rknob"></i></div>
 <div id="load">LOADING</div>
 <div id="err" hidden></div>
 <script>
@@ -68,6 +62,6 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 </script>
-<script type="module" src="./src/duel/duel.js?v=196"></script>
+<script type="module" src="./src/duel/duel.js?v=197"></script>
 </body>
 </html>

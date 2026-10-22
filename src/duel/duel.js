@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=196';
-import { makePops, slashTex } from '../fx/pops.js?v=196';
+import { svg } from '../ui/icons.js?v=197';
+import { makePops, slashTex } from '../fx/pops.js?v=197';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -495,25 +495,40 @@ function setState(f, s, t) { f.state = s; f.t = t; }
 
 // YOU vs one: the left fighter is driven by a thumb (virtual stick, ATTACK / BLOCK buttons, a flick to dodge roll).
 // Same rules as the AI: same moves, same guard, same parry; only the decisions come from the pad.
-const PAD = { on: false, x: 0, y: 0, mag: 0, atk: false, blk: false, attackQ: false, flick: null };
+const PAD = { on: false, x: 0, y: 0, mag: 0, rx: 0, ry: 0, rmag: 0, rhold: false, flick: null, rflick: false, jump: false, charge: 0 };
+// WEIRDPORT'S MAP (Colin): left stick = move, flick = roll. Right stick = camera drag; FLICK = a strike that way;
+// hold UP = fire (gun) / wind up a heavy swing (melee, released on the lift); hold DOWN = block; a TAP on either = jump.
+const RPAD = { fireAt: 0.78, keepAt: 0.5, blockAt: 0.55, arc: 0.35, chargeT: 0.8, tapT: 220, flickT: 260 }; // tap / flick windows in ms
 function padStep(f, dt) {
   const S = f.def.style, o = other(f);
   const busy = ['attack', 'hit', 'break', 'down', 'ko', 'getup', 'dodge', 'backstep'].includes(f.state);
-  if (PAD.flick && !busy) { // a flick of the stick: dodge roll that way, untouchable for the roll
+  if (PAD.flick && !busy) { // left flick: dodge roll that way, untouchable for the roll
     const d = flat(f, o), fwd = d.clone().normalize(), side = new THREE.Vector3(-fwd.z, 0, fwd.x);
     f.rollDir = PAD.flick.dot(side) >= 0 ? 1 : -1; setState(f, 'dodge', RULE.rollT); stats.roll++;
     play(f, S.run, false, 1.6, 0.06); puff(f.root.position.clone(), 4, { size: 0.3, spread: 1, up: 0.5, life: 0.6 });
   }
   PAD.flick = null;
-  if (busy) { PAD.attackQ = false; return; }
-  if (PAD.attackQ) { // ATTACK: a swing (a shot for a gunner); a second press mid-swing is dropped, no buffering
-    PAD.attackQ = false;
-    if (S.shoot) startShot(f); else startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]);
+  if (PAD.jump && !busy && !f.air) { f.air = 4.6; puff(f.root.position.clone(), 3, { size: 0.25, spread: 0.6, up: 0.3, life: 0.5 }); } // a hop; no clip for it yet
+  PAD.jump = false;
+  if (f.air !== undefined && f.air !== null) { f.root.position.y += f.air * dt; f.air -= 14 * dt; if (f.root.position.y <= 0) { f.root.position.y = 0; f.air = null; } }
+  const up = PAD.rhold && -PAD.ry > (PAD.firing ? RPAD.keepAt : RPAD.fireAt) && Math.abs(PAD.rx) < RPAD.arc + 0.2;
+  const down = PAD.rhold && PAD.ry > RPAD.blockAt && Math.abs(PAD.rx) < RPAD.arc + 0.2;
+  PAD.firing = up;
+  if (busy) { PAD.rflick = false; if (!up) PAD.charge = 0; return; }
+  if (PAD.rflick) { PAD.rflick = false; PAD.charge = 0; if (S.attacks && S.attacks.length) return startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]); if (S.shoot) return startShot(f); }
+  if (up) { // the trigger: a gun fires on its own; a melee winds up (charge builds while held)
+    if (S.shoot) { PAD.charge = 0; return startShot(f); }
+    PAD.charge = Math.min(1, PAD.charge + dt / RPAD.chargeT);
+    if (f.state !== 'charge') { setState(f, 'charge', 99); play(f, S.block, false, 0.6, 0.15); } // wind-up pose stands in for a charge clip
     return;
   }
-  if (PAD.blk && f.guard > 0) { if (f.state !== 'block') { setState(f, 'block', 99); play(f, S.block); } return; }
+  if (f.state === 'charge') { // released: the heavy swing, harder and a touch slower the longer it was held
+    const c = PAD.charge; PAD.charge = 0; const m = S.attacks[(rng() * S.attacks.length) | 0];
+    return startAttack(f, { ...m, dmg: m.dmg * (1 + 0.8 * c), spd: m.spd * (1 - 0.15 * c), heavy: c > 0.5 });
+  }
+  if (down && f.guard > 0) { if (f.state !== 'block') { setState(f, 'block', 99); play(f, S.block); } return; }
   if (f.state === 'block') { setState(f, 'idle', 0); play(f, S.idle); }
-  if (PAD.mag > 0.15) { // walk/run where the thumb points, screen-relative, still facing him
+  if (PAD.mag > 0.15) { // walk/run where the left thumb points, screen-relative, still facing him
     const cf = new THREE.Vector3(view.cx - camera.position.x, 0, view.cz - camera.position.z).normalize(), cr = new THREE.Vector3(-cf.z, 0, cf.x);
     const dir = cr.multiplyScalar(PAD.x).add(cf.multiplyScalar(-PAD.y)).normalize();
     const run = PAD.mag > 0.7, sp = (run ? 4.2 : 1.8) * f.def.speed * (f.h / 1.9);
@@ -750,13 +765,17 @@ function stepTail(f, time) { // procedural sway: a travelling wave down the chai
 // ---------------------------------------------------------------- camera: side-on, framing both, drag to orbit
 const view = { orbit: 0, zoom: 1, cx: 0, cz: 0, d: 8 };
 let drag = null; const pts = new Map();
-let stick = null; // { id, x0, y0, t0, el }
-const stickEl = document.getElementById('stick'), knobEl = document.getElementById('knob');
+let stick = null, rstick = null; // { id, x0, y0, t0 }
+const stickEl = document.getElementById('stick'), knobEl = document.getElementById('knob'), rstickEl = document.getElementById('rstick'), rknobEl = document.getElementById('rknob');
 canvas.addEventListener('pointerdown', (e) => {
   audioOn();
-  if (PAD.on && !stick && e.clientX < innerWidth * 0.5) { // the stick appears under the thumb
+  if (PAD.on && !stick && e.clientX < innerWidth * 0.5) { // the left stick appears under the thumb
     stick = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), far: 0 };
     stickEl.hidden = false; stickEl.style.left = e.clientX + 'px'; stickEl.style.top = e.clientY + 'px'; knobEl.style.transform = 'translate(0,0)'; return;
+  }
+  if (PAD.on && !rstick && e.clientX >= innerWidth * 0.5) { // the right stick: camera, trigger, block, strike
+    rstick = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), far: 0, o: view.orbit };
+    rstickEl.hidden = false; rstickEl.style.left = e.clientX + 'px'; rstickEl.style.top = e.clientY + 'px'; rknobEl.style.transform = 'translate(0,0)'; PAD.rhold = true; return;
   }
   pts.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, o: view.orbit, z: view.zoom, pd: pinchD() };
 });
@@ -767,6 +786,13 @@ canvas.addEventListener('pointermove', (e) => {
     if (L > STICK_R) { dx *= STICK_R / L; dy *= STICK_R / L; }
     PAD.x = dx / STICK_R; PAD.y = dy / STICK_R; PAD.mag = Math.min(1, L / STICK_R); knobEl.style.transform = `translate(${dx}px,${dy}px)`; return;
   }
+  if (rstick && e.pointerId === rstick.id) {
+    let dx = e.clientX - rstick.x0, dy = e.clientY - rstick.y0; const L = Math.hypot(dx, dy); rstick.far = Math.max(rstick.far, L);
+    if (L > STICK_R) { dx *= STICK_R / L; dy *= STICK_R / L; }
+    PAD.rx = dx / STICK_R; PAD.ry = dy / STICK_R; PAD.rmag = Math.min(1, L / STICK_R); rknobEl.style.transform = `translate(${dx}px,${dy}px)`;
+    if (Math.abs(PAD.rx) > RPAD.arc || Math.abs(PAD.ry) < 0.3) view.orbit = rstick.o + (e.clientX - rstick.x0) * 0.008; // sideways: the camera
+    return;
+  }
   if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
   if (pts.size >= 2 && drag.pd) view.zoom = Math.min(2.5, Math.max(0.45, drag.z * drag.pd / pinchD()));
   else if (drag) view.orbit = drag.o + (e.clientX - drag.x) * 0.008;
@@ -774,11 +800,18 @@ canvas.addEventListener('pointermove', (e) => {
 const lift = (e) => {
   if (stick && e.pointerId === stick.id) { // a quick sweep across the pad is a FLICK: dodge that way
     const dt = performance.now() - stick.t0, dx = e.clientX - stick.x0, dy = e.clientY - stick.y0;
-    if (dt < 260 && Math.hypot(dx, dy) > STICK_R * 0.9 && fighters[0]) {
+    if (dt < RPAD.flickT && Math.hypot(dx, dy) > STICK_R * 0.9 && fighters[0]) {
       const cf = new THREE.Vector3(view.cx - camera.position.x, 0, view.cz - camera.position.z).normalize(), cr = new THREE.Vector3(-cf.z, 0, cf.x);
       PAD.flick = cr.multiplyScalar(dx).add(cf.multiplyScalar(-dy)).normalize();
     }
+    else if (dt < RPAD.tapT && stick.far < 12) PAD.jump = true; // a tap: jump
     stick = null; PAD.x = PAD.y = PAD.mag = 0; stickEl.hidden = true; return;
+  }
+  if (rstick && e.pointerId === rstick.id) {
+    const dt = performance.now() - rstick.t0, dx = e.clientX - rstick.x0, dy = e.clientY - rstick.y0;
+    if (dt < RPAD.flickT && Math.hypot(dx, dy) > STICK_R * 0.9) PAD.rflick = true; // a sweep: strike
+    else if (dt < RPAD.tapT && rstick.far < 12) PAD.jump = true; // a tap: jump
+    rstick = null; PAD.rx = PAD.ry = PAD.rmag = 0; PAD.rhold = false; rstickEl.hidden = true; return;
   }
   pts.delete(e.pointerId); if (!pts.size) drag = null;
 };
@@ -853,9 +886,7 @@ tap('size', () => { size = (size + 1) % SIZES.length; document.querySelector('#s
 tap('slow', () => { slow = !slow; document.getElementById('slow').classList.toggle('on', slow); });
 tap('view', () => { view.orbit = 0; view.zoom = 1; });
 tap('you', () => { PAD.on = !PAD.on; document.getElementById('you').classList.toggle('on', PAD.on); document.body.classList.toggle('you', PAD.on); if (PAD.on) { size = 0; document.querySelector('#size small').textContent = '1V1'; } fight(); });
-const hold = (id, on, off) => { const el = document.getElementById(id); el.addEventListener('pointerdown', (e) => { e.preventDefault(); audioOn(); on(); }); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, off); };
-hold('atk', () => { PAD.attackQ = true; }, () => {});
-hold('blk', () => { PAD.blk = true; }, () => { PAD.blk = false; });
+
 // TEAM COLOURS: tap a side's bar to step its colour; live, no respawn. Paint, trails, sparks, swatch and bar all follow.
 function paintTeams() {
   for (const t of [0, 1]) {
@@ -895,5 +926,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { PAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
