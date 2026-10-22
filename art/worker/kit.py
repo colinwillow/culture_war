@@ -41,15 +41,19 @@ def _color(ob, col):
     c = PAL[col] if isinstance(col, str) else col
     for d in a.data: d.color = c
     ob['mat'] = GLOW.get(col) or (CLEAR[col][0] if col in CLEAR else 'kit')
+    ob['team'] = (col == 'team')
 
 def _place(ob, loc, rot):
     ob.location = loc
     ob.rotation_euler = [math.radians(r) for r in rot]
 
+EDGE_WEAR = 0.32   # detail pass 3: bevel faces get lighter, chipped-paint edges (0 = off)
+
 def _bevel(ob, bevel, seg=1):
     if bevel > 0:
         m = ob.modifiers.new('bv', 'BEVEL'); m.width = bevel; m.segments = seg
         m.limit_method = 'ANGLE'; m.harden_normals = False
+        m.material = 1                      # tag the bevel faces (slot 1) so join() can paint edge wear on them
 
 def box(size, loc=(0, 0, 0), col='steel', rot=(0, 0, 0), bevel=0.02, seg=1, taper=None):
     """size (x,y,z) in Blender axes (Z up). taper=(sx,sy) scales the top face."""
@@ -124,6 +128,18 @@ def _mat(name):
         except Exception: m.blend_method = 'BLEND'
     return m
 
+def _edge_wear(o):
+    """Lighten bevel faces (material_index 1 from _bevel) toward a worn bone colour. Skips glow/clear/team parts."""
+    me = o.data; a = me.color_attributes.get('Col')
+    if not a or EDGE_WEAR <= 0 or o.get('mat', 'kit') != 'kit' or o.get('team'): return
+    w = EDGE_WEAR; bone = PAL['bone']
+    for p in me.polygons:
+        if p.material_index == 1:
+            for li in p.loop_indices:
+                c = a.data[li].color
+                a.data[li].color = tuple(c[i] * (1 - w) + bone[i] * w for i in range(3)) + (1.0,)
+        p.material_index = 0
+
 def join(name, obs=None):
     """Apply modifiers/transforms of all (or given) mesh objects and join them into one object `name`.
     One material per kind actually used: kit (vertex colours), glow_* (emissive), clear_* (alpha blend)."""
@@ -131,7 +147,10 @@ def join(name, obs=None):
     bpy.ops.object.select_all(action='DESELECT')
     for o in obs:
         o.select_set(True); bpy.context.view_layer.objects.active = o
+        if o.modifiers and len(o.data.materials) < 2:
+            while len(o.data.materials) < 2: o.data.materials.append(None)
         for m in list(o.modifiers): bpy.ops.object.modifier_apply(modifier=m.name)
+        _edge_wear(o)
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     names = sorted({o.get('mat', 'kit') for o in obs}, key=lambda n: (n != 'kit', n))
     mats = [_mat(n) for n in names]
