@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=200';
-import { makeMember, bldMesh, nodeMesh, formation, FC } from './models.js?v=200';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=200';
-import { emit } from '../fx/particles.js?v=200';
-import { bark } from '../fx/sfx.js?v=200';
-import { TICK } from '../config/factions.js?v=200';
-import { walkH, CITY } from '../map/layout.js?v=200';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=200';
-import { CAM } from '../camera/camera.js?v=200';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=201';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=201';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=201';
+import { emit } from '../fx/particles.js?v=201';
+import { bark } from '../fx/sfx.js?v=201';
+import { TICK } from '../config/factions.js?v=201';
+import { walkH, CITY } from '../map/layout.js?v=201';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=201';
+import { CAM } from '../camera/camera.js?v=201';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=200';
-import { UI } from '../ui/state.js?v=200';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=200';
+import { Q, pl, getSim } from '../sim/sim.js?v=201';
+import { UI } from '../ui/state.js?v=201';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=201';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=200';
+import { lerpAngle } from '../util/math.js?v=201';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -35,12 +35,13 @@ function setBar(bar, f, color) {
 }
 function makeSquadObj(s) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]];
+  const offs = s.def.n > 1 ? formation(s.def.n) : [[0, 0]], cols = s.def.n > 1 ? column(s.def.n) : [[0, 0]];
   const dg = s.disg > 0, lf = dg ? 'city' : s.f, ls = dg ? 'civ' : s.slot; // possessed: the squad wears civilians
   const members = offs.map(([ox, oz], i) => {
     const m = makeChar(lf, ls, i) || makeMember(lf, ls); const y = s.def.flies ? 3.8 : 0;
-    ox += (Math.random() - 0.5) * 0.35; oz += (Math.random() - 0.5) * 0.35; // nobody stands on an exact grid
-    casts(m); m.position.set(ox, y, oz); m.rotation.y += (Math.random() - 0.5) * 0.25; m.userData.by = y; m.userData.bz = oz; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
+    const jx = (Math.random() - 0.5) * 0.35, jz = (Math.random() - 0.5) * 0.35; ox += jx; oz += jz; // nobody stands on an exact grid
+    casts(m); m.position.set(ox, y, oz); m.rotation.y += (Math.random() - 0.5) * 0.25; m.userData.by = y; m.userData.bz = oz; m.userData.bx = ox;
+    m.userData.line = [ox, oz]; m.userData.col = [cols[i][0] + jx, cols[i][1] + jz]; m.userData.hp = s.members[i]; if (s.members[i] <= 0) m.userData.deadT = 0; body.add(m); return m;
   });
   const real = !!members[0].userData.anim;
   // Cast but not loaded yet: syncRender rebuilds this squad once the real characters arrive.
@@ -208,6 +209,10 @@ export function syncRender(S, alpha, dt, time) {
     o.root.visible = !s.gar;
     o.yaw = lerpAngle(o.yaw, s.heading, Math.min(1, dt * 10)); o.body.rotation.y = o.yaw;
     const moving = Math.abs(s.x - s.px) + Math.abs(s.z - s.pz) > 0.0005;
+    if (o.members.length > 1) { // the squad flows between its LINE (standing, fighting) and its COLUMN (on the move)
+      const k = Math.min(1, dt * 2.5);
+      for (const m of o.members) { const t = moving && !o.atk ? m.userData.col : m.userData.line; if (!t) continue; m.userData.bx += (t[0] - m.userData.bx) * k; m.userData.bz += (t[1] - m.userData.bz) * k; m.position.x = m.userData.bx; }
+    }
     const par = pl(s.owner).parade > 0, bs = par ? 18 : s.bull > 0 ? 14 : 10;
     let alive = 0;
     // Footstep dust under running infantry, and a skid puff round the squad's feet when it pulls up from a run.

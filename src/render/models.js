@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=200';
+import { THREE, box, cyl, mat } from './scene.js?v=201';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -383,8 +383,16 @@ export function nodeMesh() {
   return g;
 }
 
+// Squad shapes (body space, +z is the way the squad faces). LINE: two rows, the front row wider, the back row
+// staggered into the gaps, so a squad reads as a rank facing the enemy. COLUMN: two abreast for the road.
 export function formation(n) {
-  const cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols), sp = 0.95, out = [];
-  for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); out.push([(c - (cols - 1) / 2) * sp, (r - (rows - 1) / 2) * sp]); }
+  const front = Math.ceil(n / 2), back = n - front, sp = 1.1, out = [];
+  for (let i = 0; i < front; i++) out.push([(i - (front - 1) / 2) * sp, 0.5]);
+  for (let i = 0; i < back; i++) out.push([(i - (back - 1) / 2) * sp, -0.55]);
+  return out;
+}
+export function column(n) {
+  const rows = Math.ceil(n / 2), out = [];
+  for (let i = 0; i < n; i++) { const r = Math.floor(i / 2), c = i % 2; out.push([(c ? 0.55 : -0.55) * (n > 1 ? 1 : 0), ((rows - 1) / 2 - r) * 1.0]); }
   return out;
 }
