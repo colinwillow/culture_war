@@ -844,3 +844,29 @@ def strap(p0, p1, w=0.12, col='leather', buckle=True):
     if buckle:
         b = box((w * 1.4, w * 0.35, w * 1.1), tuple(p0 + d * 0.5), 'iron', bevel=0.0); b.rotation_euler = s.rotation_euler; obs.append(b)
     return obs
+
+# ---------------------------------------------------------------- batch 10: RTS ground clutter (Northgard / AoE Mobile)
+for _k, _h in dict(rockg='8d8a80', rockd='6a675f', mossg='6f9a3a', grass='7fb046', grass2='5f8f34', pine='3f6f3a',
+                   crate='a87a44', leafb='5f9a3a').items():
+    PAL[_k] = _lin(_h)
+
+def lump(r, loc, col, seed=0, sub=2, jitter=0.18, scale=(1, 1, 1)):
+    """Jittered faceted blob (rocks, bushes, canopies): painterly low-poly chunk."""
+    import random
+    rnd = random.Random(seed)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=sub, radius=r)
+    ob = bpy.context.object
+    for v in ob.data.vertices:
+        v.co *= 1 + rnd.uniform(-jitter, jitter)
+    ob.scale = scale; ob.location = loc; _color(ob, col); return ob
+
+def paint_up(ob, col, thresh=0.55, col2=None):
+    """Recolour faces whose normal points up (moss caps, snow): uses world-space normal after scale."""
+    me = ob.data; a = me.color_attributes['Col']; c = PAL[col]
+    M = ob.matrix_world.to_3x3().inverted().transposed()
+    for p in me.polygons:
+        n = (M @ p.normal).normalized()
+        if n.z > thresh:
+            for li in p.loop_indices: a.data[li].color = c
+        elif col2 and n.z > thresh - 0.3:
+            for li in p.loop_indices: a.data[li].color = PAL[col2]
