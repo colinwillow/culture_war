@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=213';
+import { THREE, box, cyl, mat } from './scene.js?v=214';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -235,6 +235,10 @@ function crane(h, reach, x = 0, z = 0) {
 }
 export function bldMesh(kind, f) {
   const mesh = new THREE.Group(), C = FC[f];
+  if (kind === 'wall') { // every faction: a stacked-block wall segment with a team-colour cap
+    mesh.add(box(2.2, 1.5, 0.9, 0x8a8378, 0, 0.75, 0), box(2.3, 0.2, 1.0, C.main, 0, 1.6, 0), box(0.9, 0.5, 0.95, 0x6f6960, -0.6, 0.35, 0), box(0.9, 0.5, 0.95, 0x6f6960, 0.55, 1.05, 0));
+    return mesh;
+  }
   if (f === 'om') {
     // Old Money: white columns, gold trim, manicured hedges.
     if (kind === 'hq') {

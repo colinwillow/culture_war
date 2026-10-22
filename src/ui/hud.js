@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=213';
-import { UI, select, selSquads } from './state.js?v=213';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=213';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=213';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=213';
-import { camera } from '../render/scene.js?v=213';
-import { walkH } from '../map/layout.js?v=213';
-import { THREE } from '../render/scene.js?v=213';
-import { showHint } from './hint.js?v=213';
-import { sfx } from '../fx/sfx.js?v=213';
+import { svg } from './icons.js?v=214';
+import { UI, select, selSquads } from './state.js?v=214';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=214';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=214';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=214';
+import { camera } from '../render/scene.js?v=214';
+import { walkH } from '../map/layout.js?v=214';
+import { THREE } from '../render/scene.js?v=214';
+import { showHint } from './hint.js?v=214';
+import { sfx } from '../fx/sfx.js?v=214';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');
@@ -62,7 +62,7 @@ function panelSpec() {
   const S = getSim(), p = pl(0), F = fac(p), out = [];
   if (UI.place) return out; // confirm/cancel float next to the ghost instead
   if (UI.buildMenu) {
-    for (const k of BUILD_KINDS) out.push({ id: 'b-' + k, name: F.bldNames[k], icon: k, cost: BLD[k].cost, dis: count(p, k) >= BLD[k].max, poor: p.cash < BLD[k].cost, tap: () => startPlace(k) });
+    for (const k of BUILD_KINDS) out.push({ id: 'b-' + k, name: F.bldNames[k] || 'Wall', icon: k, cost: BLD[k].cost, dis: count(p, k) >= BLD[k].max, poor: p.cash < BLD[k].cost, tap: () => startPlace(k) });
     out.push({ id: 'close', name: 'Close', icon: 'x', noCost: true, cls: 'close', tap: () => { UI.buildMenu = false; } });
     return out;
   }

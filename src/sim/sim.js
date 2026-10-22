@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME, OBJ_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=213';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=213';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=213';
-import { mulberry32 } from '../util/math.js?v=213';
-import { aiStep } from './ai.js?v=213';
+} from '../config/factions.js?v=214';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=214';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=214';
+import { mulberry32 } from '../util/math.js?v=214';
+import { aiStep } from './ai.js?v=214';
 
 let S = null;
 export const getSim = () => S;
@@ -590,8 +590,15 @@ function updateSquad(s, dt) {
   if (s.sit) return;
   const o = s.order;
   let t = null;
+  // WALLS: a fighter that is going somewhere and has not moved for a second with an enemy wall in reach knocks it down
+  // (findPath walks straight at a blocked cell, so without this a walled base would just stall the attacker).
+  if ((o.type === 'move' || o.type === 'amove' || o.type === 'attack') && !s.def.flies) {
+    s.stuckT = Math.hypot(s.x - s.px, s.z - s.pz) < 0.004 ? (s.stuckT || 0) + dt : 0;
+    if (s.stuckT > 1) { let w = null, bd = 4.5; for (const b of S.blds) if (b.kind === 'wall' && b.owner !== s.owner) { const d = Math.hypot(b.x - s.x, b.z - s.z); if (d < bd) { bd = d; w = b; } }
+      if (w) { s.stuckT = 0; s.path = null; setOrder(s, { type: 'attack', target: w, then: o }); } }
+  }
   if (o.type === 'move') { if (moveTo(s, o.x, o.z, dt)) { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } return; }
-  if (o.type === 'attack') { if (o.target && !o.target.dead) t = o.target; else { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } }
+  if (o.type === 'attack') { if (o.target && !o.target.dead) t = o.target; else if (o.then) setOrder(s, o.then); else { setOrder(s, { type: 'idle' }); s.post = { x: s.x, z: s.z }; } } // the wall is down: carry on where you were going
   // Walking home after a leash break: only fight back at point-blank, never get pulled out again.
   if (o.type === 'return') {
     t = nearestEnemy(s, s.def.range + 0.5);

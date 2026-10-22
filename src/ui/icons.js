@@ -6,6 +6,7 @@ export const ICON = {
   star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
   barracks: '<path d="M3 20V10l9-6 9 6v10z"/><path d="M9 20v-5h6v5"/>',
   home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  wall: '<path d="M3 20h18V8H3z"/><path d="M3 12h18M3 16h18M8 8v4M14 8v4M11 12v4M5 16v4M17 16v4"/>',
   tower: '<path d="M7 21V7h10v14"/><path d="M7 7V4h2v2h2V4h2v2h2V4h2v3"/><path d="M10 21v-5h4v5"/>',
   depot: '<path d="M3 20V9l9-4 9 4v11z"/><circle cx="12" cy="14" r="3"/>',
   up: '<path d="M6 13l6-6 6 6"/><path d="M6 19l6-6 6 6"/>',

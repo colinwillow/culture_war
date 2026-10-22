@@ -24,8 +24,9 @@ export const BLD = {
   depot: { hp: 600, r: 1.8, cost: 200, build: 10, max: 5 },
   barracks: { hp: 1200, r: 2.4, cost: 300, build: 15, max: 2 },
   tower: { hp: 800, r: 1.3, cost: 250, build: 12, max: 6, range: 11, dmg: 25 },
+  wall: { hp: 500, r: 0.9, cost: 60, build: 4, max: 24 }, // a cheap breakable blocker: the hex chokepoints are built from these
 };
-export const BUILD_KINDS = ['depot', 'barracks', 'tower'];
+export const BUILD_KINDS = ['depot', 'barracks', 'tower', 'wall'];
 
 export const FACTIONS = {
   bw: {

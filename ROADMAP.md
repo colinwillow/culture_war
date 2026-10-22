@@ -4,7 +4,8 @@
 ### Items (Colin picked the order: objectives, hero abilities, walls, species factions)
 - [x] (B211) Objectives: 2-3 neutral spots on the map (power plant, bank, radio tower) that pay a small bonus (+income or +power) to whoever holds them (a squad inside, no enemy inside); ring + flag like the hill; minimap marks; the AI contests them. Versus mode only at first. Sim + fx + minimap.
 - [x] (B213) Species hero ability #1 on the Brutes' Hero (ridden by Backwoods for now): EAT -- gulps the nearest civilian for a big heal + a roar that scares enemy squads back for 2 s (sim `heroAbility` case, fx, the arena's grunt sound).
-- [ ] Walls: a cheap breakable WALL piece (build menu) that blocks pathing on the grid, and a GATE that lets your own squads through; the AI's pathing respects them; a wall in the hex city later.
+- [x] (B214, first half) Walls: a cheap breakable WALL piece (build menu) that blocks pathing on the grid; stuck attackers knock it down
+- [ ] Walls, second half: a GATE that lets your own squads through (needs a per-owner pass on the grid), the AI builds a few walls at its chokepoints, walls in the hex city
 - [ ] Species factions in the sim: a real `brutes` faction (traits eat + its own numbers), on the menu beside the six, Backwoods goes back to the hicks; then `greys` (abduct) on the Nerds' art until they have their own.
 - [ ] Smarter AI: counter-pick from the player's army mix, send the Fast class round the back, use its powers.
 - [ ] A second resource from the verb (TECH) that gates T2/T3.
