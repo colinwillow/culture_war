@@ -1,11 +1,39 @@
-# Roadmap (overnight loop, Oct 21 2026 — stop at 14:55 UTC / 8 am Colin)
+# Roadmap
 
-Loop rules: `git pull origin main`, read this file, take the FIRST unchecked item, ship it as ONE build
-(`npm run bump`, quick boot check, push to `main`), tick it with the build number, end the pass.
-Too big for one build? Split it here and ship the first half. Never ship a page that does not boot.
-Log every build in `docs/decisions.md` (newest first, one or two lines). All builds are UNVERIFIED on the phone.
+## EVENING LOOP (Oct 22 2026) -- stop at 07:00 UTC (midnight Pacific, Colin's "about 12 tonight")
+Loop rules: `git pull origin main`, read this file, take the FIRST unchecked item in THIS section, ship it as ONE build
+(`npm run bump`, boot check of index.html AND duel.html, push to `main`), tick it with the build number, one line in
+`docs/decisions.md`, end the pass. Too big? Split it here and ship the first half. Never ship a page that does not boot.
+All builds are UNVERIFIED on the phone. Assets: Colin's own (weirdport, blender-addons pipeline); Tripo credits only if an
+item says so.
 
-## STEER (Colin's words outrank everything below)
+### STEER (Colin, Oct 22 -- outranks everything below)
+- "Keep making this game sick. Make sure the hits are landing. Make sure the gameplay is really interesting. Make sure
+  there's slashes and particles. Make sure the colour system is sweet."
+- "Start working on the map. Make the map cool, maybe do the hexagonal, maybe start making buildings."
+- "Little stuff like leaves that blow in the wind, around the map, and when people swing stuff they push out of the way
+  -- really low poly leaves and other debris. God rays for the sun, fog, atmosphere, an actual water shader."
+- Standing rules: show, don't label; painfully obvious UI with one short word under each icon; portrait + landscape;
+  App Store safe; the RTS sim stays deterministic (S.rng only).
+
+### Items
+- [ ] Duel: weapon SLASH TRAILS (ribbon from the weapon's measured tip over the swing's active frames, team-tinted) + impact flashes that face the camera
+- [ ] Duel: hits that LAND -- resolve contact from the real weapon-tip / fist position against the defender's body (miss if it really missed), react direction from where it hit (front/side), stagger toward the push
+- [ ] Duel: ground FX -- dust puffs on footsteps/landings/knockdowns, scuff marks where a body hits the floor, debris kicked by the kick
+- [ ] Duel: colour system v2 -- both sides pick a team colour (palette of 6 with names-free swatches), weapon trails/sparks/HP bar take the team colour, tint threshold tuned so skin markings + paint shift but steel/leather never do
+- [ ] Duel: gameplay depth 1 -- guard meter (blocking drains it, guard break stuns), parry window right after a block lands (counter-attack), 2-hit combos
+- [ ] Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips
+- [ ] Duel: BRAWL mode -- 2v2 and 3v3 in the ring (target choice, flanking), same rules
+- [ ] Atmosphere (arena first): wind-blown low-poly LEAVES + debris (instanced, cheap), pushed away by swings, bodies and knockbacks
+- [ ] Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade; a small pond with a real WATER shader (waves, fresnel, foam ring)
+- [ ] Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
+- [ ] Map: buildings on the hex districts -- low-poly procedural blocks per district type (downtown towers, shops, houses, park, industrial), varied silhouettes
+- [ ] Map: hex board under the globe bend (B153) -- does the little-planet look sell it?
+- [ ] Map: leaves/debris + god rays + water on the RTS map (reuse the arena code), then decide whether the hex board replaces the current map
+
+## Earlier (overnight loop, Oct 21 2026)
+
+### STEER (Oct 21)
 - "Keep developing it: UI, game logic, particle effects, map, placeholder 3D animated objects."
 - Show, don't label. Painfully obvious UI. Portrait + landscape. App Store safe. Sim stays deterministic (S.rng only).
 
