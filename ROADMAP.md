@@ -1,6 +1,11 @@
 # Roadmap
 
 ## RTS LOOK -- make it look like the references (Colin, Oct 22 evening; fresh week of credits)
+STEER (Colin, Oct 22 19:40, said "over and over"): NO GRID. Streets are straight squares and that is the thing he most
+wants gone. Rebuild FROM THE BOTTOM: one ground plane textured like grassland with dirt patches, done really well; then
+ORGANIC roads laid over it (curves, forks, a bridge over a lake, hex plazas -- Weirdport's roads are never a grid); then
+speckle buildings along them. The current block grid (layout.js BLOCKS/AVENUES/CROSS_STREETS) is to be REPLACED, not
+decorated. PAUSED while the 1v1 armour pivot runs (Colin, same message).
 STEER: Colin's five reference shots (Northgard, Command & Conquer Rivals, Age of Empires Mobile, Kingdoms Reborn style)
 vs ours. What theirs have: a HIGH telephoto camera; ORGANIC ground (grass with dirt patches, rocks, trees, clutter -- no
 hard grid); FEW, LOW buildings on open land; big readable units with selection circles; fire / smoke / explosions;
