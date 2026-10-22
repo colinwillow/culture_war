@@ -6,7 +6,17 @@ art/DELIVERED.md lists; never edit models/gen/ or DELIVERED.md. EVERY pass first
 there, wiring it into the game (weapon on its rig / prop in the city / building) can be that pass's build.
 STEER (Colin, 08:40): the game must be seen UP CLOSE -- the arena's side-on fights are the look. No Tripo models until
 Colin signs off a species row on the roster board.
+STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabled, B226). UI is game too.
 ### Items
+- [x] B226 menu: War for the World, four species only
+- [x] B227 arena: fist / shooting-pose grips, gunners never club, size drives damage + launch
+- [x] B228 health rings at the feet (segmented per member); RTS Brute props true size
+- [x] B229 Weirdport ground textures (asphalt / sidewalk / curb / grass)
+- [ ] HUD restyle to the menu's look: dark glass chips with species-colour neon edge, Bungee numbers, command buttons glow in the species colour (--fc)
+- [ ] Building textures: Weirdport's brick / concrete / plaster / corrugated / roof tar on the placeholder city blocks (groundMat-style world UVs)
+- [ ] Sky + light: dusk-alien grade (magenta horizon, teal shadows), fog tinted to match; billboard god rays already exist
+- [ ] Wire the worker's UI batch 8 (logo, emblems, icons) when DELIVERED.md lists it
+- [ ] In-game names: unit + power names per species (Brutes / Greys / Reptilians / Spores), not the tabled human ones
 - [x] (B219) Arena YOU mode: a real THIRD-PERSON FOLLOW CAM on your fighter (read weirdport/index.html's camera + reticle first and match it): behind/over the shoulder, right-stick drag orbits it, a reticle when holding a gun, hold-up fires where the camera faces, a strike goes toward the reticle. This is the camera possession will use.
 - [x] (B221) RTS BATTLE CAM: a picture-in-picture window (bottom-left, ~35% width) that follows the hottest fight from a low side angle like the arena; tap it and the main camera swoops down there. Second render of the same scene, low res, only while a fight is on.
 - [x] (B223) RTS closer by default: start matches closer, cap max zoom-out lower (overview = the minimap's job), units/buildings read at that distance; an idle auto-dip toward an on-screen fight after a few seconds without touch.
