@@ -21,3 +21,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [b_wall_door] models/gen/b_wall_door.glb -- 1120 tris, 4.04 x 3.0 x 0.42 m, origin ground centre, door hole 1.2 x 2.2 at x -0.6..0.6 with wood frame, 1 material; _chunks.glb = 8 capped chunks, 1984 tris
 - [b_floor] models/gen/b_floor.glb -- 256 tris, 4.0 x 0.3 x 4.0 m slab (+0.175 rebar stubs on the +X and -Z edges), origin at the slab's bottom centre, 1 material; _chunks.glb = 6 capped chunks (3 x 2), 580 tris
 - [b_roof_edge] models/gen/b_roof_edge.glb -- 244 tris, 4.0 x 0.59 x 0.3 m, origin at the bottom centre, runs along X, brick parapet + concrete coping, 1 material
+- [b_rubble] models/gen/b_rubble.glb -- 1566 tris total (rubble_s ~1 x 0.4 x 1 320, rubble_m ~2 x 0.7 x 2 510, rubble_l ~3 x 1.2 x 3 736), three named meshes, each origin at its ground centre (flat-cut at y 0); nodes spread 3.5 m on X (reset node position when placing), 1 material

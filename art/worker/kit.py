@@ -256,13 +256,22 @@ def chunk_report(path):
         if o.type == 'MESH':
             print('  ', o.name, 'origin', tuple(round(v, 2) for v in o.location), 'tris', tris(o))
 
-def ship_multi(name, groups, spacing=0.0):
+def clip_ground(ob):
+    """Cut away everything below z = 0 and cap the cut."""
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    r = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, 0),
+                               plane_no=(0, 0, 1), clear_inner=True)
+    bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
+    bm.to_mesh(ob.data); bm.free()
+
+def ship_multi(name, groups, spacing=0.0, clip=False):
     """Several named variants in one GLB. groups = {'tree_a': [objs], ...}; each joined mesh keeps its origin at
     its own base centre (world 0,0,0 when built), then the nodes are spread along X by `spacing` (node offset only)."""
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
     out = []
     for i, (n, obs) in enumerate(groups.items()):
         ob = join(n, obs); out.append(ob)
+        if clip: clip_ground(ob)
     for i, ob in enumerate(out):
         ob.location.x = (i - (len(out) - 1) / 2) * spacing
     p = os.path.join(OUT, name + '.glb'); export(p, out)
