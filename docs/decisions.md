@@ -240,3 +240,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B232: storefront floors wear Weirdport's brick / plaster / siding / brick-through-plaster from one 2x2 atlas (facadeMat, per-instance aTex), tinted by the old facade colours.
 - B233: alien grade -- teal-violet day to magenta dusk, teal ground bounce, a gradient sky dome (horizon = fog) with a ringed planet low on the horizon.
 - B234: in-game names are the species' own: units, buildings and powers for Brutes / Reptilians / Spores / Greys (names only; stats and effects unchanged).
+- B235: the worker's alien bases stand in the RTS (Brutes containers, Grey saucer, Reptilian temple, Spore mound), scaled to the sim footprint; placeholders remain the fallback.

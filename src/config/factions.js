@@ -45,7 +45,7 @@ export const FACTIONS = {
     },
     powers: [
       { id: 'mud', name: 'Slop Pit', short: 'Slop', cost: 40, target: true, icon: 'mud' },
-      { id: 'fireworks', name: 'Scrap Barrage', short: 'Barrage', cost: 100, target: true, icon: 'fireworks' },
+      { id: 'fireworks', name: 'Scrap Barrage', short: 'Blast', cost: 100, target: true, icon: 'fireworks' },
     ],
   },
   ac: {

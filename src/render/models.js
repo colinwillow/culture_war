@@ -2,7 +2,7 @@
 // SWAP POINT FOR REAL ART: replace makeMember / bldMesh / nodeMesh bodies with GLB clones.
 // Keep the same contract: return a THREE.Group, feet at y=0, facing +z, roughly to the scale below
 // (humans ~1.6 m, monster truck ~3 m long). userData.legs (optional) = [leftLeg, rightLeg] for walk swing.
-import { THREE, box, cyl, mat } from './scene.js?v=234';
+import { THREE, box, cyl, mat } from './scene.js?v=235';
 
 export const FC = {
   bw: { main: 0xe8792b, dark: 0x5a3a22, skin: 0xf2c9a0, alt: 0x3d5a80, hair: 0x4a2e1a },
@@ -233,7 +233,19 @@ function crane(h, reach, x = 0, z = 0) {
   g.userData.jib = jib;
   return g;
 }
+// ALIEN BASES (B235): the geometry worker's species buildings (models/gen/<prefix>_<kind>.glb, origin ground centre,
+// front +Z), loaded with the cast (chars.js). Scaled so the plan fits the sim's footprint; missing = the placeholder.
+export const GENB = {}, BASE_PRE = { bw: 'bb_', nd: 'gb_', ac: 'rb_', hh: 'sb_' };
+const BLD_R = { hq: 3.4, depot: 1.8, barracks: 2.4, tower: 1.3, wall: 0.9 };
+function genBase(kind, f) {
+  const src = BASE_PRE[f] && GENB[BASE_PRE[f] + kind]; if (!src) return null;
+  const g = src.clone(true), bx = new THREE.Box3().setFromObject(src), sz = bx.getSize(new THREE.Vector3());
+  g.scale.setScalar(Math.min(1.4, (2 * BLD_R[kind] * 1.3) / Math.max(sz.x, sz.z, 0.01)));
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.userData.shared = true; } });
+  const mesh = new THREE.Group(); mesh.add(g); mesh.userData.gen = true; return mesh;
+}
 export function bldMesh(kind, f) {
+  const gb = genBase(kind, f); if (gb) return gb;
   const mesh = new THREE.Group(), C = FC[f];
   if (kind === 'wall') { // every faction: a stacked-block wall segment with a team-colour cap
     mesh.add(box(2.2, 1.5, 0.9, 0x8a8378, 0, 0.75, 0), box(2.3, 0.2, 1.0, C.main, 0, 1.6, 0), box(0.9, 0.5, 0.95, 0x6f6960, -0.6, 0.35, 0), box(0.9, 0.5, 0.95, 0x6f6960, 0.55, 1.05, 0));
