@@ -312,7 +312,7 @@ def container(length, loc, col='rust', axis='Y', h=2.6, w=2.4, ribs=True, doors=
         for b in (-1, 1):
             for c in (0.12, h - 0.12):
                 p = (x + a * (Wd / 2 - 0.08), y + b * (L / 2 - 0.08)) if axis == 'Y' else (x + a * (L / 2 - 0.08), y + b * (Wd / 2 - 0.08))
-                obs.append(box((0.24, 0.24, 0.24), (p[0], p[1], z + c), 'iron', bevel=0.02))
+                obs.append(box((0.24, 0.24, 0.24), (p[0], p[1], z + c), 'iron', bevel=0.0))
     return obs
 
 def gear(r, loc, col='team', teeth=10, bite=2, thick=0.25, rot=(90, 0, 0), hub='iron'):
