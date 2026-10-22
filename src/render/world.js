@@ -1,11 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=243';
-import { CAM } from '../camera/camera.js?v=243';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=243';
-import { hash } from '../util/math.js?v=243';
-import { TICK } from '../config/factions.js?v=243';
-import { emit } from '../fx/particles.js?v=243';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=244';
+import { CAM } from '../camera/camera.js?v=244';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=244';
+import { hash } from '../util/math.js?v=244';
+import { TICK } from '../config/factions.js?v=244';
+import { emit } from '../fx/particles.js?v=244';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -313,7 +313,8 @@ function buildCity() {
   const flGeo = unitBox.clone(); flGeo.setAttribute('aTex', new THREE.InstancedBufferAttribute(new Float32Array(floors.map((x) => x.t)), 1));
   const fl = instanced(flGeo, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
   fl.material = facadeMat(3);
-  windows = wb; windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
+  // GLASS (B244): mirrors the painted sky through the environment map, with a faint inner glow, so a block reads lit
+  windows = wb; windows.material = new THREE.MeshStandardMaterial({ color: 0x6f8fb8, metalness: 0.85, roughness: 0.12, emissive: 0x1c2c4a, envMapIntensity: 1.4 });
   const GEO = { flat: unitBox, gable: unitBox, dome: new THREE.SphereGeometry(1, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2), drum: new THREE.CylinderGeometry(1, 1, 1, 14), tank: new THREE.CylinderGeometry(1, 1, 1, 12), cone: new THREE.ConeGeometry(1, 1, 12) };
   const RCOL = { flat: COL.roof, gable: 0x8a3b2e, dome: 0x6fa59a, drum: 0xc9c1ad, tank: 0x8a6a4a, cone: 0x5a4a3a };
   const roofIM = {};
@@ -361,7 +362,7 @@ export function syncCity(S) {
 /** Late in the day the street lamps light up and the office windows glow warm (k 0..1). */
 export function setDusk(k) {
   if (lampHeads) lampHeads.material.emissive.setRGB(1 * k, 0.85 * k, 0.45 * k);
-  if (windows) windows.material.emissive.setRGB(0.5 * k, 0.36 * k, 0.12 * k);
+  if (windows) windows.material.emissive.setRGB(0.11 + 0.5 * k, 0.17 + 0.3 * k, 0.29 - 0.12 * k); // a cool glow by day, warm lit rooms at dusk
 }
 // Rain: 500 thin streaks in a box that follows the camera target, each landing with a tiny splash. One draw call.
 let rain = null;

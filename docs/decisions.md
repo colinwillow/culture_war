@@ -249,3 +249,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B241: Greys' heavy (Tripod) is the worker's s_grey_tripod walker, on the ground; Grey bases/saucer carry the new Grey pass.
 - B242: Weirdport's render recipe in the RTS: Khronos PBR Neutral tone mapping (as CustomToneMapping, r160), its painted sky panorama as background + PMREM environment light, sun 2.4 / hemi 1.75 purple ground / cool fill / pink rim / teal bounce; globe patch guarded so PMREM shaders compile.
 - B243: arena gets the same Weirdport grade: neutral tone mapping (was ACES), painted sky + IBL, bright hemi, cool fill, pink rim, teal bounce, lavender fog.
+- B244: city glass is PBR (metal .85, rough .12) mirroring the painted sky, with a cool day glow and warm lit rooms at dusk.
