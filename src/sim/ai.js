@@ -1,6 +1,6 @@
 // Computer opponent. Runs inside the sim tick, uses only S.rng.
-import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=188';
-import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command, HQ_UP } from './sim.js?v=188';
+import { BLD, UPG, COUNTER, REQ, TRAIN_SLOTS } from '../config/factions.js?v=189';
+import { A, Q, pl, fac, count, barracksOf, hqOf, workersOf, setOrder, aliveN, command, HQ_UP } from './sim.js?v=189';
 
 function aiSpot(S, p, kind, cx, cz, r0 = 7, r1 = 19) {
   for (let i = 0; i < 30; i++) {

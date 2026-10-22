@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Hex City</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/examples/jsm/": "./vendor/three/jsm/" } }
+</script>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1d24; touch-action: none; -webkit-user-select: none; user-select: none; font-family: 'Lilita One', system-ui, sans-serif; color: #fff; }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .dock { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: 0; right: 0; display: flex; justify-content: center; gap: 10px; padding: 0 10px; }
+  .dock button { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #fff; background: #2a2d38e0; color: #fff; display: grid; place-items: center; padding: 0; font: inherit; box-shadow: 0 4px 0 #0008; }
+  .dock button svg { width: 26px; height: 26px; margin-top: 6px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dock button small { font-family: 'Bungee', sans-serif; font-size: 8px; margin-top: -10px; letter-spacing: .5px; }
+  .dock button.on { color: #ffd75a; border-color: #ffd75a; }
+  #load { position: fixed; inset: 0; display: grid; place-items: center; font-family: 'Bungee', sans-serif; font-size: 18px; background: #1b1d24; }
+  #err { position: fixed; left: 10px; right: 10px; top: 60px; background: #a01818; padding: 8px; font: 12px monospace; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="dock">
+  <button type="button" id="home" aria-label="Back to the game"><span data-i="home"></span><small>MENU</small></button>
+  <button type="button" id="seed" aria-label="New city"><span data-i="replay"></span><small>NEW</small></button>
+  <button type="button" id="globe" aria-label="Globe look"><span data-i="globe"></span><small>GLOBE</small></button>
+  <button type="button" id="view" aria-label="Reset view"><span data-i="eye"></span><small>VIEW</small></button>
+</div>
+<div id="load">LOADING</div>
+<div id="err" hidden></div>
+<script>
+  addEventListener('error', (e) => { const el = document.getElementById('err'); el.hidden = false; el.textContent += (e.message || e) + '\n'; });
+  addEventListener('unhandledrejection', (e) => { const el = document.getElementById('err'); el.hidden = false; el.textContent += String(e.reason && (e.reason.stack || e.reason)) + '\n'; });
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('dblclick', (e) => e.preventDefault());
+</script>
+<script type="module" src="./src/hexmap/hexmap.js?v=189"></script>
+</body>
+</html>

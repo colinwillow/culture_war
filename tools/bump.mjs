@@ -10,7 +10,7 @@ const vf = path.join(root, 'version.json');
 const v = (fs.existsSync(vf) ? JSON.parse(fs.readFileSync(vf, 'utf8')).build : 0) + 1;
 fs.writeFileSync(vf, JSON.stringify({ build: v }) + '\n');
 
-const files = [path.join(root, 'index.html'), path.join(root, 'duel.html')]; // duel.html: the arena sandbox
+const files = [path.join(root, 'index.html'), path.join(root, 'duel.html'), path.join(root, 'hexmap.html')]; // the arena and hex-city sandboxes
 (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (p.endsWith('.js')) files.push(p); } })(path.join(root, 'src'));
 
 // relative imports in JS, plus src= / href= of local .js/.css in index.html

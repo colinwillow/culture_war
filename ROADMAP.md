@@ -27,9 +27,9 @@ item says so.
 - [x] (B181) Atmosphere (arena first): wind-blown low-poly LEAVES + debris (instanced, cheap), pushed away by swings, bodies and knockbacks
 - [x] (B183) Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade
 - [x] (B188) Atmosphere: a small pond in the arena with a real WATER shader (waves, fresnel, foam ring), leaves float on it
-- [ ] Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
-- [ ] Map: buildings on the hex districts -- low-poly procedural blocks per district type (downtown towers, shops, houses, park, industrial), varied silhouettes
-- [ ] Map: hex board under the globe bend (B153) -- does the little-planet look sell it?
+- [x] (B189) Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
+- [x] (B189) Map: buildings on the hex districts -- low-poly procedural blocks per district type (downtown towers, shops, houses, park, industrial), varied silhouettes
+- [x] (B189) Map: hex board under the globe bend (B153) -- does the little-planet look sell it?
 - [ ] Map: leaves/debris + god rays + water on the RTS map (reuse the arena code), then decide whether the hex board replaces the current map
 
 ## Earlier (overnight loop, Oct 21 2026)
