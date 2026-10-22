@@ -36,3 +36,38 @@ Read art/STYLE.md first. Ship each piece as soon as it is done (one commit per p
 - [bb_depot] scrapyard: a small crane, stacked crates, a fence -- 5 x 4 x 5
 - [bb_tower] rickety welded-pipe lookout with a gun nest on top -- 3 x 9 x 3
 - [bb_wall] wall segment of car doors and sheet metal welded together, BREAKABLE -- 2.2 x 1.6 x 0.9
+
+## Batch 5 -- species bases (placeholders; one silhouette idea each, crimson team panels; same five pieces per species)
+Each species' base must read as THAT species from 40 m: the silhouette carries it, not the detail.
+### Greys (abduct; clinical tech: smooth white + gunmetal, glowing cyan #39e0ff, saucer shapes, domes)
+- [gb_hq] landed mothership hub: a low flying-saucer dome on three legs, a ring of cyan windows, a crimson band -- 10 x 6 x 10
+- [gb_barracks] cloning lab: a squat dome with 3 glowing pods on the side -- 7 x 5 x 7
+- [gb_depot] abduction beam dish: a tall dish on a mast pointing up, a cyan glow cup -- 4 x 7 x 4
+- [gb_tower] probe spire: a thin white needle with a floating ring near the top -- 2.5 x 10 x 2.5
+- [gb_wall] energy fence post pair with a translucent cyan panel between, BREAKABLE -- 2.2 x 1.8 x 0.5
+### Reptilians (possess; jungle-temple-meets-street: mossy stone, bronze, graffiti, magenta + lime accents)
+- [rb_hq] stepped stone temple with a serpent-head gate and a graffiti-tagged billboard on top -- 10 x 8 x 10
+- [rb_barracks] sunken pit arena ringed with stone teeth -- 7 x 3 x 7
+- [rb_depot] market stall stack with hanging lanterns and crates -- 5 x 4 x 5
+- [rb_tower] totem pole of stacked lizard heads with a lookout on top -- 2.5 x 9 x 2.5
+- [rb_wall] carved stone block wall with a moss top, BREAKABLE -- 2.2 x 1.6 x 0.9
+### Spores (infect; organic: bulbous fungus, goo, translucent sacs, acid green #7cff4a + purple)
+- [sb_hq] giant mushroom cluster mother-mound with a glowing sac core -- 10 x 9 x 10
+- [sb_barracks] spawning pod bed: 5 egg sacs in a goo pool -- 7 x 3 x 7
+- [sb_depot] spore silo: a tall puffball with vents -- 4 x 6 x 4
+- [sb_tower] spitter stalk: a bent stalk with a gaping bulb on top -- 2.5 x 8 x 2.5
+- [sb_wall] fungal growth wall, BREAKABLE -- 2.2 x 1.6 x 0.9
+
+## Batch 6 -- ships (one per species; flyers on the Fast or Heavy slot, docs/gaps.md; hover height is the game's job, model at y=0)
+- [s_brute_gunship] scrap gunship: a fat riveted flying barge, big rear propeller, open sides, crimson panels -- 6 x 3 x 9
+- [s_grey_saucer] classic saucer: smooth disc, glass dome, a ring of cyan lights underneath, a crimson rim stripe -- 6 x 2 x 6
+- [s_rept_skiff] cloaked drop skiff: a sleek wedge with fins and a belly hatch, magenta glow -- 4 x 1.6 x 7
+- [s_spore_cloud] spore carrier: a floating translucent sac with dangling tendrils and a green glow core -- 4 x 5 x 4
+- [s_brute_truck] (ground vehicle) armoured scrap truck with a plough, crimson doors -- 2.6 x 2.6 x 6
+
+## Batch 7 -- neutral city buildings (the living city between the bases; low, chunky, breakable in pieces)
+- [n_shop] corner shop, 2 floors, awning, BREAKABLE (by floor) -- 8 x 7 x 8
+- [n_apartment] 4-floor apartment block, balconies, BREAKABLE (by floor) -- 10 x 13 x 8
+- [n_gas] gas station: canopy, two pumps, a small kiosk -- 12 x 5 x 8
+- [n_diner] roadside diner with a big sign -- 10 x 5 x 7
+- [n_water_tower] rooftop-style water tower on legs -- 4 x 9 x 4
