@@ -1,5 +1,22 @@
 # Roadmap
 
+## RTS LOOK -- make it look like the references (Colin, Oct 22 evening; fresh week of credits)
+STEER: Colin's five reference shots (Northgard, Command & Conquer Rivals, Age of Empires Mobile, Kingdoms Reborn style)
+vs ours. What theirs have: a HIGH telephoto camera; ORGANIC ground (grass with dirt patches, rocks, trees, clutter -- no
+hard grid); FEW, LOW buildings on open land; big readable units with selection circles; fire / smoke / explosions;
+hex pads under bases. Units Warhammer-big. The Weirdport third-person game is a SEPARATE session (Battle for Earth
+in the kit city); this loop owns the RTS.
+- [x] B247/B248 telephoto camera, half-height city, units 1.6x
+- [ ] Organic ground: grass shader with world-noise dirt patches and colour variation (no flat tiles), soft edges on
+      sidewalks/lots, scattered instanced rocks + bushes + grass tufts (geometry worker batch 10)
+- [ ] Trees: chunky stylized tree clusters along streets and in parks (batch 10), swaying
+- [ ] Break the grid: fewer city blocks, open plazas and parks between, roads that bend near the edges
+- [ ] Bases on hex pads (the worker's pieces already have them); base footprint decals in team colour
+- [ ] Burning buildings: big fire + smoke columns on damaged floors (ref 1), embers, scorch decals
+- [ ] Every unit slot has a real model or a gen ship (no box placeholders left on screen)
+- [ ] Portrait bar UI (ref 4): selected units as portrait chips with count badges
+- [ ] Fighting reads: units face off and swing in pairs (arena AI lite), hit sparks at contact
+
 ## NIGHT LOOP 3 (Oct 22 08:45 UTC -> STOP 15:30 UTC Oct 23, Colin's usage reset at 9 am Pacific)
 A GEOMETRY WORKER session runs beside this one (art/README.md): this loop writes art/REQUESTS.md and wires in what
 art/DELIVERED.md lists; never edit models/gen/ or DELIVERED.md. EVERY pass first: read DELIVERED.md; if a new piece is

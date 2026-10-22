@@ -85,3 +85,12 @@ Species colours for reference: Brutes #ff7a2e, Greys #7fe3ff, Reptilians #9dff4a
 
 ## Batch 9 -- title rename (Colin, 10:40): the game is BATTLE FOR EARTH
 - [ui_logo_bfe] models/gen/ui/ui_logo_bfe.svg -- same spec as ui_logo (outlined paths, fill=currentColor, prefixed mask ids): "BATTLE FOR" over a big "EARTH"; the A or the H can carry the ringed planet / a cracked Earth with a saucer -- your call. ui_logo.svg stays as is.
+
+## Batch 10 -- RTS ground clutter (Colin's references: Northgard / AoE Mobile look). Chunky, painterly, low poly, read from 70 m up
+- [e_rock_a..c] three boulders, 1-3 m, mossy tops, flat-ish bottoms at y 0
+- [e_bush_a..b] two round bushes, 1-1.5 m, a few flower dots
+- [e_grass_tuft] a grass tuft card cluster, 0.5 m (instanced by the hundred: < 60 tris)
+- [e_tree_a..c] three stylized trees (round broadleaf, tall pine, palm), 5-8 m, chunky trunks
+- [e_crates] a stack of crates + barrels, 1.5 m
+- [e_debris] rubble + broken slab pile, 2 m, for burning/fallen floors
+- [e_hexpad] a 12 m flat-top hex base pad (vertex on +X), stone rim, crimson team inlay
