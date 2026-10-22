@@ -44,6 +44,7 @@ game fun. Research what we're missing. All the aliens have ships: plan flying un
 - [x] (B198) Arena: the four rigged Brutes (Grunt, Shooter thin, Brute plated, Hero bandolier) in the ROSTER with placeholder weapons (warrior's mace / blaster), warrior clips baked on (blender-addons pipeline/bake.py); team key colour (crimson window) in the tint shader instead of the hue swing.
 - [x] (B200) RTS: fight SOUNDS -- Colin's hit/grunt/clang recordings on melee hits (gaps.md A1)
 - [x] (B201) RTS: squad FORMATIONS -- a two-row line facing the enemy, a two-abreast column on the move (gaps.md A2)
+- [x] (B202) RTS: real deaths -- the die clip, a dust puff, the body lies 2.6 s then sinks (gaps.md A5)
 - [ ] Possession / YOU: WEAPON PICKUP -- a KO'd fighter drops its weapon on the sand; stand over one and tap a stick to swap (drop yours). Carry slots by class: Grunt 1 or none, Shooter 1 gun + 1 melee?, Brute melee only, big guys 2. Knocking a weapon out of a hand is the same drop. (Colin, 05:52)
 - [ ] Art: UI images -- title screen, faction badges, class portraits, team banners (Colin generates; we need a list of exactly what sizes/slots).
 - [ ] RTS: the species factions INTO the main game (Brutes first: the four rigged models on the squad slots, their verb EAT already in the sim) instead of the white-box placeholders; the buildings and the city need real art (kit pieces from weirdport) -- "have the strategy game going crazy".

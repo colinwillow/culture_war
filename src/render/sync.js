@@ -1,19 +1,19 @@
 // Mirrors sim state into the scene every frame. Reads the sim, never writes to it.
-import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=201';
-import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=201';
-import { makeChar, charsReady, play, CAST } from './chars.js?v=201';
-import { emit } from '../fx/particles.js?v=201';
-import { bark } from '../fx/sfx.js?v=201';
-import { TICK } from '../config/factions.js?v=201';
-import { walkH, CITY } from '../map/layout.js?v=201';
-import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=201';
-import { CAM } from '../camera/camera.js?v=201';
+import { THREE, scene, camera, mat, box, basic, ringMesh, disposeObj, casts } from './scene.js?v=202';
+import { makeMember, bldMesh, nodeMesh, formation, column, FC } from './models.js?v=202';
+import { makeChar, charsReady, play, CAST } from './chars.js?v=202';
+import { emit } from '../fx/particles.js?v=202';
+import { bark } from '../fx/sfx.js?v=202';
+import { TICK } from '../config/factions.js?v=202';
+import { walkH, CITY } from '../map/layout.js?v=202';
+import { NODE_AMOUNT, BLD, BUILD_RADIUS, FACTIONS } from '../config/factions.js?v=202';
+import { CAM } from '../camera/camera.js?v=202';
 const fac0 = (S) => FACTIONS[S.players[0].f];
-import { Q, pl, getSim } from '../sim/sim.js?v=201';
-import { UI } from '../ui/state.js?v=201';
-import { fxConfetti, fxDeath } from '../fx/fx.js?v=201';
+import { Q, pl, getSim } from '../sim/sim.js?v=202';
+import { UI } from '../ui/state.js?v=202';
+import { fxConfetti, fxDeath } from '../fx/fx.js?v=202';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { lerpAngle } from '../util/math.js?v=201';
+import { lerpAngle } from '../util/math.js?v=202';
 // Selection rings take your faction colour, washed toward white so they still pop on any ground.
 const selCol = () => { const S = getSim(), f = S && S.players[0].f; return f ? new THREE.Color(FC[f].main).lerp(new THREE.Color(0xffffff), 0.35).getHex() : 0xffffff; };
 
@@ -235,10 +235,13 @@ export function syncRender(S, alpha, dt, time) {
         const m = o.members[i], A = m.userData.anim, live = s.members[i] > 0;
         A.lock -= dt;
         if (!live) {
-          if (m.userData.deadT === undefined) { m.userData.deadT = 1.8; play(m, 'die', true); }
+          if (m.userData.deadT === undefined) { // the fall: the die clip, a puff of dust under him, then the body lies there and sinks away
+            m.userData.deadT = 2.6; play(m, 'die', true); m.getWorldPosition(_wp);
+            for (let k = 0; k < 6; k++) emit({ x: _wp.x + (Math.random() - 0.5) * 0.8, y: walkH(_wp.x, _wp.z) + 0.15, z: _wp.z + (Math.random() - 0.5) * 0.8, vx: (Math.random() - 0.5) * 1.6, vy: 0.5 + Math.random() * 0.6, vz: (Math.random() - 0.5) * 1.6, c: 0xc2b28e, s: 0.3, life: 0.8, g: -0.2, drag: 2, grow: 2 });
+          }
           m.userData.deadT -= dt;
           m.visible = m.userData.deadT > 0;
-          if (m.visible) A.mixer.update(dt);
+          if (m.visible) { A.mixer.update(dt); if (m.userData.deadT < 0.6) m.position.y = m.userData.by - (0.6 - m.userData.deadT) * 1.2; } // sink in the last beat instead of blinking out
           continue;
         }
         alive++;
