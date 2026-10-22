@@ -51,4 +51,8 @@ for x in (-1.6, 1.6):
 for a in range(0, 360, 30):
     r = math.radians(a); box((0.25, 0.06, 0.06), (math.cos(r) * 4.93, math.sin(r) * 4.93, 3.12), 'gcyan', rot=(0, 0, a + 90), bevel=0.0)
 cyl(4.92, 0.03, (0, 0, 3.22), 'dark', n=N)
+
+# ---- detail pass 5 (silhouette): translucent cyan tractor beam from the belly lens to the ground + ground glow ring
+cyl(2.6, 1.55, (0, 0, 0.8), 'ccyan', n=16, r2=1.35)
+torus(2.5, 0.08, (0, 0, 0.06), 'gcyan', n=20, m=4)
 print(ship('gb_hq'))

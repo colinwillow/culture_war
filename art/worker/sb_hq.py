@@ -47,4 +47,12 @@ banner(1.0, 1.4, (-1.4, -0.1, 4.2), (0, -1, 0), mark='crown')
 for (x, y, z) in ((-0.8, -1.5, 7.6), (0.9, -1.2, 7.7), (-2.6, -0.4, 4.2), (2.5, -0.4, 4.9)):
     cyl(0.12, 0.6, (x, y, z), 'goo', n=6, r2=0.03)
     ball(0.1, (x, y, z - 0.35), 'gacid', 1)
+
+# ---- detail pass 5 (silhouette): translucent spore haze puffs over the caps, tendrils dangling from the big cap rim
+for (x, y, z, r) in ((cx + 1.5, cy - 1.0, 9.6, 0.9), (cx - 1.6, cy + 0.4, 9.4, 0.7), (cx + 0.2, cy + 1.6, 9.9, 0.6)):
+    ball(r, (x, y, z), 'cacid', 1)
+for a in range(0, 360, 45):
+    r = math.radians(a); x, y = cx + math.cos(r) * 2.1, cy + math.sin(r) * 2.1
+    cyl(0.07, 1.2, (x, y, 7.4), 'purple', n=5, r2=0.02)
+    ball(0.09, (x, y, 6.8), 'gacid', 1)
 print(ship('sb_hq', clip=True))
