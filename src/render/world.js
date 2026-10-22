@@ -1,11 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=241';
-import { CAM } from '../camera/camera.js?v=241';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=241';
-import { hash } from '../util/math.js?v=241';
-import { TICK } from '../config/factions.js?v=241';
-import { emit } from '../fx/particles.js?v=241';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=242';
+import { CAM } from '../camera/camera.js?v=242';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=242';
+import { hash } from '../util/math.js?v=242';
+import { TICK } from '../config/factions.js?v=242';
+import { emit } from '../fx/particles.js?v=242';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -36,7 +36,7 @@ export function buildWorld() {
   for (const s of [1, -1]) {
     const g = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, span), groundMat('asphalt', 'asphalt', 6));
     g.rotation.x = -Math.PI / 2; g.position.set(0, 0, s * (TRENCH.half + span / 2)); g.receiveShadow = true; scene.add(g);
-    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h / 2 - HOME_Z), groundMat('grass', 'grass', 5));
+    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h / 2 - HOME_Z), groundMat('grass', 'grass', 5, 0xc4d4a4));
     lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0.03, s * (HOME_Z + (MAP.h / 2 - HOME_Z) / 2)); lawn.receiveShadow = true; scene.add(lawn);
   }
   const outer = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), groundMat('grass', 'grass', 8, 0x9aa890));
@@ -81,7 +81,7 @@ export function buildWorld() {
     }
   }
   const ims = [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)];
-  ims[0].material = groundMat('sidewalk', 'curb', 3); ims[1].material = groundMat('grass', 'dirt', 5); ims[2].material = groundMat('asphalt', 'curb', 5, 0xc8c8c8);
+  ims[0].material = groundMat('sidewalk', 'curb', 3); ims[1].material = groundMat('grass', 'dirt', 5, 0xc4d4a4); ims[2].material = groundMat('asphalt', 'curb', 5, 0xc8c8c8);
   for (const im of ims) im.receiveShadow = true;
   instanced(unitBox, COL.stripe, stalls);
   buildCity();

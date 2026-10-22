@@ -8,9 +8,9 @@ export { THREE };
 // shadows bend the same way (the bend centre is a shared uniform, NOT the camera, which is the sun during the shadow pass).
 // GLOBE.u = (centre x, centre z, 1/2R); z = 0 is off and costs nothing but a multiply.
 export const GLOBE = { u: { x: 0, y: 0, z: 0 }, R: 110 };
-THREE.ShaderChunk.common = 'uniform vec3 cwGlobe;\n' + THREE.ShaderChunk.common;
+THREE.ShaderChunk.common = '#define CW_GLOBE\nuniform vec3 cwGlobe;\n' + THREE.ShaderChunk.common; // guarded: PMREM's own shaders use project_vertex without common
 THREE.ShaderChunk.project_vertex = THREE.ShaderChunk.project_vertex.replace('mvPosition = modelViewMatrix * mvPosition;',
-  'vec4 cwW = modelMatrix * mvPosition; vec2 cwD = cwW.xz - cwGlobe.xy; cwW.y -= dot( cwD, cwD ) * cwGlobe.z; mvPosition = viewMatrix * cwW;');
+  '#ifdef CW_GLOBE\nvec4 cwW = modelMatrix * mvPosition; vec2 cwD = cwW.xz - cwGlobe.xy; cwW.y -= dot( cwD, cwD ) * cwGlobe.z; mvPosition = viewMatrix * cwW;\n#else\nmvPosition = modelViewMatrix * mvPosition;\n#endif');
 // A plain object (not a Vector3) is shared by reference when three clones these uniforms into each program.
 for (const k in THREE.ShaderLib) THREE.ShaderLib[k].uniforms.cwGlobe = { value: GLOBE.u };
 export function setGlobe(on) { GLOBE.u.z = on ? 1 / (2 * GLOBE.R) : 0; }
@@ -31,7 +31,20 @@ export function tessellate(root, step = 4) {
   });
 }
 export const canvas = document.getElementById('c');
+// WEIRDPORT'S LOOK (B243, Colin: "look how nice Weirdport looks compared to our dull flat look"): its renderer recipe,
+// ported. Khronos PBR NEUTRAL tone mapping (not ACES: a film curve that greys out a hand-picked palette) -- three r160
+// predates THREE.NeutralToneMapping, so it goes in as the CustomToneMapping body, the same maths.
+THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
+  'vec3 CustomToneMapping( vec3 color ) { return color; }',
+  `vec3 CustomToneMapping( vec3 color ) {
+    const float StartCompression = 0.8 - 0.04; const float Desaturation = 0.15;
+    color *= toneMappingExposure;
+    float x = min( color.r, min( color.g, color.b ) ); float offset = x < 0.08 ? x - 6.25 * x * x : 0.04; color -= offset;
+    float peak = max( color.r, max( color.g, color.b ) ); if ( peak < StartCompression ) return color;
+    float d = 1. - StartCompression; float newPeak = 1. - d * d / ( peak + d - StartCompression ); color *= newPeak / peak;
+    float g = 1. - 1. / ( Desaturation * ( peak - newPeak ) + 1. ); return mix( color, vec3( newPeak ), g ); }`);
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = 1.0;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 export const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa9c8de);
@@ -41,9 +54,15 @@ export const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 700);
 // target, and only units + player buildings cast (the city does not), so it stays cheap on a phone.
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-export const hemi = new THREE.HemisphereLight(0xdcecff, 0x5a5048, 0.85);
+export const hemi = new THREE.HemisphereLight(0xe4f0ff, 0x2a1f3d, 1.75); // Weirdport: bright sky fill, purple ground
 scene.add(hemi);
-export const sun = new THREE.DirectionalLight(0xffe0b0, 1.25);
+// A cool FILL from the side opposite the sun (the shadow side reads), a pink RIM low behind, a teal BOUNCE up off the
+// street. None casts a shadow. Weirdport's LIGHTX numbers.
+const fill = new THREE.DirectionalLight(0xbfd8ff, 0.85); fill.position.set(-7, 5, -6);
+const rim = new THREE.DirectionalLight(0xff7a9e, 1.15); rim.position.set(-4, 3, 8);
+const bounce = new THREE.DirectionalLight(0x3fd9c4, 0.38); bounce.position.set(0, -10, 0);
+scene.add(fill, rim, bounce);
+export const sun = new THREE.DirectionalLight(0xfff3e0, 2.4);
 export const SUN_OFF = new THREE.Vector3(30, 60, 22);
 sun.position.copy(SUN_OFF);
 sun.castShadow = true;
@@ -59,8 +78,7 @@ export function followSun(x, z) {
 /** Time of day, k = 0 (morning) .. 1 (golden hour): the sun drops lower, warmer and longer-shadowed, the sky
  * and fog go peach, the sky fill dims. Only colours and one direction change, so it costs nothing per frame. */
 // ALIEN GRADE (B233, "sexy map"): a teal-violet day going to a magenta dusk, cool teal bounce from the ground.
-const DAY = { sun: new THREE.Color(0xfff0d8), dusk: new THREE.Color(0xff7a6a), sky: new THREE.Color(0x8fb4cf), skyD: new THREE.Color(0xe07a9e), hemi: new THREE.Color(0xd6e4ff), hemiD: new THREE.Color(0xffb8d6) };
-hemi.groundColor.setHex(0x3c4c58);
+const DAY = { sun: new THREE.Color(0xfff3e0), dusk: new THREE.Color(0xff8a6a), sky: new THREE.Color(0xb7b4e6), skyD: new THREE.Color(0xe08aa8), hemi: new THREE.Color(0xe4f0ff), hemiD: new THREE.Color(0xffc8dc) };
 // Sky dome: horizon = the fog colour (so the city melts into it), zenith a deep violet; a ringed planet hangs in it.
 // Follows the camera, never fogged, drawn first. Two draws.
 const SKY = { hor: { value: new THREE.Color() }, zen: { value: new THREE.Color() } };
@@ -74,19 +92,28 @@ skyDome.renderOrder = -10; skyDome.frustumCulled = false;
 scene.add(skyDome);
 skyDome.onBeforeRender = (r, sc, cam) => { skyDome.position.copy(cam.position); skyDome.updateMatrixWorld(); };
 let lastTod = 0, overcast = 0;
-const GREY = new THREE.Color(0x8d969e);
+const GREY = new THREE.Color(0x8d969e), SKYC = new THREE.Color();
 /** Rain: greys the sky/fog and dims the sun on top of the time of day (k 0..1). */
 export function setOvercast(k) { overcast = k; setTimeOfDay(lastTod); }
 export function setTimeOfDay(k) {
   lastTod = k;
-  sun.color.copy(DAY.sun).lerp(DAY.dusk, k); sun.intensity = 1.25 - 0.1 * k;
+  sun.color.copy(DAY.sun).lerp(DAY.dusk, k); sun.intensity = 2.4 - 0.25 * k;
   SUN_OFF.set(30 + 25 * k, 60 - 18 * k, 22 + 14 * k);
-  scene.background.copy(DAY.sky).lerp(DAY.skyD, k); scene.fog.color.copy(scene.background);
-  hemi.color.copy(DAY.hemi).lerp(DAY.hemiD, k); hemi.intensity = 0.85 - 0.08 * k;
-  if (overcast > 0) { scene.background.lerp(GREY, 0.55 * overcast); scene.fog.color.copy(scene.background); sun.intensity *= 1 - 0.45 * overcast; }
-  SKY.hor.value.copy(scene.background); SKY.zen.value.setHex(0x2a1f52).lerp(GREY, 0.4 * overcast);
+  SKYC.copy(DAY.sky).lerp(DAY.skyD, k); scene.fog.color.copy(SKYC);
+  hemi.color.copy(DAY.hemi).lerp(DAY.hemiD, k); hemi.intensity = 1.75 - 0.15 * k;
+  if (overcast > 0) { SKYC.lerp(GREY, 0.55 * overcast); scene.fog.color.copy(SKYC); sun.intensity *= 1 - 0.45 * overcast; }
+  if (scene.background && scene.background.isColor) scene.background.copy(SKYC); else scene.backgroundIntensity = 1 - 0.45 * overcast;
+  SKY.hor.value.copy(SKYC); SKY.zen.value.setHex(0x2a1f52).lerp(GREY, 0.4 * overcast);
 }
 setTimeOfDay(0);
+// The SKY is Weirdport's painted panorama (textures/sky.jpg, from its images/hdri_game.png): the background, and through
+// PMREM the environment light every PBR material (the characters, the worker's pieces) picks up. The dome above is the
+// fallback while it loads or if it fails.
+new THREE.TextureLoader().load('./textures/sky.jpg', (t) => {
+  t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+  scene.background = t; skyDome.visible = false; setTimeOfDay(lastTod);
+  try { const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); } catch (e) { /* no IBL: lights only */ }
+});
 /** Mark a subtree as shadow casters. */
 export function casts(o) { o.traverse((n) => { if (n.isMesh) n.castShadow = true; }); return o; }
 
