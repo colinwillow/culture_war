@@ -2,6 +2,7 @@
 # amber glow slits and a white crown tag. Origin at the grip, head along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 X = (90, 0, 0)
 cyl(0.022, 0.62, (0, -0.21, 0), 'steel', X, n=8)                                 # pipe
 cyl(0.03, 0.17, (0, 0.0, 0), 'olive', X, n=8, bevel=0.006)                        # cloth grip wrap
@@ -33,4 +34,8 @@ cyl(0.034, 0.02, (0, -0.79, 0), 'burnt', (90, 0, 0), n=6)
 # ---- detail pass 6 (silhouette): a diagonal ring of extra spikes so the head reads as a spiked mace from any angle
 for d in ((0.7, 0, 0.7), (-0.7, 0, 0.7), (0.7, 0, -0.7), (-0.7, 0, -0.7)):
     spike(0.017, 0.055, (d[0] * 0.07, -0.675, d[2] * 0.07), d)
+
+# ---- BRUTE PASS: orange painted band with the gear brand on the head
+box((0.104, 0.06, 0.104), (0, -0.63, 0), 'paint', bevel=0.008)
+gearmark(0.07, (0, -0.65, 0.053), (0, 0, 1), (0, -1, 0), 'ivory', 0.004)
 print(ship('w_brute_club'))

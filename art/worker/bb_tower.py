@@ -1,6 +1,7 @@
 # Brute tower: rickety welded-pipe lookout with a gun nest on top. Origin ground centre, gun faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 P = 1.1   # leg half-spread at the base
 legs = [(-P, -P), (P, -P), (P, P), (-P, P)]
 for i, (x, y) in enumerate(legs):
@@ -60,4 +61,11 @@ spike(0.1, 0.35, (0, 0.6, 9.0), (0, 0, 1))
 # ---- detail pass 2: a long crimson skull banner hanging under the nest, hazard stripes on the deck edge, rust
 banner(1.0, 2.2, (0, -1.5, 6.7), (0, -1, 0), mark='skull')
 for k in range(7): box((0.4, 0.05, 0.12), (-1.2 + k * 0.4, -1.42, 6.85), 'orange' if k % 2 else 'dark', bevel=0.0)
+
+# ---- BRUTE PASS: orange painted nest plates with gear brands, octagonal pads on the legs, a bandolier round the nest
+for s_ in (-1, 1):
+    box((0.12, 1.4, 0.7), (s_ * 1.45, 0.2, 7.4), 'paint', bevel=0.03)
+    gearmark(0.6, (s_ * 1.52, 0.2, 7.4), (s_, 0, 0), (0, 0, 1), 'ivory')
+for (x, y) in ((P * 0.85, -P * 0.85), (-P * 0.85, -P * 0.85)): octpad(0.45, (x, y - 0.12, 4.4), (0, -1, 0))
+bandolier((-1.35, -1.47, 7.05), (1.35, -1.47, 7.05), 0.08)
 print(ship('bb_tower'))

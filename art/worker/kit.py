@@ -284,6 +284,23 @@ def ground_dirt(ob):
             f = k * (1 - max(z, 0) / h)
             a.data[li].color = tuple(c[i] * (1 - f) + dirt[i] * f for i in range(3)) + (1.0,)
 
+def budget_for(name):
+    """STYLE.md triangle budgets: props/weapons 2000, vehicles 4000, buildings 6000."""
+    if name.startswith(('w_', 'p_')) or name in ('c_lamp', 'c_hydrant', 'c_bench', 'c_barrier', 'c_dumpster', 'c_tree', 'b_rubble'):
+        return 2000
+    if name.startswith(('s_', 'c_')): return 4000
+    return 6000
+
+def fit_budget(ob, limit):
+    """Collapse-decimate `ob` to just under `limit` triangles (keeps vertex colours, UV-free)."""
+    t = tris(ob)
+    if t <= limit: return t
+    bpy.context.view_layer.objects.active = ob
+    m = ob.modifiers.new('dec', 'DECIMATE'); m.decimate_type = 'COLLAPSE'; m.ratio = limit / t * 0.97
+    m.use_collapse_triangulate = True
+    bpy.ops.object.modifier_apply(modifier=m.name)
+    return tris(ob)
+
 def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None, chunk_tilt=0.35):
     """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info.
     clip=True cuts away anything below the ground (y 0)."""
@@ -292,6 +309,7 @@ def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None, chunk_tilt=0.35
     if clip: clip_ground(ob)
     if not name.startswith(('w_', 'p_', 's_')) or name == 's_brute_truck':
         ground_dirt(ob)
+    fit_budget(ob, budget_for(name))
     if fit:   # non-uniform squash in Blender axes (x, y=depth, z=up) about the origin
         ob.data.transform(Matrix.Diagonal((fit[0], fit[1], fit[2], 1.0)))
     p = os.path.join(OUT, name + '.glb'); export(p, [ob])
@@ -464,7 +482,9 @@ def banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='whi
         tl.rotation_euler = n.to_track_quat('Y', 'Z').to_euler(); obs.append(tl)
     mp = p - up * h * 0.5 + n * 0.04
     if mark == 'crown':
-        obs.append(crown(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col))
+        obs.append(_CROWN_ORIG(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col) if '_CROWN_ORIG' in globals() else crown(w * 0.7, tuple(mp), normal=tuple(n), up=(0, 0, 1), t=0.015, col=mark_col))
+    elif mark == 'gear':
+        obs += gearmark(w * 0.75, tuple(mp), tuple(n), (0, 0, 1), 'ivory' if mark_col == 'white' else mark_col, 0.015)
     else:
         obs += skull(w * 0.32, tuple(mp), tuple(n), mark_col)
     return obs
@@ -551,3 +571,76 @@ def studs(points, r=0.03, col='gold'):
 
 def ring(R, r, loc, rot=(90, 0, 0), col='gold'):
     return torus(R, r, loc, col, rot=rot, n=10, m=4)
+
+# ---------------------------------------------------------------- Brute style (Colin's Brute sheets, Oct 22):
+# orange spotted ogres; brand = GEAR-AND-WRENCH mark (ivory on orange/crimson plates), orange-painted riveted plate over
+# dark iron, octagonal pads, ammo bandoliers (orange/red shells), red armbands, olive cloth. Crowns are Reptilian.
+PAL['paint'] = _lin('d8641e'); PAL['paint2'] = _lin('b8471a'); PAL['shell'] = _lin('c23a1c')
+
+def gearmark(w, loc, normal=(0, -1, 0), up=(0, 0, 1), col='ivory', t=None, teeth=8):
+    """Flat Brute brand: a gear ring with a wrench cutting up through it (extruded `t`), width w, facing `normal`."""
+    t = t or w * 0.06; n = Vector(normal).normalized(); u = Vector(up).normalized()
+    x = u.cross(n).normalized(); u = n.cross(x).normalized(); c = Vector(loc); obs = []
+    R = w * 0.36
+    def flat(sx, sy, px, py, rot=0.0):
+        o = box((sx, t, sy), (0, 0, 0), col, bevel=0.0)
+        M = Matrix((x, n, u)).transposed().to_4x4()
+        o.matrix_world = Matrix.Translation(c + x * px + u * py + n * t / 2) @ M @ Matrix.Rotation(rot, 4, 'Y')
+        return o
+    for k in range(12):                                              # ring as 12 short slabs
+        a = 2 * math.pi * k / 12
+        if 0.2 < (a % (2 * math.pi)) < 1.1: continue                 # the bitten gap (upper right)
+        obs.append(flat(R * 0.6, R * 0.28, math.cos(a) * R, math.sin(a) * R, -(a + math.pi / 2)))
+    for k in range(teeth):                                           # teeth
+        a = 2 * math.pi * (k + 0.5) / teeth
+        if 0.2 < (a % (2 * math.pi)) < 1.1: continue
+        obs.append(flat(R * 0.32, R * 0.3, math.cos(a) * R * 1.3, math.sin(a) * R * 1.3, -(a + math.pi / 2)))
+    obs.append(flat(R * 0.26, R * 1.5, 0, -R * 0.15))                # wrench shaft
+    for s in (-1, 1):
+        obs.append(flat(R * 0.22, R * 0.45, s * R * 0.24, R * 0.62, s * 0.35))   # wrench jaw prongs
+    return obs
+
+def octpad(w, loc, normal=(0, -1, 0), col='paint', rim='iron', t=None):
+    """Octagonal riveted armour pad (knee/shoulder look) facing `normal`."""
+    t = t or w * 0.18; n = Vector(normal).normalized(); obs = []
+    o = cyl(w * 0.5, t, tuple(Vector(loc) + n * t / 2), rim, n=8, bevel=t * 0.2); _aim(o, n); obs.append(o)
+    o = cyl(w * 0.42, t * 0.5, tuple(Vector(loc) + n * t * 1.1), col, n=8); _aim(o, n); obs.append(o)
+    side = n.orthogonal().normalized()
+    for k in range(4):
+        q = Quaternion(n, math.pi / 2 * k + math.pi / 4) @ side
+        obs.append(hexbolt(w * 0.05, tuple(Vector(loc) + n * t * 1.3 + q * w * 0.33), tuple(n)))
+    return obs
+
+def bandolier(p0, p1, r=0.09, col_a='paint2', col_b='shell'):
+    """Strap with a row of ammo shells (alternating orange/red, brass caps) from p0 to p1."""
+    p0, p1 = Vector(p0), Vector(p1); d = p1 - p0; L = d.length; obs = []
+    s = box((r * 1.2, r * 0.5, L), tuple((p0 + p1) / 2), 'leather', bevel=0.0)
+    s.rotation_euler = d.to_track_quat('Z', 'Y').to_euler(); obs.append(s)
+    n = max(2, int(L / (r * 2.4)))
+    side = d.normalized().orthogonal().normalized()
+    for i in range(n):
+        p = p0 + d * (i + 0.5) / n
+        o = cyl(r * 0.8, r * 2.2, tuple(p), col_a if i % 2 else col_b, n=8); _aim(o, side); obs.append(o)
+        o = cyl(r * 0.82, r * 0.5, tuple(p + side * r * 1.0), 'gold', n=8); _aim(o, side); obs.append(o)
+    return obs
+
+_SPIKE_ORIG = spike
+_CROWN_ORIG = crown
+_BANNER_ORIG = banner
+
+def brute_style():
+    """Call at the top of a Brute script: crowns -> gear-wrench marks, spikes -> chunky dark-iron studs,
+    banners carry the gear mark."""
+    g = globals()
+    def stud_spike(r, h, loc, d=(0, 0, 1), n=6):
+        d_ = Vector(d).normalized(); p = Vector(loc)
+        a = cyl(r * 1.15, h * 0.35, tuple(p + d_ * h * 0.17), 'iron', n=n); _aim(a, d_)
+        b = cyl(r * 0.9, h * 0.55, tuple(p + d_ * h * 0.6), 'steel', n=n, r2=r * 0.2); _aim(b, d_)
+        return [a, b]
+    def gear_crown(w, loc, normal=(0, -1, 0), col='white', t=None, up=(0, 0, 1)):
+        return gearmark(w * 1.1, loc, normal, up, 'ivory' if col in ('white', 'ivory') else col, t)
+    def gear_banner(w, h, loc, normal=(0, -1, 0), col='team', mark='crown', mark_col='white'):
+        return _BANNER_ORIG(w, h, loc, normal, col, 'skull' if mark == 'skull' else 'gear', mark_col)
+    g['spike'] = stud_spike; g['crown'] = gear_crown; g['banner'] = gear_banner
+    import builtins
+    return stud_spike, gear_crown, gear_banner

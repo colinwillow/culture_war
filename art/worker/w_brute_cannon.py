@@ -3,6 +3,7 @@
 # Origin at the shoulder mount, muzzle along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 X = (90, 0, 0); ZC = 0.22
 cyl(0.17, 1.2, (0, -0.3, ZC), 'iron', X, n=10)                                   # core tube
 for y in (-0.05, -0.45):                                                          # glowing sections, caged
@@ -38,4 +39,9 @@ box((0.06, 0.1, 0.14), (0.0, 0.32, 0.43), 'steel', bevel=0.015)                 
 for y in (0.28, 0.38): cyl(0.223, 0.012, (0, y, ZC), 'dark', (90, 0, 0), n=10)
 box((0.06, 0.18, 0.01), (0.12, -0.25, ZC + 0.2), 'rust', rot=(0, 30, 0), bevel=0.0)
 cyl(0.224, 0.04, (0, 0.33, ZC), 'team', (90, 0, 0), n=10)
+
+# ---- BRUTE PASS: an orange painted plate with a gear brand on the breech side, a bandolier feeding the breech
+box((0.006, 0.2, 0.14), (0.22, 0.25, ZC), 'paint', bevel=0.0)
+gearmark(0.12, (0.224, 0.25, ZC), (1, 0, 0), (0, 0, 1), 'ivory', 0.004)
+bandolier((0.1, 0.45, 0.02), (0.14, 0.05, -0.08), 0.03)
 print(ship('w_brute_cannon'))

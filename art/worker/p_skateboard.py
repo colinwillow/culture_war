@@ -2,6 +2,7 @@
 # glowing amber wheel hubs, spiked nose/tail bumpers, a dangling chain. Origin on the ground under the deck centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 DZ = 0.115
 box((0.26, 0.62, 0.03), (0, 0, DZ), 'steel', bevel=0.01)
 for s in (-1, 1):
@@ -27,4 +28,8 @@ chain((0.13, 0.05, DZ - 0.01), (0.15, 0.12, DZ - 0.06), 0.009)
 for x in (-0.135, 0.135): box((0.012, 0.6, 0.02), (x, 0, DZ + 0.005), 'team', bevel=0.0)
 box((0.12, 0.06, 0.006), (0.04, -0.37, DZ + 0.055), 'rust', rot=(-20, 0, 0), bevel=0.0)
 box((0.27, 0.006, 0.014), (0, 0.12, DZ + 0.025), 'steel', bevel=0.0)
+
+# ---- BRUTE PASS: an orange painted nose plate with the gear brand
+box((0.2, 0.1, 0.008), (0, 0.3, DZ + 0.028), 'paint', bevel=0.0)
+gearmark(0.08, (0, 0.3, DZ + 0.033), (0, 0, 1), (0, -1, 0), 'ivory', 0.003)
 print(ship('p_skateboard'))

@@ -3,6 +3,7 @@
 # Origin at the pistol grip, muzzle along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 X = (90, 0, 0); Z0 = 0.075
 box((0.05, 0.07, 0.15), (0, 0.0, -0.02), 'wood', rot=(-15, 0, 0), bevel=0.012)        # pistol grip
 for z in (-0.05, 0.02): box((0.054, 0.074, 0.012), (0, 0.0 + z * 0.27, z), 'dark', rot=(-15, 0, 0), bevel=0.0)
@@ -30,4 +31,8 @@ chain((0.0, 0.03, -0.09), (0.02, 0.06, -0.19), 0.01)
 cyl(0.04, 0.035, (0, -0.33, Z0), 'team', (90, 0, 0), n=8)
 box((0.087, 0.006, 0.087), (0, -0.04, Z0), 'dark', bevel=0.0)
 box((0.03, 0.06, 0.006), (0.02, -0.66, Z0 + 0.06), 'rust', rot=(-14, 0, 0), bevel=0.0)
+
+# ---- BRUTE PASS: an ammo bandolier slung from the stock, orange painted receiver plate
+bandolier((0.05, 0.38, 0.0), (0.06, 0.05, -0.12), 0.025)
+box((0.006, 0.12, 0.06), (0.046, -0.04, Z0), 'paint', bevel=0.0)
 print(ship('w_brute_blunderbuss'))

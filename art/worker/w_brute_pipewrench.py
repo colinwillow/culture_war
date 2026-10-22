@@ -3,6 +3,7 @@
 # Origin at the grip, jaws along +Z (Blender -Y), hook jaw up.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 box((0.05, 0.5, 0.06), (0, -0.12, 0), 'burnt', bevel=0.014, taper=(0.9, 1))         # handle
 for y in (0.0, 0.05, 0.1): box((0.054, 0.02, 0.064), (0, y, 0), 'dark', bevel=0.004) # grip ridges
 box((0.054, 0.12, 0.064), (0, -0.25, 0), 'rust', bevel=0.01)                          # scuffed patch
@@ -30,4 +31,8 @@ cyl(0.02, 0.012, (0.036, -0.43, 0.02), 'glow', (0, 90, 0), n=8)                 
 box((0.056, 0.04, 0.066), (0, -0.33, 0), 'team', bevel=0.006)
 box((0.077, 0.006, 0.062), (0, -0.44, 0.2), 'dark', bevel=0.0)
 box((0.04, 0.05, 0.006), (0.0, -0.5, 0.232), 'rust', bevel=0.0)
+
+# ---- BRUTE PASS: gear brand plate on the handle (the Worker's mark)
+box((0.006, 0.08, 0.05), (0.028, -0.17, 0), 'paint', bevel=0.0)
+gearmark(0.045, (0.031, -0.17, 0), (1, 0, 0), (0, -1, 0), 'ivory', 0.003)
 print(ship('w_brute_pipewrench'))

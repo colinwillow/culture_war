@@ -2,6 +2,7 @@
 # and a wide roof gap). Origin ground centre, doors face +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 Wd, D, Hw = 6.6, 6.6, 3.8
 box((7.0, 7.0, 0.25), (0, 0, 0.125), 'concrete', bevel=0.05)                     # pad
 # side + back walls with corrugation ribs
@@ -65,4 +66,12 @@ for s in (-1, 1):
 for s_ in (-1, 1):
     spike(0.3, 1.5, (s_ * 1.2, -D / 2 + 0.1, Hw + 0.95), (s_ * 0.45, -0.35, 1))
 skull(0.45, (0, -D / 2 - 0.1, Hw + 1.0), (0, -1, 0), 'ivory')
+
+# ---- BRUTE PASS: orange painted plates with gear brands on the front posts, octagonal pads on the doors, a bandolier
+# draped over the sign, red armband wraps on the corner posts
+for s_ in (-1, 1):
+    box((0.85, 0.1, 1.0), (s_ * 2.9, -D / 2 - 0.2, 1.4), 'paint', bevel=0.04)
+    gearmark(0.75, (s_ * 2.9, -D / 2 - 0.26, 1.4), (0, -1, 0), (0, 0, 1), 'ivory')
+    octpad(0.8, (s_ * 2.75, -D / 2 - 0.32, 2.4), (0, -1, 0))
+bandolier((-1.6, -D / 2 - 0.3, Hw + 0.1), (1.6, -D / 2 - 0.3, Hw + 0.1), 0.12)
 print(ship('bb_barracks'))

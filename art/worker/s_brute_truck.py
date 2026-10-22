@@ -1,9 +1,10 @@
 # Brute truck: armoured scrap truck with a plough, crimson doors. Origin ground centre, front (plough) +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 box((2.3, 5.0, 0.5), (0, 0.2, 0.75), 'iron', bevel=0.08)                          # chassis
-box((2.3, 1.6, 1.0), (0, -1.5, 1.45), 'olive', bevel=0.12)                        # engine block / hood
-box((2.4, 1.7, 1.2), (0, 0.15, 1.9), 'olive', bevel=0.12)                         # armoured cab (top ~2.5)
+box((2.3, 1.6, 1.0), (0, -1.5, 1.45), 'paint', bevel=0.12)                        # engine block / hood
+box((2.4, 1.7, 1.2), (0, 0.15, 1.9), 'paint', bevel=0.12)                         # armoured cab (top ~2.5)
 box((2.0, 0.08, 0.3), (0, -0.72, 2.2), 'iron', bevel=0.0)                         # vision slit
 box((1.7, 0.06, 0.12), (0, -0.77, 2.2), 'glow', bevel=0.0)                        # amber slit glow
 for s in (-1, 1):
@@ -45,4 +46,10 @@ skull(0.22, (0, -2.33, 1.35), (0, -1, 0), 'ivory')
 cyl(0.03, 1.4, (1.0, 2.9, 2.5), 'iron', n=4)
 banner(0.5, 0.6, (1.0, 2.9, 3.15), (1, 0, 0), mark='crown')
 for k in range(6): box((0.4, 0.05, 0.3), (-1.0 + k * 0.4, 3.16, 1.4), 'orange' if k % 2 else 'dark', bevel=0.0)
+
+# ---- BRUTE PASS: orange painted hood + door plates with gear brands, octagonal pads on the plough, a bandolier on the bed
+box((1.5, 0.95, 0.06), (0, -1.5, 2.03), 'paint', bevel=0.02)
+gearmark(0.6, (0, -1.5, 2.07), (0, 0, 1), (0, -1, 0), 'ivory')
+for x in (-0.8, 0.8): octpad(0.4, (x, -2.85, 0.65), (0, -1, 0.4))
+bandolier((-1.15, 1.0, 1.85), (-1.15, 2.9, 1.85), 0.08)
 print(ship('s_brute_truck'))

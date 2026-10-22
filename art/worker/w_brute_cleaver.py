@@ -3,6 +3,7 @@
 # Origin at the grip, blade along +Z (Blender -Y), edge down, spine up.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 X = (90, 0, 0)
 cyl(0.03, 0.26, (0, 0.0, 0), 'olive', X, n=8, bevel=0.006)                           # wrapped handle
 for y in (0.07, 0.0, -0.07): cyl(0.033, 0.015, (0, y, 0), 'dark', X, n=8)
@@ -30,4 +31,8 @@ for s in (-1, 1):
 box((0.042, 0.41, 0.03), (0, -0.395, 0.135), 'team', bevel=0.004)
 for y in (-0.46, -0.8): box((0.037, 0.006, 0.2), (0, y, -0.06), 'dark', bevel=0.0)
 box((0.036, 0.08, 0.03), (0, -0.7, -0.16), 'rust', bevel=0.0)
+
+# ---- BRUTE PASS: orange painted spine band, octagonal pad on the bolster
+box((0.042, 0.2, 0.04), (0, -0.3, 0.12), 'paint', bevel=0.004)
+octpad(0.05, (0.031, -0.16, 0.0), (1, 0, 0))
 print(ship('w_brute_cleaver'))

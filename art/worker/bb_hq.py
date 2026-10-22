@@ -4,13 +4,14 @@
 # Origin ground centre, front (gate + emblem) faces +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 # ground layer: U of containers, open front with a gate
 container(8.4, (-3.3, 0.2, 0), 'rust', 'Y')
-container(8.4, (3.3, 0.2, 0), 'olive', 'Y')
+container(8.4, (3.3, 0.2, 0), 'paint', 'Y')
 container(4.2, (0, 3.2, 0), 'steel', 'X')
 box((4.2, 6.0, 0.3), (0, -0.6, 0.15), 'iron', bevel=0.05)                       # yard floor
 # second layer: one long container across, one along the right
-container(9.0, (0, 0.6, 2.6), 'olive', 'X')
+container(9.0, (0, 0.6, 2.6), 'paint', 'X')
 container(5.0, (3.3, 2.0, 2.6), 'rust', 'Y')
 # top: a lookout cabin of steel plates
 box((3.0, 2.6, 1.6), (-1.6, 1.2, 6.0), 'steel', bevel=0.08)
@@ -72,4 +73,14 @@ for (x, y, z) in ((-2.0, -0.12, 4.0), (1.0, -0.12, 3.6), (4.62, 2.8, 1.4)):
 skull(0.95, (0, -4.05, 3.55), (0, -1, 0), 'ivory')
 for s_ in (-1, 1):
     spike(0.22, 1.2, (s_ * 0.75, -4.1, 2.75), (s_ * 0.5, -0.25, 1))
+
+# ---- BRUTE PASS (Colin's Brute sheets): orange-painted riveted armour plates with the ivory gear-wrench brand, octagonal
+# pads, ammo bandoliers slung over the containers, red armband wraps on the smokestack
+for (x, y, z, nrm) in ((-3.3, -4.07, 1.3, (0, -1, 0)), (4.57, 0.2, 1.3, (1, 0, 0)), (-4.57, 0.2, 1.3, (-1, 0, 0))):
+    pl = box((2.0, 0.12, 1.6) if nrm[1] else (0.12, 2.0, 1.6), (x, y, z), 'paint', bevel=0.06)
+    gearmark(1.3, (x + nrm[0] * 0.07, y + nrm[1] * 0.07, z), nrm, (0, 0, 1), 'ivory')
+for (x, z) in ((-1.6, 1.0), (1.6, 1.0)): octpad(0.9, (x, -4.15, z), (0, -1, 0))
+bandolier((-4.5, -4.0, 2.55), (-2.0, -4.0, 4.9), 0.14)
+bandolier((4.6, -2.0, 5.2), (4.6, 2.0, 2.7), 0.14)
+for z in (4.3, 6.6): cyl(0.6, 0.35, (-3.3, 3.2, z), 'team', n=10)
 print(ship('bb_hq'))

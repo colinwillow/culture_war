@@ -2,7 +2,8 @@
 # Bottom of the hull at y = 0 (hover height is the game's job), nose +Z (Blender -Y), prop at the back.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
-box((4.2, 7.0, 1.1), (0, -0.3, 0.75), 'rust', bevel=0.2, taper=(1.15, 1.0))         # hull (flares out)
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
+box((4.2, 7.0, 1.1), (0, -0.3, 0.75), 'paint', bevel=0.2, taper=(1.15, 1.0))         # hull (flares out)
 box((3.0, 1.6, 0.9), (0, -4.0, 0.9), 'rust', rot=(-18, 0, 0), bevel=0.2, taper=(1.2, 1))  # blunt bow
 box((2.0, 6.0, 0.5), (0, -0.3, 0.25), 'iron', bevel=0.12)                           # keel
 box((4.6, 7.2, 0.15), (0, -0.4, 1.38), 'wood', bevel=0.04)                          # open deck
@@ -58,4 +59,11 @@ for s_ in (-1, 1):
     cyl(0.14, 1.6, (s_ * 1.85, -2.6, 1.95), 'iron', (90, 0, s_ * 10), n=8)
     cyl(0.2, 0.25, (s_ * 1.97, -3.35, 1.95), 'burnt', (90, 0, s_ * 10), n=8)
 spike(0.35, 1.4, (0, -4.3, 0.5), (0, -1, -0.1))
+
+# ---- BRUTE PASS: orange painted hull plates with big gear brands, octagonal pads on the fan pods, bandoliers on the rails
+for s_ in (-1, 1):
+    box((0.1, 2.2, 0.75), (s_ * 2.36, 1.6, 0.9), 'paint', bevel=0.03)
+    gearmark(0.75, (s_ * 2.42, 1.6, 0.9), (s_, 0, 0), (0, 0, 1), 'ivory')
+    octpad(0.7, (s_ * 3.38, 0.4, 0.75), (s_, 0, 0))
+    bandolier((s_ * 2.25, -3.0, 2.2), (s_ * 2.25, 0.0, 2.2), 0.08)
 print(ship('s_brute_gunship'))

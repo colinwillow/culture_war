@@ -3,6 +3,7 @@
 # Origin at the lower grip, head along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 X = (90, 0, 0)
 box((0.055, 1.0, 0.05), (0, -0.40, 0), 'steel', bevel=0.012)                       # shaft y +0.10 .. -0.90
 cyl(0.038, 0.2, (0, 0.0, 0), 'olive', X, n=8, bevel=0.006)                          # grips
@@ -36,4 +37,8 @@ box((0.154, 0.035, 0.204), (0, -1.21, 0), 'team', bevel=0.01)
 for y in (-1.06, -1.15): box((0.152, 0.006, 0.202), (0, y, 0), 'dark', bevel=0.0)
 box((0.06, 0.05, 0.01), (0.13, -1.03, 0.086), 'rust', bevel=0.0)
 chain((-0.03, 0.13, -0.03), (-0.05, 0.15, -0.13), 0.011)
+
+# ---- BRUTE PASS: orange painted head plates (the crown tags are now gear brands), octagonal pad on the neck
+for s_ in (-1, 1): box((0.12, 0.14, 0.006), (0, -1.13, s_ * 0.1), 'paint', bevel=0.0)
+octpad(0.07, (0.03, -0.78, 0), (1, 0, 0))
 print(ship('w_brute_wrenchhammer'))

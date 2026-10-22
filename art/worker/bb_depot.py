@@ -1,6 +1,7 @@
 # Brute depot: scrapyard with a small crane, stacked crates, a fence. Origin ground centre, gate faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+spike, crown, banner = brute_style()   # Brute sheets: gear-wrench brand, iron studs
 box((5.0, 5.0, 0.15), (0, 0, 0.075), 'asphalt', bevel=0.03)                       # yard
 # fence: posts + sheet panels on 3 sides and either side of the gate
 def fence(x0, y0, x1, y1):
@@ -53,4 +54,9 @@ chain((1.4, 1.4, 3.55), (1.4, 1.4, 2.1), 0.05)
 banner(0.6, 1.0, (-1.4, 1.2, 3.3), (0, -1, 0), mark='crown')
 for k in range(4): box((0.28, 0.06, 0.5), (-1.85 + k * 0.3, 0.83, 0.4), 'orange' if k % 2 else 'dark', bevel=0.0)
 box((0.6, 0.04, 0.4), (0.8, -E - 0.04, 0.6), 'rust', bevel=0.0)
+
+# ---- BRUTE PASS: orange painted crane cab plate with gear brand, octagonal pads on the gate posts, a bandolier on a crate
+box((0.62, 0.08, 0.6), (-1.4, 0.85, 2.6), 'paint', bevel=0.03); gearmark(0.45, (-1.4, 0.8, 2.6), (0, -1, 0), (0, 0, 1), 'ivory')
+for x in (-1.0, 1.0): octpad(0.4, (x, -E - 0.08, 0.9), (0, -1, 0))
+bandolier((1.0, -0.25, 1.1), (1.6, 0.65, 1.1), 0.08)
 print(ship('bb_depot'))
