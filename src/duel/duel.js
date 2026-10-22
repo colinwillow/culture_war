@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=183';
+import { svg } from '../ui/icons.js?v=188';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -106,6 +106,43 @@ const rim = new THREE.DirectionalLight(0x9fc6ff, 1.1); rim.position.set(-6, 5, -
   }
 }
 
+// THE POND: a small pool just outside the rope line. A real water shader, not a blue disc: the surface heaves on three
+// crossed sine waves, shades from a shallow sandy edge to a deep teal middle, catches the sun as a moving highlight,
+// brightens at grazing angles (fresnel), and wears an animated foam ring where it meets the sand. Leaves that blow
+// onto it float, bob and drift. Two draw calls (water + the dug rim).
+const POND = { x: 0, z: -13.5, r: 4.2, y: 0.03 };
+const pondMat = new THREE.ShaderMaterial({
+  uniforms: { uT: { value: 0 }, uSun: { value: sun.position.clone().normalize() }, uCam: { value: new THREE.Vector3() },
+    fogColor: { value: scene.fog.color.clone() }, fogNear: { value: scene.fog.near }, fogFar: { value: scene.fog.far } }, // a COPY: a ShaderMaterial's uniforms are used in place, and sharing the scene's own Color object turned the fog white
+  transparent: true, depthWrite: false, fog: true,
+  vertexShader: `uniform float uT; varying vec3 vW; varying vec3 vN; varying float vR;
+    #include <fog_pars_vertex>
+    float h(vec2 p, float t) { return sin(p.x * 2.1 + t * 1.3) * 0.5 + sin(p.y * 2.7 - t * 1.1) * 0.35 + sin((p.x + p.y) * 1.4 + t * 0.7) * 0.4; }
+    void main() { vR = length(position.xy) / ${POND.r.toFixed(2)}; vec3 pos = position; vec2 q = position.xy;
+      float e = 0.08, H = h(q, uT) * 0.022; pos.z += H;
+      float hx = h(q + vec2(e, 0.0), uT) * 0.022 - H, hy = h(q + vec2(0.0, e), uT) * 0.022 - H;
+      vN = normalize(vec3(-hx / e, -hy / e, 1.0)); // in the plane's own space (z up); the mesh is laid flat below
+      vec4 w = modelMatrix * vec4(pos, 1.0); vW = w.xyz; vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
+      #include <fog_vertex>
+    }`,
+  fragmentShader: `uniform float uT; uniform vec3 uSun; uniform vec3 uCam; varying vec3 vW; varying vec3 vN; varying float vR;
+    #include <fog_pars_fragment>
+    void main() { vec3 n = normalize(vec3(vN.x, vN.z, -vN.y)); // plane space -> world (the mesh is rotated -90 about x)
+      vec3 v = normalize(uCam - vW); float fres = pow(1.0 - max(dot(n, v), 0.0), 3.0);
+      vec3 deep = vec3(0.07, 0.30, 0.34), shallow = vec3(0.42, 0.62, 0.55), sky = vec3(0.66, 0.77, 0.94);
+      vec3 col = mix(deep, shallow, smoothstep(0.55, 1.0, vR)); col = mix(col, sky, fres * 0.55);
+      float spec = pow(max(dot(reflect(-uSun, n), v), 0.0), 60.0); col += vec3(1.0, 0.95, 0.85) * spec * 0.9;
+      float foam = smoothstep(0.86, 0.93, vR + sin(atan(vW.z - ${POND.z.toFixed(1)}, vW.x) * 9.0 + uT * 1.7) * 0.025) * (1.0 - smoothstep(0.985, 1.0, vR));
+      col = mix(col, vec3(0.93, 0.95, 0.92), foam * (0.55 + 0.45 * sin(uT * 2.3 + vR * 40.0)));
+      gl_FragColor = vec4(col, 0.92 - fres * 0.1);
+      #include <fog_fragment>
+    }`,
+});
+const pond = new THREE.Mesh(new THREE.CircleGeometry(POND.r, 72), pondMat); pond.rotation.x = -Math.PI / 2; pond.position.set(POND.x, POND.y, POND.z); pond.renderOrder = 1; scene.add(pond);
+{ const rim = new THREE.Mesh(new THREE.RingGeometry(POND.r - 0.05, POND.r + 0.9, 72), new THREE.MeshStandardMaterial({ color: 0x8a7352, roughness: 1 })); rim.rotation.x = -Math.PI / 2; rim.position.set(POND.x, 0.012, POND.z); scene.add(rim); }
+function stepPond(time) { pondMat.uniforms.uT.value = time; pondMat.uniforms.uCam.value.copy(camera.position); }
+const inPond = (x, z) => Math.hypot(x - POND.x, z - POND.z) < POND.r - 0.15;
+
 // GOD RAYS: no post-processing on a phone, so the shafts are billboards: long soft planes hung along the sun's own
 // direction, additive, slowly breathing. One draw call each, six of them.
 const rays = new THREE.Group(); scene.add(rays);
@@ -120,9 +157,9 @@ const rays = new THREE.Group(); scene.add(rays);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1.4 + Math.random() * 1.6, 22), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     // hang the shaft along the sun vector, spread across the ring, each turned a little about the sun axis
     const a = (i / 6) * Math.PI * 2, off = new THREE.Vector3(Math.cos(a) * 4.5, 0, Math.sin(a) * 4.5);
-    m.position.copy(dir).multiplyScalar(6).add(off); m.position.y = 7 + Math.random() * 2;
+    m.position.copy(dir).multiplyScalar(6).add(off); m.position.y = 7 + Math.random() * 2; // HIGH: at 3.5 m they sat between camera and fighters and stacked into a white sky
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); m.rotateY(Math.random() * Math.PI);
-    m.userData = { base: 0.11 + Math.random() * 0.08, ph: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15 }; m.renderOrder = 3; rays.add(m);
+    m.userData = { base: 0.08 + Math.random() * 0.06, ph: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15 }; m.renderOrder = 3; rays.add(m);
   }
 }
 function stepRays(time) { for (const m of rays.children) m.material.opacity = m.userData.base * (0.6 + 0.4 * Math.sin(time * m.userData.sp + m.userData.ph)); }
@@ -285,7 +322,10 @@ function stepLeaves(dt, time) {
     for (const q of sh) { const dx = L.p.x - q.p.x, dz = L.p.z - q.p.z, d2 = dx * dx + dz * dz; if (d2 < q.r * q.r && d2 > 1e-4) { const d = Math.sqrt(d2), k = (1 - d / q.r) * q.push; L.v.x += (dx / d) * k * dt * 8; L.v.z += (dz / d) * k * dt * 8; L.v.y += k * dt * 4 * (q.v ? 0.6 : 1.4); if (q.v) L.v.addScaledVector(q.v, k * dt * 2); } }
     L.v.y -= (onGround ? 0 : 2.6) * dt; L.v.multiplyScalar(Math.exp(-(onGround ? 4.5 : 1.3) * dt)); // leaves fall slowly (drag), skid briefly on the ground
     L.p.addScaledVector(L.v, dt);
-    if (L.p.y < 0.01) { L.p.y = 0.01; L.v.y = 0; }
+    if (inPond(L.p.x, L.p.z) && L.p.y < POND.y + 0.05) { // afloat: ride the water, bob, drift with the breeze, lie flat
+      L.p.y = POND.y + 0.012 + Math.sin(time * 1.6 + L.k * 6.28) * 0.012; L.v.y = 0; L.v.multiplyScalar(Math.exp(-2 * dt)); L.v.addScaledVector(_wind, dt * 0.12);
+      L.rot.x *= 1 - 4 * dt; L.rot.z *= 1 - 4 * dt; L.rot.y += 0.3 * dt;
+    } else if (L.p.y < 0.01) { L.p.y = 0.01; L.v.y = 0; }
     const r = Math.hypot(L.p.x, L.p.z); if (r > LEAF_R) { const a = Math.atan2(-L.p.z, -L.p.x) + (Math.random() - 0.5); L.p.set(Math.cos(a) * LEAF_R * 0.98, 0.01, Math.sin(a) * LEAF_R * 0.98); L.v.set(0, 0, 0); } // blown out: come back in upwind
     const sp = L.v.length();
     if (!onGround || sp > 0.3) { L.rot.x += L.spin.x * dt * (0.3 + sp); L.rot.y += L.spin.y * dt * (0.3 + sp); L.rot.z += L.spin.z * dt * (0.3 + sp); } // tumble in the air, lie still on the ground
@@ -788,7 +828,7 @@ function frame() {
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
   for (const f of fighters) { f.mixer.update(dt); stepTail(f, time); }
-  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time); stepRays(time);
+  stepSparks(dt); stepPops(dt); stepDust(dt); stepScuffs(dt); stepLeaves(dt, time); stepRays(time); stepPond(time);
   for (const f of fighters) stepTrail(f, dt);
   for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.t -= dt; t.l.material.opacity = Math.max(0, t.t / 0.09); if (t.t <= 0) { scene.remove(t.l); t.l.geometry.dispose(); tracers.splice(i, 1); } }
   stepCamera(dt); hud();
@@ -797,5 +837,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
