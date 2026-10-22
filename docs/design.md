@@ -161,6 +161,23 @@ third-person game too. Mix species across every faction; costume/gear defines th
   remaining factions - Old Money eat, Street Crew mind-control, Backwoods infect (Hard Hats stay the plain builders for
   now). These are stand-ins: when the factions become alien species each verb moves to its species.
 
+## Combat depth: every fight is a little duel (Colin, Oct 22 2026)
+Right now a fight is arithmetic on a timer (hit, hit, hit; the bigger number wins). Colin wants each soldier to fight
+like a tiny Street Fighter match: **blocks, misses, glancing hits, staggers and dodges, with some randomness**, so the
+same two squads do not always end the same way and it is fun to watch up close.
+- **Shared move sets per class, not per character.** Shooters (rifle set, can melee in a pinch), sword-and-shield,
+  two-handed heavies, fast skirmishers, big brutes. Every race reuses its class's animations (the bake tool in
+  blender-addons makes that cheap) and adds a special move or two of its own.
+- **Deterministic randomness.** Rolls come from `S.rng`, so lockstep multiplayer still works.
+- **A duel sandbox first.** A white-box room: pick any two units (or a unit and yourself), watch or fight them, tune
+  block/miss/stagger numbers until a 1v1 is interesting, then let squads inherit it. Side-on orthographic camera =
+  the Street Fighter read.
+- **Possession.** From the board, jump into your hero (or any unit) and fight in third person while the rest of your
+  army keeps following orders: "Warcraft to World of Warcraft". The same duel rules serve both views.
+- **Shared with the third-person game.** The duel rules and the living city are meant to be one system: the RTS war
+  can run as the backdrop of Colin's open-world alien game, where the player is a neutral alien quietly keeping the peace.
+- Phone budget: the full duel logic for a few on-screen fights near the camera, simplified dice for the rest.
+
 ## Downtown: tear it down vs build it up (Colin, Oct 21 2026 - the direction he keeps coming back to)
 The city is the main character. One side scores by tearing downtown apart, the other by building it up and keeping
 it standing; a city meter swings between ruins and metropolis. Fictional groups only, roast both sides, cartoon violence,
