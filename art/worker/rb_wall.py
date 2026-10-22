@@ -20,4 +20,10 @@ box((0.4, 0.05, 0.08), (0.0, -0.41, 0.72), 'bronze', bevel=0.0)
 ball(0.07, (0.15, -0.42, 0.95), 'gmagenta', 1)
 ball(0.07, (-0.15, -0.42, 0.95), 'gmagenta', 1)
 box((2.2, 0.84, 0.14), (0, 0, 0.64), 'team', bevel=0.0)                      # crimson band between courses
+
+# ---- v2 detail pass: white crown tag graffiti, cone spikes poking out of the moss, magenta cloth tied on
+crown(0.45, (0.72, -0.385, 0.95), normal=(0, -1, 0), up=(0, 0, 1), t=0.012)
+for x in (-0.6, 0.15, 0.85):
+    spike(0.06, 0.25, (x, 0, 1.45), (x * 0.2, 0, 1))
+box((0.3, 0.86, 0.3), (-0.82, 0, 0.93), 'magenta', bevel=0.02)
 print(ship('rb_wall', chunk_cuts={'x': [-0.4, 0.38], 'z': [0.64]}))

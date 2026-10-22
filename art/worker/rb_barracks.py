@@ -26,4 +26,18 @@ box((1.4, 1.2, 0.12), (0, -2.95, 0.12), 'stone', bevel=0.03)                 # t
 for s in (-1, 1):
     cyl(0.1, 1.3, (s * 1.0, -3.3, 0.65), 'bronze', n=6)
     ball(0.22, (s * 1.0, -3.3, 1.4), 'glime', 1)
+
+# ---- v2 detail pass: spiked tips on the teeth (orange), magenta canisters at the entrance, crown tags on the rim,
+# magenta cloth wrapped on two teeth
+for i in range(N):
+    a = 2 * math.pi * (i + 0.5) / N
+    if i == 9: continue
+    seg_out = (math.cos(a) * 3.53, math.sin(a) * 3.53)
+    if i % 3 == 0:
+        crown(0.7, (seg_out[0], seg_out[1], 0.5), normal=(math.cos(a), math.sin(a), 0), up=(0, 0, 1), t=0.03)
+for s in (-1, 1):
+    canister(0.18, 1.1, (s * 1.0, -3.3, 0.75), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
+for i in (0, 6):
+    a = 2 * math.pi * (i + 0.5) / N
+    cyl(0.42, 0.35, (math.cos(a) * 2.9, math.sin(a) * 2.9, 1.5), 'magenta', n=5)
 print(ship('rb_barracks'))

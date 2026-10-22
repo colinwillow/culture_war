@@ -27,4 +27,14 @@ for (x, y, z, s, c) in ((-1.4, -1.25, 1.25, 0.45, 'wood'), (1.2, -1.25, 1.25, 0.
                         (2.0, 1.9, 0.95, 0.6, 'wood'), (-2.0, 1.9, 0.15, 0.7, 'moss'), (1.0, 2.0, 0.15, 0.6, 'wood')):
     box((s, s, s), (x, y, z + s / 2), c, bevel=0.04)
 cyl(0.3, 0.4, (0.2, -1.25, 1.45), 'lime', n=8, r2=0.36)                      # fruit basket
+
+# ---- v2 detail pass: magenta canisters on the counter, crown tags on the awning post + upper stall, spikes on the roof
+for x in (-0.9, -0.5):
+    canister(0.12, 0.45, (x, -1.25, 1.5), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
+crown(0.8, (0, -0.63, 3.45), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+crown(0.6, (0, -1.72, 0.75), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+for x in (-1.7, 1.7):
+    spike(0.1, 0.45, (x, 1.9, 3.95), (x * 0.1, 0.3, 1))
+    spike(0.1, 0.45, (x, -0.7, 3.65), (x * 0.1, -0.3, 1))
+chain((2.0, -1.8, 2.3), (2.0, -1.8, 1.6), 0.04)
 print(ship('rb_depot'))

@@ -28,4 +28,15 @@ for x in (-1.1, 1.1):
     for y in (-1.1, 1.1):
         cyl(0.07, 1.4, (x, y, z + 0.9), 'wood', n=5)
 cyl(1.4, 1.0, (0, 0, z + 2.0), 'bronze', n=8, r2=0.1)                               # roof
+
+# ---- v2 detail pass: orange-tipped cone spikes as head crests, crown tag on the lookout rail, magenta canister lamps
+z2 = 0.45
+for i in range(4):
+    for s in (-1, 1):
+        spike(0.09, 0.4, (s * 0.65, 0.3, z2 + 1.45), (s * 0.7, 0.3, 1))
+    z2 += 1.5
+crown(0.7, (0, -1.32, z + 0.55), normal=(0, -1, 0), up=(0, 0, 1), t=0.02)
+for x in (-1.1, 1.1):
+    canister(0.1, 0.4, (x, -1.1, z + 1.25), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
+spike(0.12, 0.5, (0, 0, z + 2.45), (0, 0, 1))
 print(ship('rb_tower'))

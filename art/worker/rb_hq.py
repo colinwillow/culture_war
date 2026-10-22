@@ -36,4 +36,21 @@ box((3.6, 0.15, 0.1), (0, 0.75, 7.95), 'glime', bevel=0.0)                      
 for x in (-2.6, 2.6):
     cyl(0.5, 0.5, (x, -2.6, 4.15), 'bronze', n=8, r2=0.3)
     ball(0.3, (x, -2.6, 4.45), 'glime', 1)
+
+# ---- v2 detail pass (Reptilian street-temple): cone spikes on the tier corners + serpent brow, magenta canisters
+# flanking the stair, white crown tags on the tiers, magenta cloth drapes, chains on the gate
+for (w, z) in ((9.6, 1.4), (7.6, 2.7), (5.6, 3.9)):
+    for x in (-1, 1):
+        for y in (-1, 1):
+            spike(0.2, 0.7, (x * (w / 2 - 0.25), 0.2 + y * (w / 2 - 0.25), z), (x * 0.25, y * 0.25, 1))
+for x in (-0.9, 0.0, 0.9):
+    spike(0.16, 0.6, (x, -4.9, 4.0), (0, -0.3, 1))
+for x in (-2.2, 2.2):
+    canister(0.3, 1.5, (x, -4.3, 1.55), (0, 0, 1), 'gmagenta', bars=4, ribs=2)
+crown(1.4, (-3.0, -4.36, 0.75), normal=(0, -1, 0), up=(0, 0, 1), t=0.04)
+crown(1.4, (3.0, -4.36, 0.75), normal=(0, -1, 0), up=(0, 0, 1), t=0.04)
+crown(1.6, (0, -3.53, 3.35), normal=(0, -1, 0), up=(0, 0, 1), t=0.04)
+for x in (-4.86, 4.86):
+    box((0.08, 1.6, 1.2), (x, -1.0, 0.75), 'magenta', bevel=0.0)                        # cloth drapes on the sides
+chain((-1.55, -5.1, 3.3), (0, -5.2, 2.7), 0.09); chain((0, -5.2, 2.7), (1.55, -5.1, 3.3), 0.09)
 print(ship('rb_hq'))
