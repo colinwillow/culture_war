@@ -19,7 +19,18 @@ PAL = {k: _lin(v) for k, v in dict(
     glow='ffb347', team='D0102A',
     # neutral city extras (still no red): concrete, asphalt, wood, glass, leaf greens, bark
     concrete='9a968c', asphalt='3f3f42', wood='7a5a3a', glass='4a6a78', leaf='4f7a34', leaf2='6a8f3c',
-    bark='5a4232', brick='8a5a40', white='e6e2d6', yellow='e8c21c', blue='3a5a8a', tire='222222').items()}
+    bark='5a4232', brick='8a5a40', white='e6e2d6', yellow='e8c21c', blue='3a5a8a', tire='222222',
+    # species (batch 5+): Greys, Reptilians, Spores
+    pearl='eef0f2', gunmetal='4a4f57', cyan='39e0ff', stone='7d7a68', moss='4e6b2c', bronze='9a6a2c',
+    magenta='e0249a', lime='a6e22e', acid='7cff4a', purple='6a3a9a', fungus='c9b89a', goo='4a7a3a').items()}
+# parts coloured with these keys get their own emissive material (glTF cannot emit from vertex colours)
+GLOW = {'glow': 'glow', 'gcyan': 'glow_cyan', 'gmagenta': 'glow_magenta', 'gacid': 'glow_acid', 'glime': 'glow_lime'}
+GLOW_HEX = {'glow': 'ffb347', 'gcyan': '39e0ff', 'gmagenta': 'e0249a', 'gacid': '7cff4a', 'glime': 'a6e22e'}
+# translucent (alpha-blended) parts
+CLEAR = {'ccyan': ('clear_cyan', '39e0ff', 0.45), 'cacid': ('clear_acid', '7cff4a', 0.5), 'cpurple': ('clear_purple', '8a5ac0', 0.55),
+         'cglass': ('clear_glass', '9fd8e8', 0.4)}
+for k, h in GLOW_HEX.items(): PAL[k] = _lin(h)
+for k, (n, h, a) in CLEAR.items(): PAL[k] = _lin(h)
 
 def reset():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -29,7 +40,7 @@ def _color(ob, col):
     a = me.color_attributes.new('Col', 'FLOAT_COLOR', 'CORNER')
     c = PAL[col] if isinstance(col, str) else col
     for d in a.data: d.color = c
-    ob['glow'] = (col == 'glow')
+    ob['mat'] = GLOW.get(col) or (CLEAR[col][0] if col in CLEAR else 'kit')
 
 def _place(ob, loc, rot):
     ob.location = loc
@@ -95,46 +106,45 @@ def _apply_all():
         bpy.context.view_layer.objects.active = ob
         for m in list(ob.modifiers): bpy.ops.object.modifier_apply(modifier=m.name)
 
-def _mats():
-    k = bpy.data.materials.get('kit') or bpy.data.materials.new('kit')
-    k.use_nodes = True
-    nt = k.node_tree; bsdf = nt.nodes.get('Principled BSDF')
-    if not any(n.type == 'VERTEX_COLOR' for n in nt.nodes):
-        vc = nt.nodes.new('ShaderNodeVertexColor'); vc.layer_name = 'Col'
-        nt.links.new(vc.outputs['Color'], bsdf.inputs['Base Color'])
-    bsdf.inputs['Roughness'].default_value = 0.85; bsdf.inputs['Metallic'].default_value = 0.0
-    g = bpy.data.materials.get('glow') or bpy.data.materials.new('glow')
-    g.use_nodes = True; gb = g.node_tree.nodes.get('Principled BSDF')
-    gb.inputs['Base Color'].default_value = PAL['glow']
-    gb.inputs['Emission Color'].default_value = PAL['glow']; gb.inputs['Emission Strength'].default_value = 2.0
-    if not any(n.type == 'VERTEX_COLOR' for n in g.node_tree.nodes):
-        vc = g.node_tree.nodes.new('ShaderNodeVertexColor'); vc.layer_name = 'Col'
-        g.node_tree.links.new(vc.outputs['Color'], gb.inputs['Base Color'])
-    return k, g
+def _mat(name):
+    m = bpy.data.materials.get(name)
+    if m: return m
+    m = bpy.data.materials.new(name); m.use_nodes = True
+    nt = m.node_tree; b = nt.nodes.get('Principled BSDF')
+    vc = nt.nodes.new('ShaderNodeVertexColor'); vc.layer_name = 'Col'
+    nt.links.new(vc.outputs['Color'], b.inputs['Base Color'])
+    b.inputs['Roughness'].default_value = 0.85; b.inputs['Metallic'].default_value = 0.0
+    if name.startswith('glow'):
+        key = [k for k, v in GLOW.items() if v == name][0]
+        b.inputs['Emission Color'].default_value = PAL[key]; b.inputs['Emission Strength'].default_value = 2.0
+    if name.startswith('clear'):
+        a = [v for v in CLEAR.values() if v[0] == name][0][2]
+        b.inputs['Alpha'].default_value = a; b.inputs['Roughness'].default_value = 0.2
+        try: m.surface_render_method = 'BLENDED'
+        except Exception: m.blend_method = 'BLEND'
+    return m
 
 def join(name, obs=None):
-    """Apply modifiers/transforms of all (or given) mesh objects and join them into one object `name`."""
+    """Apply modifiers/transforms of all (or given) mesh objects and join them into one object `name`.
+    One material per kind actually used: kit (vertex colours), glow_* (emissive), clear_* (alpha blend)."""
     obs = obs or [o for o in bpy.context.scene.objects if o.type == 'MESH']
     bpy.ops.object.select_all(action='DESELECT')
     for o in obs:
         o.select_set(True); bpy.context.view_layer.objects.active = o
         for m in list(o.modifiers): bpy.ops.object.modifier_apply(modifier=m.name)
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    k, g = _mats()
+    names = sorted({o.get('mat', 'kit') for o in obs}, key=lambda n: (n != 'kit', n))
+    mats = [_mat(n) for n in names]
     for o in obs:
-        o.data.materials.clear(); o.data.materials.append(k); o.data.materials.append(g)
-        mi = 1 if o.get('glow') else 0
+        o.data.materials.clear()
+        for m in mats: o.data.materials.append(m)
+        mi = names.index(o.get('mat', 'kit'))
         for p in o.data.polygons: p.material_index = mi
     bpy.context.view_layer.objects.active = obs[0]
     bpy.ops.object.join()
     ob = bpy.context.object; ob.name = name; ob.data.name = name
-    _drop_unused_mats(ob)
     return ob
 
-def _drop_unused_mats(ob):
-    used = {p.material_index for p in ob.data.polygons}
-    if 1 not in used:
-        ob.data.materials.pop(index=1)
 
 def yup_note():
     """Blender is Z-up, faces -Y by convention; the glTF exporter (+Y up) maps Blender -Y -> glTF +Z.
