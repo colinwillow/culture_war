@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=216';
-import { makePops, slashTex } from '../fx/pops.js?v=216';
+import { svg } from '../ui/icons.js?v=217';
+import { makePops, slashTex } from '../fx/pops.js?v=217';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -42,6 +42,8 @@ const RIGS = {
   brute_hero: { file: 'models/characters/brute_hero.glb', key: true },
   brute_worker: { file: 'models/characters/brute_worker.glb', key: true },
   brute_skater: { file: 'models/characters/brute_skater.glb', key: true },
+  brute_heavy: { file: 'models/characters/brute_heavy.glb', key: true },
+  brute_cook: { file: 'models/characters/brute_cook.glb', key: true },
 };
 // Borrowed weapons. A rig with no mount bone still gets the weapon in its RIGHT HAND at the grip the weapon's own rig
 // holds it at in rest pose: offset from the hand / rig height, rotation in model space (both donors read IDENTITY),
@@ -60,6 +62,8 @@ const ROSTER = [
   { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'mace' },
   { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'mace' },
   { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'mace' },
+  { name: 'HEAVY', rig: 'brute_heavy', style: MELEE, h: 3.2, hp: 320, speed: 0.75, weapon: null }, // fists: the shoulder cannon is a later model
+  { name: 'COOK', rig: 'brute_cook', style: MELEE, h: 1.6, hp: 90, speed: 0.9, weapon: null },
 ];
 const RULE = {
   pace: 1.35,        // EVERYTHING plays this much faster than authored (Colin: "a little quicker")

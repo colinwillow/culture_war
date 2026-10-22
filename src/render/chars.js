@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=216';
+import { THREE } from './scene.js?v=217';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -34,6 +34,8 @@ const CHARS = {
   brute_hero: { file: 'brute_hero.glb', h: 2.4, own: BRUTE_OWN },
   brute_worker: { file: 'brute_worker.glb', h: 1.9, own: BRUTE_OWN },
   brute_skater: { file: 'brute_skater.glb', h: 2.0, own: BRUTE_OWN },
+  brute_heavy: { file: 'brute_heavy.glb', h: 3.2, own: BRUTE_OWN },
+  brute_cook: { file: 'brute_cook.glb', h: 1.6, own: BRUTE_OWN },
   brute_shooter: { file: 'brute_shooter.glb', h: 2.1, own: { ...BRUTE_OWN, idle: 'rifle_idle_01', walk: 'rifle_walk_fwd_01', run: 'rifle_run' } },
   builder: { file: 'contruction_worker.glb', h: 1.76, own: { idle: 'idle', walk: 'walk_fwd', swing: '1-handed_swing_01', stab: '2-handed-swing', hit: 'take_damage_01', die: 'hit_and_fall' } },
 };
