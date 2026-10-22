@@ -237,3 +237,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B229: ground textured with Weirdport's toon-city surfaces (textures/: asphalt, sidewalk, curb, grass, dirt, concrete), laid in world metres by groundMat (scene.js); kerb sides take the curb texture.
 - B230: menu wears the worker's logo (ringed-planet O) and four species emblems, inlined SVG.
 - B231: HUD in the menu's look: violet glass chips/buttons/minimap with a neon edge in your species colour (--fc from the menu's NEON table).
+- B232: storefront floors wear Weirdport's brick / plaster / siding / brick-through-plaster from one 2x2 atlas (facadeMat, per-instance aTex), tinted by the old facade colours.

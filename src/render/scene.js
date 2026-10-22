@@ -106,6 +106,36 @@ export function groundMat(top, side = top, metres = 4, tint = 0xffffff) {
   };
   return m;
 }
+// FACADES (B232): Weirdport's tint-ready walls (brick, plaster, wood siding, brick-through-plaster) packed into one 2x2
+// atlas so every storefront floor stays ONE instanced draw; a per-instance aTex picks the quarter, the instance colour
+// tints it. World-metre UVs along the face (metres across, metres up), textureGrad so the quarter seams do not shimmer.
+export function facadeMat(metres = 3) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 2048;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  ['brick', 'plaster', 'siding', 'brickplaster'].forEach((n, i) => {
+    const im = new Image(); im.onload = () => { cv.getContext('2d').drawImage(im, (i % 2) * 1024, (i >> 1) * 1024, 1024, 1024); tex.needsUpdate = true; };
+    im.src = './textures/' + n + '.webp';
+  });
+  const m = new THREE.MeshLambertMaterial({ color: 0xffffff, map: tex });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uM = { value: metres };
+    sh.vertexShader = 'attribute float aTex; varying float vTex; varying vec3 vGW; varying vec3 vGN;\n' + sh.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+      vec4 gw = vec4(transformed, 1.0); vec3 gn = objectNormal;
+      #ifdef USE_INSTANCING
+        gw = instanceMatrix * gw; gn = mat3(instanceMatrix) * gn;
+      #endif
+      vGW = (modelMatrix * gw).xyz; vGN = normalize(mat3(modelMatrix) * gn); vTex = aTex;`);
+    sh.fragmentShader = 'uniform float uM; varying float vTex; varying vec3 vGW; varying vec3 vGN;\n' + sh.fragmentShader.replace('#include <map_fragment>', `
+      vec2 fu = (abs(vGN.y) > 0.5 ? vGW.xz : vec2(abs(vGN.x) > 0.5 ? vGW.z : vGW.x, vGW.y)) / uM;
+      float ti = floor(vTex + 0.5); vec2 off = vec2(mod(ti, 2.0), floor(ti / 2.0)) * 0.5;
+      vec2 q = off + (0.004 + fract(fu) * 0.492);
+      diffuseColor *= textureGrad(map, q, dFdx(fu) * 0.5, dFdy(fu) * 0.5);`).replace('#include <color_fragment>', `
+      #if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
+        diffuseColor.rgb *= mix(vColor, vec3(1.0), 0.45); // the texture carries the dirt; the tint only colours it
+      #endif`);
+  };
+  return m;
+}
 export function box(w, h, d, c, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.position.set(x, y, z); return m; }
 export function cyl(rt, rb, h, c, x = 0, y = 0, z = 0, seg = 12) { const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat(c)); m.position.set(x, y, z); return m; }
 export function basic(c, o = 1) { return new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide }); }

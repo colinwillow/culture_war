@@ -2,8 +2,8 @@
 // window, bottom-left, that follows the hottest fight from a low side angle. It only exists while a fight is on (a
 // cluster of recent hits); tap it and the main camera swoops down there. Render-only: a second camera, scissored into
 // the same canvas after the main render, so no extra canvas or render target.
-import { THREE } from './scene.js?v=231';
-import { walkH } from '../map/layout.js?v=231';
+import { THREE } from './scene.js?v=232';
+import { walkH } from '../map/layout.js?v=232';
 
 export const BCAM = { on: true, minHits: 3, window: 3.5, w: 0.4, aspect: 1.25, dist: 9, height: 2.4, fov: 40 };
 try { BCAM.on = localStorage.getItem('cw-bcam') !== '0'; } catch (e) {}

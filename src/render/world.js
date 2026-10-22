@@ -1,11 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat } from './scene.js?v=231';
-import { CAM } from '../camera/camera.js?v=231';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=231';
-import { hash } from '../util/math.js?v=231';
-import { TICK } from '../config/factions.js?v=231';
-import { emit } from '../fx/particles.js?v=231';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=232';
+import { CAM } from '../camera/camera.js?v=232';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=232';
+import { hash } from '../util/math.js?v=232';
+import { TICK } from '../config/factions.js?v=232';
+import { emit } from '../fx/particles.js?v=232';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -287,7 +287,7 @@ function buildCity() {
     const shrink = (f) => (b.style !== 1 ? 1 : f < b.floors / 2 ? 1 : f < b.floors - 1 ? 0.8 : 0.6);
     for (let f = 0; f < b.floors; f++) {
       const k = shrink(f);
-      floors.push({ x: b.x, y: fh * f + fh / 2, z: b.z, sx: b.sx * k, sy: fh, sz: b.sz * k, c: col });
+      floors.push({ x: b.x, y: fh * f + fh / 2, z: b.z, sx: b.sx * k, sy: fh, sz: b.sz * k, c: col, t: (i * 7 + Math.floor(b.c * 13)) % 4 });
       bands.push({ x: b.x, y: fh * f + fh * 0.7, z: b.z, sx: b.sx * k + 0.12, sy: f === 0 ? 0.01 : 0.8, sz: b.sz * k + 0.12 });
     }
     const top = shrink(b.floors - 1), w = b.sx * top, d = b.sz * top, rp = [];
@@ -310,7 +310,9 @@ function buildCity() {
       : { x: b.x + (b.x > 0 ? -1 : 1) * (b.sx / 2 + 0.6), y: fh * 0.82, z: b.z, sx: 1.2, sy: 0.15, sz: b.sz * 0.8, c: [0xd64545, 0x2cc2ad, 0xf2b632, 0x3d6fd6][i % 4] });
     idx.push({ first, n: b.floors, fh, shown: b.floors, rp, tag: false, shop: false });
   });
-  const fl = instanced(unitBox, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
+  const flGeo = unitBox.clone(); flGeo.setAttribute('aTex', new THREE.InstancedBufferAttribute(new Float32Array(floors.map((x) => x.t)), 1));
+  const fl = instanced(flGeo, 0, floors, true), wb = instanced(unitBox, COL.glass, bands);
+  fl.material = facadeMat(3);
   windows = wb; windows.material = new THREE.MeshLambertMaterial({ color: COL.glass });
   const GEO = { flat: unitBox, gable: unitBox, dome: new THREE.SphereGeometry(1, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2), drum: new THREE.CylinderGeometry(1, 1, 1, 14), tank: new THREE.CylinderGeometry(1, 1, 1, 12), cone: new THREE.ConeGeometry(1, 1, 12) };
   const RCOL = { flat: COL.roof, gable: 0x8a3b2e, dome: 0x6fa59a, drum: 0xc9c1ad, tank: 0x8a6a4a, cone: 0x5a4a3a };
