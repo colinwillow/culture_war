@@ -15,7 +15,7 @@ STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabl
 - [ ] HUD restyle to the menu's look: dark glass chips with species-colour neon edge, Bungee numbers, command buttons glow in the species colour (--fc)
 - [ ] Building textures: Weirdport's brick / concrete / plaster / corrugated / roof tar on the placeholder city blocks (groundMat-style world UVs)
 - [ ] Sky + light: dusk-alien grade (magenta horizon, teal shadows), fog tinted to match; billboard god rays already exist
-- [ ] Wire the worker's UI batch 8 (logo, emblems, icons) when DELIVERED.md lists it
+- [x] B230 worker UI batch 8: logo + four emblems on the menu (command icons still to wire)
 - [ ] In-game names: unit + power names per species (Brutes / Greys / Reptilians / Spores), not the tabled human ones
 - [x] (B219) Arena YOU mode: a real THIRD-PERSON FOLLOW CAM on your fighter (read weirdport/index.html's camera + reticle first and match it): behind/over the shoulder, right-stick drag orbits it, a reticle when holding a gun, hold-up fires where the camera faces, a strike goes toward the reticle. This is the camera possession will use.
 - [x] (B221) RTS BATTLE CAM: a picture-in-picture window (bottom-left, ~35% width) that follows the hottest fight from a low side angle like the arena; tap it and the main camera swoops down there. Second render of the same scene, low res, only while a fight is on.

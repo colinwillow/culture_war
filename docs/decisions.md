@@ -235,3 +235,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B227: arena -- gen weapons gripped by the FIST (index-pinky axis) or the shooting pose, not the T-pose; gunners never club-swing (back off / point-blank); size ratio scales melee damage and knockback, a big-on-small blow LAUNCHES (RULE.size).
 - B228: health bars over heads replaced by a ring on the ground per squad (a segment per member, lit round by its health; buildings one segment); RTS Brute props sized in world metres (were door-sized) and gripped by the fist.
 - B229: ground textured with Weirdport's toon-city surfaces (textures/: asphalt, sidewalk, curb, grass, dirt, concrete), laid in world metres by groundMat (scene.js); kerb sides take the curb texture.
+- B230: menu wears the worker's logo (ringed-planet O) and four species emblems, inlined SVG.
