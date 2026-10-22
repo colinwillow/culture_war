@@ -151,6 +151,32 @@ The culture-war factions are shelved. The game is a war for Earth between ALIEN 
 over the living city (which stays neutral and computer-run). Classes, ranks, factions and sub-factions: `docs/roster.md`.
 Working title: War for the World. Say "species" or "faction" in the game, never "race".
 
+## The portable core: one "world war" dynamic for every game (Colin, Oct 22 2026)
+Colin wants the species-war dynamic (neutral living city + warring factions + per-soldier duels) to carry into his
+third-person game and any later overhead game, while each game stays in its own lane. The way to get that is to keep
+the dynamic in files that know NOTHING about rendering or input, and only ever talk through plain data. Where it
+stands now (audited Oct 22):
+- `src/sim/sim.js`, `ai.js`, `map/grid.js` import no three.js and no DOM already: they run in a headless page and in
+  `tools/balance.cjs`. Driven by `newSim(faction, seed, diff, mode)`, `command(player, cmd)`, `step()`, read through
+  `Q.*` and `S.events`. That IS the portable shape; it only needs to be made explicit.
+- The living city (`stepCity`, `stepFires`, `updateCiv/Crew/Cop/Truck/FireCrew`, `alienVerb`, heat tiers) is ~260
+  lines inside sim.js and reaches outside itself only for `nearestFree` (9 calls) and `CITY` (the storefront table).
+- The duel (`src/duel/duel.js`, 700 lines) mixes rules and rendering; its rules (RULE/MELEE/GUN tables, resolve/hurt/
+  blocked/parry/combo, the swept hit test) are the part to lift.
+
+Plan, in order, each a small refactor that changes no behaviour:
+1. **`src/core/` package**: move the living city out of sim.js into `core/city.js` (civilians, crews, fire, heat,
+   police tiers) and the alien verbs into `core/verbs.js`; both take a tiny interface object `{ rng, nearestFree,
+   blocked, events }` instead of importing the grid. The RTS passes its grid; the third-person game passes its own.
+2. **`core/duel.js`**: the duel rules as pure functions over fighter records (`{x, z, hp, guard, state, ...}`) and
+   clip metadata (contact fractions, reach). `duel.js` in the browser becomes a renderer that calls them; the RTS
+   squads can call the same functions for the fights near the camera.
+3. **`core/roster.js`**: the species/classes/sub-factions table from `docs/roster.md` as data (verb, twist, class
+   stats), so a new game loads the same roster file.
+4. Publish `src/core/` as its own small repo (or a git subtree) that both games pull: then "copy the dynamic into
+   that game" is a dependency line, not a rewrite.
+Rules the core keeps: deterministic (`rng` only), no three.js, no DOM, events out / commands in.
+
 ## Main direction (Colin, Oct 21 2026): aliens vs aliens, with the humans as the living city
 Every player is an alien faction (greys abduct, mantis mind-control, lizards possess hosts, toad brutes smash and eat,
 parasites infect, fungus spreads...). Each is a different verb applied to the same human city. The humans are never a
