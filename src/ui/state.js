@@ -1,5 +1,5 @@
 // Local (per-player, non-sim) UI state: what's selected, what's being placed, which power is aimed.
-import { getSim } from '../sim/sim.js?v=233';
+import { getSim } from '../sim/sim.js?v=234';
 
 export const UI = {
   sel: null, // {type:'sq', ids:[...]} | {type:'bld', id}

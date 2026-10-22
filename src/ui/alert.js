@@ -1,9 +1,9 @@
 // Under-attack alert: when something of yours is hit somewhere the camera is not looking, a red arrow pulses on
 // the screen edge pointing at it. Tap the arrow to fly there. Newest fight wins; it fades 5 s after the last hit.
-import { THREE, camera } from '../render/scene.js?v=233';
-import { walkH } from '../map/layout.js?v=233';
-import { focus } from '../camera/camera.js?v=233';
-import { svg } from './icons.js?v=233';
+import { THREE, camera } from '../render/scene.js?v=234';
+import { walkH } from '../map/layout.js?v=234';
+import { focus } from '../camera/camera.js?v=234';
+import { svg } from './icons.js?v=234';
 
 const el = document.getElementById('alert');
 el.innerHTML = svg('up');

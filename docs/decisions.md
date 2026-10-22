@@ -239,3 +239,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B231: HUD in the menu's look: violet glass chips/buttons/minimap with a neon edge in your species colour (--fc from the menu's NEON table).
 - B232: storefront floors wear Weirdport's brick / plaster / siding / brick-through-plaster from one 2x2 atlas (facadeMat, per-instance aTex), tinted by the old facade colours.
 - B233: alien grade -- teal-violet day to magenta dusk, teal ground bounce, a gradient sky dome (horizon = fog) with a ringed planet low on the horizon.
+- B234: in-game names are the species' own: units, buildings and powers for Brutes / Reptilians / Spores / Greys (names only; stats and effects unchanged).

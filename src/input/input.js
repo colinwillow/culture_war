@@ -4,13 +4,13 @@
 //   hold then drag  = box select
 //   2 fingers       = pinch zoom + twist to rotate + drag to pan
 //   mouse: right-drag = box select, wheel = zoom; keys WASD/arrows pan, Q/E rotate, V ghost cam, Esc cancel
-import { THREE, camera, canvas } from '../render/scene.js?v=233';
-import { walkH } from '../map/layout.js?v=233';
-import { getSim, command } from '../sim/sim.js?v=233';
-import { UI, select, selSquads } from '../ui/state.js?v=233';
-import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=233';
-import { fxMarker } from '../fx/fx.js?v=233';
-import { ack } from '../render/sync.js?v=233';
+import { THREE, camera, canvas } from '../render/scene.js?v=234';
+import { walkH } from '../map/layout.js?v=234';
+import { getSim, command } from '../sim/sim.js?v=234';
+import { UI, select, selSquads } from '../ui/state.js?v=234';
+import { CAM, panBy, clampCam, toggleView, pxPerUnit, fling } from '../camera/camera.js?v=234';
+import { fxMarker } from '../fx/fx.js?v=234';
+import { ack } from '../render/sync.js?v=234';
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tmp = new THREE.Vector3();
 export function groundAt(cx, cy) {
