@@ -6,9 +6,13 @@ art/DELIVERED.md lists; never edit models/gen/ or DELIVERED.md. EVERY pass first
 there, wiring it into the game (weapon on its rig / prop in the city / building) can be that pass's build.
 STEER (Colin, 08:40): the game must be seen UP CLOSE -- the arena's side-on fights are the look. No Tripo models until
 Colin signs off a species row on the roster board.
+STEER (Colin, 11:00): BRIGHT like Weirdport -- HDRI, lighting, painted textures, illumination (B242/B243 first pass).
 STEER (Colin, 10:40): title is BATTLE FOR EARTH.
 STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabled, B226). UI is game too.
 ### Items
+- [x] B242/B243 Weirdport render recipe in RTS + arena
+- [ ] Painted textures pass 2: Weirdport's trim sheet + EMISSIVE window maps on the city (windows glow), roofs (roof_tar), awnings; KTX2 later
+- [ ] Bloom-lite: additive glow sprites on emissive bits (no post chain on phone)
 - [x] B235 alien bases in the RTS: bb_/gb_/rb_/sb_ hq, depot, barracks, tower, wall for Brutes/Greys/Reptilians/Spores (bldMesh -> genBase)
 - [x] B236 Team colour on the gen bases (crimson key -> your blue) so own vs enemy reads from the building, not just the disc
 - [x] B239 Ships in matches (render): Brute truck + gunship, Grey saucer, Reptilian skiff, Spore cloud on the vehicle slots, hovering

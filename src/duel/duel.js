@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=242';
-import { makePops, slashTex } from '../fx/pops.js?v=242';
+import { svg } from '../ui/icons.js?v=243';
+import { makePops, slashTex } from '../fx/pops.js?v=243';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -105,9 +105,23 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x2e3140); scene.fog = new THREE.Fog(0x3a3d4c, 14, 42);
-// GRADE: warm key light, cool fill and shadows, filmic tone curve (the duel reads like late afternoon)
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+scene.background = new THREE.Color(0xb7b4e6); scene.fog = new THREE.Fog(0xb7b4e6, 18, 70);
+// GRADE (B243, Weirdport's recipe like the RTS): Khronos PBR Neutral tone mapping (CustomToneMapping body, r160 has no
+// NeutralToneMapping), the painted sky panorama as background + PMREM environment light, bright sky fill.
+THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(
+  'vec3 CustomToneMapping( vec3 color ) { return color; }',
+  `vec3 CustomToneMapping( vec3 color ) {
+    const float StartCompression = 0.8 - 0.04; const float Desaturation = 0.15;
+    color *= toneMappingExposure;
+    float x = min( color.r, min( color.g, color.b ) ); float offset = x < 0.08 ? x - 6.25 * x * x : 0.04; color -= offset;
+    float peak = max( color.r, max( color.g, color.b ) ); if ( peak < StartCompression ) return color;
+    float d = 1. - StartCompression; float newPeak = 1. - d * d / ( peak + d - StartCompression ); color *= newPeak / peak;
+    float g = 1. - 1. / ( Desaturation * ( peak - newPeak ) + 1. ); return mix( color, vec3( newPeak ), g ); }`);
+renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = 1.0;
+new THREE.TextureLoader().load('./textures/sky.jpg', (t) => {
+  t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+  try { const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); } catch (e) { /* lights only */ }
+});
 // HEIGHT FOG: three's fog is by distance only; this makes it thicker near the ground (a haze that pools in the ring
 // and thins out above head height), by patching the fog chunks every material in this page uses.
 THREE.ShaderChunk.fog_pars_vertex = THREE.ShaderChunk.fog_pars_vertex.replace('varying float vFogDepth;', 'varying float vFogDepth; varying float vFogH;');
@@ -115,12 +129,13 @@ THREE.ShaderChunk.fog_vertex = THREE.ShaderChunk.fog_vertex.replace('vFogDepth =
 THREE.ShaderChunk.fog_pars_fragment = THREE.ShaderChunk.fog_pars_fragment.replace('varying float vFogDepth;', 'varying float vFogDepth; varying float vFogH;');
 THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace('float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );',
   'float fogFactor = smoothstep( fogNear, fogFar, vFogDepth ); fogFactor = clamp( fogFactor * mix( 1.4, 0.35, clamp( vFogH / 5.0, 0.0, 1.0 ) ) + 0.10 * ( 1.0 - clamp( vFogH / 1.6, 0.0, 1.0 ) ) * smoothstep( 2.0, 12.0, vFogDepth ), 0.0, 1.0 );');
-const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-scene.add(new THREE.HemisphereLight(0xa9c4ef, 0x5a4330, 1.15)); // cool sky, warm bounce off the sand
-const sun = new THREE.DirectionalLight(0xffe2b8, 2.6); sun.position.set(6, 12, 4); sun.castShadow = true;
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+scene.add(new THREE.HemisphereLight(0xe4f0ff, 0x2a1f3d, 1.75)); // bright sky fill, purple ground (Weirdport)
+{ const fill = new THREE.DirectionalLight(0xbfd8ff, 0.85); fill.position.set(-7, 5, -6); const bounce = new THREE.DirectionalLight(0x3fd9c4, 0.38); bounce.position.set(0, -10, 0); scene.add(fill, bounce); }
+const sun = new THREE.DirectionalLight(0xfff3e0, 2.4); sun.position.set(6, 12, 4); sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 30 });
 scene.add(sun);
-const rim = new THREE.DirectionalLight(0x9fc6ff, 1.1); rim.position.set(-6, 5, -8); scene.add(rim);
+const rim = new THREE.DirectionalLight(0xff7a9e, 1.15); rim.position.set(-6, 5, -8); // pink rim scene.add(rim);
 { // the ring: sand disc, a darker rope line, a few posts
   const floor = new THREE.Mesh(new THREE.CircleGeometry(RULE.ring + 1.5, 64), new THREE.MeshStandardMaterial({ color: 0xb79c74, roughness: 1 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);

@@ -248,3 +248,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B240: Colin's art on the menu -- his floating-islands splash as the background (cover, dark fade under the cards) and his graffiti BATTLE FOR EARTH logo; short portrait phones get a smaller logo.
 - B241: Greys' heavy (Tripod) is the worker's s_grey_tripod walker, on the ground; Grey bases/saucer carry the new Grey pass.
 - B242: Weirdport's render recipe in the RTS: Khronos PBR Neutral tone mapping (as CustomToneMapping, r160), its painted sky panorama as background + PMREM environment light, sun 2.4 / hemi 1.75 purple ground / cool fill / pink rim / teal bounce; globe patch guarded so PMREM shaders compile.
+- B243: arena gets the same Weirdport grade: neutral tone mapping (was ACES), painted sky + IBL, bright hemi, cool fill, pink rim, teal bounce, lavender fog.
