@@ -13,3 +13,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [c_lamp] models/gen/c_lamp.glb -- 452 tris, 0.4 x 5.5 x 0.4 m, origin at the base centre on the ground, post-top lantern (kept to the 0.4 m footprint, no overhanging arm), 2 materials: kit + glow (lantern)
 - [c_hydrant] models/gen/c_hydrant.glb -- ~800 tris, 0.44 x 0.78 x 0.41 m, origin base centre on the ground, hazard ORANGE not red (red is the team key), 1 material
 - [c_bench] models/gen/c_bench.glb -- 660 tris, 1.8 x 0.88 x 0.62 m, origin ground centre, seat faces +Z, 1 material
+- [c_barrier] models/gen/c_barrier.glb -- 188 tris, 2.0 x 0.98 x 0.64 m (rebar stubs on top), origin ground centre, long axis X, jersey profile, orange hazard stripe, 1 material; c_barrier_chunks.glb = 8 capped chunks (4 along X x top/bottom), 478 tris
