@@ -1,24 +1,24 @@
 // Entry point: wires sim + render + input + UI and runs the fixed-step loop.
-import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=221';
-import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=221';
-import { syncRender, clearRender, bump } from './render/sync.js?v=221';
-import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=221';
-import { newSim, getSim, step } from './sim/sim.js?v=221';
-import { TICK } from './config/factions.js?v=221';
-import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=221';
-import { initInput, lockPageZoom } from './input/input.js?v=221';
-import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=221';
-import { resetUI } from './ui/state.js?v=221';
-import { fillIcons, svg } from './ui/icons.js?v=221';
-import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=221';
-import { updateMinimap } from './ui/minimap.js?v=221';
-import { isMuted, setMuted } from './fx/sfx.js?v=221';
-import { loadChars } from './render/chars.js?v=221';
-import { emit } from './fx/particles.js?v=221';
-import { FC } from './render/models.js?v=221';
-import { renderBattleCam } from './render/battlecam.js?v=221';
+import { renderer, scene, camera, followSun, THREE, setTimeOfDay, sun, setGlobe, tessellate } from './render/scene.js?v=223';
+import { buildWorld, updateWorld, setDusk, setRain, setLowWorld } from './render/world.js?v=223';
+import { syncRender, clearRender, bump } from './render/sync.js?v=223';
+import { handleEvents, updateFx, clearFx, hitstopScale } from './fx/fx.js?v=223';
+import { newSim, getSim, step } from './sim/sim.js?v=223';
+import { TICK } from './config/factions.js?v=223';
+import { CAM, applyCam, resetCam, onResize } from './camera/camera.js?v=223';
+import { initInput, lockPageZoom } from './input/input.js?v=223';
+import { refreshHUD, resetHUD, updatePlaceBar, showTip } from './ui/hud.js?v=223';
+import { resetUI } from './ui/state.js?v=223';
+import { fillIcons, svg } from './ui/icons.js?v=223';
+import { noteAlerts, updateAlert, clearAlert } from './ui/alert.js?v=223';
+import { updateMinimap } from './ui/minimap.js?v=223';
+import { isMuted, setMuted } from './fx/sfx.js?v=223';
+import { loadChars } from './render/chars.js?v=223';
+import { emit } from './fx/particles.js?v=223';
+import { FC } from './render/models.js?v=223';
+import { renderBattleCam, battleSpot } from './render/battlecam.js?v=223';
 
-export const BUILD = 221; // written by `npm run bump`
+export const BUILD = 223; // written by `npm run bump`
 lockPageZoom();
 fillIcons();
 buildWorld();
@@ -217,7 +217,7 @@ function frame(now) {
   // The day wears on: morning at the start, golden hour by ~11 minutes in; lamps and windows come on in the last half.
   if (S && running) { const k = Math.min(1, Math.max(0, (S.t - 60) / 600)); if (Math.abs(k - (frame.tod ?? -1)) > 0.002) { frame.tod = k; setTimeOfDay(k); setDusk(Math.max(0, k * 2 - 1)); } }
   else if (!S && frame.tod) { frame.tod = 0; setTimeOfDay(0); setDusk(0); }
-  applyCam(dt);
+  applyCam(dt, S && running ? battleSpot() : null);
   followSun(CAM.tx, CAM.tz);
   if (S && running) { updateMinimap(dt); updateAlert(dt); }
   updatePlaceBar();

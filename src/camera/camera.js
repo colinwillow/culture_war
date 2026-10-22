@@ -1,15 +1,25 @@
 // RTS camera: target point + distance + yaw. Pitch flattens as you zoom in ("ghost cam").
-import { camera, GLOBE } from '../render/scene.js?v=221';
-import { walkH } from '../map/layout.js?v=221';
-import { smooth } from '../util/math.js?v=221';
+import { camera, GLOBE } from '../render/scene.js?v=223';
+import { walkH } from '../map/layout.js?v=223';
+import { smooth } from '../util/math.js?v=223';
 
 export const CAM = { tx: 0, tz: 64, dist: 60, distT: 60, yaw: 0, view: 'high' };
 let landscape = null;
 const pitchFor = (d) => 0.38 + (1.12 - 0.38) * smooth(14, 110, d);
-export const homeDist = () => (landscape ? 56 : 70);
+// CLOSER BY DEFAULT (Colin: "the best part of this game is up close"): a match starts near the action and the camera
+// cannot pull out past ZOOM.max; the whole-map overview is the minimap's job.
+export const ZOOM = { home: 34, homeLand: 28, max: 72, dip: 22, idleT: 6 };
+export const homeDist = () => (landscape ? ZOOM.homeLand : ZOOM.home);
 
-export function applyCam(dt) {
-  updateFling(dt);
+// AUTO-DIP: no touch for ZOOM.idleT seconds and a fight on screen -> the camera eases down toward it. Any touch ends it.
+let lastTouch = 0, clock = 0;
+addEventListener('pointerdown', () => { lastTouch = clock; }, { capture: true });
+addEventListener('wheel', () => { lastTouch = clock; }, { capture: true, passive: true });
+export function applyCam(dt, spot) {
+  clock += dt; updateFling(dt);
+  if (spot && clock - lastTouch > ZOOM.idleT && Math.hypot(spot[0] - CAM.tx, spot[1] - CAM.tz) < CAM.dist * 0.9) {
+    const k = 1 - Math.exp(-dt * 0.6); CAM.tx += (spot[0] - CAM.tx) * k; CAM.tz += (spot[1] - CAM.tz) * k; CAM.distT += (ZOOM.dip - CAM.distT) * k;
+  }
   GLOBE.u.x = CAM.tx; GLOBE.u.y = CAM.tz; // the globe look bends the world around where you are looking
   CAM.dist += (CAM.distT - CAM.dist) * Math.min(1, dt * 6);
   const pitch = pitchFor(CAM.dist), h = CAM.dist * Math.cos(pitch), v = CAM.dist * Math.sin(pitch), ty = walkH(CAM.tx, CAM.tz);
@@ -34,7 +44,7 @@ export function shake(k, x, z) {
 export function clampCam() {
   CAM.tx = Math.max(-62, Math.min(62, CAM.tx));
   CAM.tz = Math.max(-104, Math.min(104, CAM.tz));
-  CAM.distT = Math.max(12, Math.min(150, CAM.distT));
+  CAM.distT = Math.max(12, Math.min(ZOOM.max, CAM.distT));
 }
 export function panBy(dx, dy) {
   const k = (2 * CAM.dist * Math.tan((camera.fov * Math.PI) / 360)) / window.innerHeight, sp = Math.sin(pitchFor(CAM.dist));
@@ -54,7 +64,7 @@ function updateFling(dt) {
 }
 export function focus(x, z) { CAM.tx = x; CAM.tz = z; clampCam(); }
 /** Player 0 sits at +z looking toward -z. */
-export function resetCam() { CAM.yaw = 0; CAM.tx = 0; CAM.tz = 66; CAM.distT = CAM.dist = homeDist(); CAM.view = 'high'; clampCam(); }
+export function resetCam() { CAM.yaw = 0; CAM.tx = 0; CAM.tz = 58; CAM.distT = CAM.dist = homeDist(); CAM.view = 'high'; clampCam(); }
 export function toggleView(target) {
   if (CAM.view === 'high') { CAM.view = 'low'; CAM.distT = 16; if (target) focus(target.x, target.z); }
   else { CAM.view = 'high'; CAM.distT = homeDist(); }

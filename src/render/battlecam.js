@@ -2,8 +2,8 @@
 // window, bottom-left, that follows the hottest fight from a low side angle. It only exists while a fight is on (a
 // cluster of recent hits); tap it and the main camera swoops down there. Render-only: a second camera, scissored into
 // the same canvas after the main render, so no extra canvas or render target.
-import { THREE } from './scene.js?v=221';
-import { walkH } from '../map/layout.js?v=221';
+import { THREE } from './scene.js?v=223';
+import { walkH } from '../map/layout.js?v=223';
 
 export const BCAM = { on: true, minHits: 3, window: 3.5, w: 0.4, aspect: 1.25, dist: 9, height: 2.4, fov: 40 };
 try { BCAM.on = localStorage.getItem('cw-bcam') !== '0'; } catch (e) {}
@@ -13,6 +13,8 @@ const cam = new THREE.PerspectiveCamera(BCAM.fov, BCAM.aspect, 0.5, 400);
 const focus = new THREE.Vector3(), want = new THREE.Vector3();
 let side = 1, el = null;
 
+let lastSpot = null;
+export const battleSpot = () => lastSpot; // the hottest fight right now, or null (the camera's auto-dip reads it)
 export function noteHit(x, z) { BCAM.seen = (BCAM.seen || 0) + 1; hits.push({ x, z, t: now }); if (hits.length > 80) hits.shift(); }
 
 function hottest() { // the recent hit with the most recent hits within 8 m of it, and their centroid
@@ -40,7 +42,8 @@ function frameEl(r, show, onTap) {
 /** Call after the main render. onTap(x, z) moves the main camera there. */
 export function renderBattleCam(renderer, scene, mainCam, dt, running, onTap) {
   now += dt;
-  const spot = running && BCAM.on ? hottest() : null;
+  const spot = running ? hottest() : null; lastSpot = spot;
+  if (!BCAM.on) { if (el) el.style.opacity = 0; return; }
   if (spot) {
     if (!live) { // pick the side of the fight that faces away from the main camera's look, so it reads side-on
       const dx = spot[0] - mainCam.position.x, dz = spot[1] - mainCam.position.z; side = Math.sign(dx || 1);
