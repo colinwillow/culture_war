@@ -23,4 +23,10 @@ for x in (-0.6, 0.6):
     box((0.2, 0.64, 0.08), (x, 0, 0.04), 'asphalt', bevel=0.0)                 # forklift slots
 cyl(0.04, 0.12, (-0.85, 0, 0.92), 'rust', n=6)                                  # rebar stubs
 cyl(0.04, 0.12, (0.85, 0, 0.92), 'rust', n=6)
+
+# ---- v2 detail pass: crown graffiti + a spray streak on the face, cracks, chunk missing from a top corner
+crown(0.5, (0.45, -0.23, 0.42), normal=(0, -0.95, 0.3), up=(0, 0.3, 0.95), t=0.01, col='dark')
+box((0.7, 0.02, 0.07), (-0.5, -0.22, 0.35), 'magenta', rot=(-11, 0, 8), bevel=0.0)
+box((0.25, 0.02, 0.02), (-0.2, -0.19, 0.7), 'asphalt', rot=(-11, 0, 40), bevel=0.0)
+box((0.25, 0.02, 0.02), (0.6, 0.19, 0.6), 'asphalt', rot=(11, 0, -30), bevel=0.0)
 print(ship('c_barrier', chunk_cuts={'x': [-0.5, 0.0, 0.5], 'z': [0.45]}))

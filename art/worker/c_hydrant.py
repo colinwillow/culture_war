@@ -16,4 +16,11 @@ for x in (-1, 1):
 cyl(0.08, 0.1, (0, -0.15, 0.36), O, (90, 0, 0), n=8, bevel=0.01)           # front outlet
 cyl(0.085, 0.04, (0, -0.2, 0.36), 'steel', (90, 0, 0), n=6)
 cyl(0.14, 0.05, (0, 0, 0.25), 'bone', n=8)                  # white band
+
+# ---- v2 detail pass: chain on the front cap, crown tag, bolts on the barrel, rust drips
+chain((0.0, -0.25, 0.36), (0.12, -0.15, 0.2), 0.02)
+crown(0.12, (0, -0.135, 0.33), normal=(0, -1, 0), up=(0, 0, 1), t=0.006, col='dark')
+for a in (45, 135, 225, 315):
+    r = math.radians(a); hexbolt(0.02, (math.cos(r) * 0.135, math.sin(r) * 0.135, 0.5), (math.cos(r), math.sin(r), 0))
+box((0.03, 0.02, 0.15), (0.1, -0.1, 0.45), 'rust', bevel=0.0)
 print(ship('c_hydrant'))
