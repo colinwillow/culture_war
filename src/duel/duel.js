@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=223';
-import { makePops, slashTex } from '../fx/pops.js?v=223';
+import { svg } from '../ui/icons.js?v=224';
+import { makePops, slashTex } from '../fx/pops.js?v=224';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -50,19 +50,27 @@ const RIGS = {
 // mount scale / rig height. Measured from the donor files (blender-addons/pipeline/mount.mjs), not typed by eye.
 const WEAPONS = {
   mace: { file: 'models/weapons/spikey_mace.glb', off: [-0.0817, -0.0321, 0.0023], s: 0.0129 },          // alien_warrior
-  blaster: { file: 'models/weapons/alien_antenna_blaster_game.glb', off: [-0.0877, 0.0171, 0.0425], s: 0.011 }, // zap
+  blaster: { file: 'models/weapons/alien_antenna_blaster_game.glb', off: [-0.0877, 0.0171, 0.0425], s: 0.011, gun: true }, // zap
+  // The geometry worker's Brute weapons (art/DELIVERED.md): metres, origin at the GRIP, the business end along +Z.
+  // Mounted in the right hand pointing the way the body faces at bind, at true size (the hand's scale undone).
+  club: { gen: 'models/gen/w_brute_club.glb' },
+  blunderbuss: { gen: 'models/gen/w_brute_blunderbuss.glb', gun: true },
+  wrenchhammer: { gen: 'models/gen/w_brute_wrenchhammer.glb' },
+  cleaver: { gen: 'models/gen/w_brute_cleaver.glb' },
+  pipewrench: { gen: 'models/gen/w_brute_pipewrench.glb' },
+  cannon: { gen: 'models/gen/w_brute_cannon.glb', gun: true },
 };
 const ROSTER = [
   { name: 'WARRIOR', rig: 'warrior', style: MELEE, h: 1.9, hp: 150, speed: 1, weapon: 'mace' },
   { name: 'BRUTE', rig: 'demon', style: MELEE, h: 2.25, hp: 180, speed: 0.9, weapon: 'mace' },
   { name: 'GUNNER', rig: 'demon', style: GUN, h: 2.05, hp: 130, speed: 1, weapon: 'blaster' },
-  { name: 'GRUNT', rig: 'brute_grunt', style: MELEE, h: 1.5, hp: 110, speed: 1.1, weapon: 'mace' },
-  { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blaster' },
-  { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'mace' },
-  { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'mace' },
-  { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'mace' },
-  { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'mace' },
-  { name: 'HEAVY', rig: 'brute_heavy', style: MELEE, h: 3.2, hp: 320, speed: 0.75, weapon: null }, // fists: the shoulder cannon is a later model
+  { name: 'GRUNT', rig: 'brute_grunt', style: MELEE, h: 1.5, hp: 110, speed: 1.1, weapon: 'club' },
+  { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blunderbuss' },
+  { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'wrenchhammer' },
+  { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'cleaver' },
+  { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'pipewrench' },
+  { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'club' },
+  { name: 'HEAVY', rig: 'brute_heavy', style: GUN, h: 3.2, hp: 320, speed: 0.75, weapon: 'cannon' }, // the worker's cannon, carried for now (a shoulder mount is later)
   { name: 'COOK', rig: 'brute_cook', style: MELEE, h: 1.6, hp: 90, speed: 0.9, weapon: null },
 ];
 const RULE = {
@@ -208,6 +216,11 @@ async function loadRig(key) {
   return { key, scene: g.scene, clips, box: heightOf(g.scene), R };
 }
 async function loadWeapon(key) { // geometry + transform relative to the file's own weapon_root (Weirdport's weaponParts)
+  if (WEAPONS[key].gen) { // a worker piece: the file's origin IS the grip
+    const w = await load(WEAPONS[key].gen); w.scene.updateMatrixWorld(true); const parts = [];
+    w.scene.traverse((o) => { if (o.isMesh) parts.push({ g: o.geometry, m: o.material, x: o.matrixWorld.clone() }); });
+    return { key, gen: true, parts };
+  }
   const w = await load(WEAPONS[key].file); let root = null;
   w.scene.traverse((o) => { if (!root && /^weapon_root/.test(o.name)) root = o; });
   if (!root) return null;
@@ -500,6 +513,12 @@ function mountWeapon(f, key) {
   let own = null; if (R.R.own === key) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
   let wm = null;
   if (own) { wm = weaponMesh(W, mats); own.add(wm); } // his own mount bone: identity
+  else if (W.gen && hand) { // pointing the way he faces at bind, true metres: undo the hand's world rotation and scale
+    model.updateMatrixWorld(true);
+    const hq = new THREE.Quaternion(), mq = new THREE.Quaternion(), hs = new THREE.Vector3(); hand.getWorldQuaternion(hq); f.root.getWorldQuaternion(mq); hand.getWorldScale(hs);
+    const mount = new THREE.Group(); mount.quaternion.copy(hq.invert().multiply(mq)); mount.scale.setScalar(1 / hs.x);
+    wm = weaponMesh(W, mats); mount.add(wm); hand.add(mount);
+  }
   else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
     model.updateMatrixWorld(true);
     const toModel = model.matrixWorld.clone().invert(), handM = toModel.clone().multiply(hand.matrixWorld);
@@ -511,7 +530,7 @@ function mountWeapon(f, key) {
   if (!wm) return;
   for (const m of mats) m.userData.hue = f.hue;
   f.wgroup = wm; f.tip = wm.userData.tip; f.weapon = key;
-  const gun = key === 'blaster' && f.actions['rifle_shoot_stationary_01'];
+  const gun = WEAPONS[key].gun && f.actions['rifle_shoot_stationary_01'];
   f.def = { ...f.def, weapon: key, style: gun ? GUN : MELEE };
 }
 function dropWeapon(f, dir) {
