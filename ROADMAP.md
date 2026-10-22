@@ -9,7 +9,7 @@ in the kit city); this loop owns the RTS.
 - [x] B247/B248 telephoto camera, half-height city, units 1.6x
 - [x] B249 Organic ground: grass shader with world-noise dirt patches and colour variation (no flat tiles), soft edges on
       sidewalks/lots, scattered instanced rocks + bushes + grass tufts (geometry worker batch 10)
-- [ ] Trees: chunky stylized tree clusters along streets and in parks (batch 10), swaying
+- [x] B250 Trees: chunky stylized tree clusters along streets and in parks (batch 10), swaying
 - [ ] Break the grid: fewer city blocks, open plazas and parks between, roads that bend near the edges
 - [ ] Bases on hex pads (the worker's pieces already have them); base footprint decals in team colour
 - [ ] Burning buildings: big fire + smoke columns on damaged floors (ref 1), embers, scorch decals

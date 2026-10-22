@@ -2,8 +2,9 @@
 // The geometry worker's batch 10 pieces (models/gen/e_*.glb, one mesh each, origin on the ground) scattered as ONE
 // InstancedMesh per piece: a forest ring round the playable map, rocks and bushes on the lawn edges, tufts everywhere
 // grass is. Seeded, so the same every match. Render only: the sim never sees any of it.
-import { THREE, scene } from './scene.js?v=249';
-import { BLOCKS, BASES, HOME_Z, walkH } from '../map/layout.js?v=249';
+import { THREE, scene } from './scene.js?v=250';
+import { BLOCKS, BASES, HOME_Z, TREES, walkH } from '../map/layout.js?v=250';
+import { hideOldTrees } from './world.js?v=250';
 
 const rnd = ((a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(1234);
 const R = (a, b) => a + rnd() * (b - a);
@@ -29,7 +30,10 @@ const PLAN = [
 export async function buildClutter(loader) {
   const names = [...new Set(PLAN.map((p) => p[0]))], src = {};
   await Promise.all(names.map((n) => loader.loadAsync('./models/gen/' + n + '.glb').then((g) => { let m = null; g.scene.traverse((o) => { if (!m && o.isMesh) m = o; }); if (m) { m.updateWorldMatrix(true, false); src[n] = m; } }).catch(() => {})));
-  const lists = {};
+  const lists = {}, street = {};
+  // B250 STREET + PARK TREES: the layout's own tree spots (sidewalks, parks) get the worker's trees -- broadleaf mostly,
+  // a palm now and then -- and the old icosahedron trees go. These sway (a slow lean about the trunk base).
+  if (src.e_tree_a) { for (const [i, t] of TREES.entries()) { const n = src.e_tree_c && (i % 5 === 0) ? 'e_tree_c' : 'e_tree_a'; (street[n] = street[n] || []).push([t.x, t.z, R(0.55, 0.8), R(0, 6.283)]); } hideOldTrees(); }
   for (const [n, count, where, [s0, s1]] of PLAN) { if (!src[n]) continue; (lists[n] = lists[n] || []); for (let i = 0; i < count; i++) { const [x, z] = where(); lists[n].push([x, z, R(s0, s1), R(0, 6.283)]); } }
   const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   for (const n in lists) {
@@ -37,5 +41,14 @@ export async function buildClutter(loader) {
     const im = new THREE.InstancedMesh(geo, m.material, L.length);
     L.forEach(([x, z, s, r], i) => { Q.setFromAxisAngle(up, r); M.compose(V.set(x, Math.abs(x) > 60 || Math.abs(z) > 100 ? -0.2 : walkH(x, z), z), Q, S.setScalar(s)); im.setMatrixAt(i, M); });
     im.castShadow = !n.includes('tuft'); im.receiveShadow = true; im.frustumCulled = false; scene.add(im);
+  }
+  for (const n in street) {
+    const m = src[n], L = street[n], im = new THREE.InstancedMesh(m.geometry.clone().applyMatrix4(m.matrixWorld), m.material, L.length);
+    im.castShadow = im.receiveShadow = true; im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(im);
+    const E = new THREE.Euler(); let t = 0, last = performance.now();
+    im.onBeforeRender = () => { const now = performance.now(); t += Math.min(0.1, (now - last) / 1000); last = now;
+      L.forEach(([x, z, s, r], i) => { const ph = i * 1.7, sw = Math.sin(t * 0.9 + ph) * 0.04 + Math.sin(t * 2.3 + ph * 0.5) * 0.015;
+        Q.setFromEuler(E.set(sw, r, sw * 0.6)); M.compose(V.set(x, walkH(x, z), z), Q, S.setScalar(s)); im.setMatrixAt(i, M); });
+      im.instanceMatrix.needsUpdate = true; };
   }
 }

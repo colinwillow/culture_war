@@ -1,11 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=249';
-import { CAM } from '../camera/camera.js?v=249';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=249';
-import { hash } from '../util/math.js?v=249';
-import { TICK } from '../config/factions.js?v=249';
-import { emit } from '../fx/particles.js?v=249';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat, facadeMat } from './scene.js?v=250';
+import { CAM } from '../camera/camera.js?v=250';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=250';
+import { hash } from '../util/math.js?v=250';
+import { TICK } from '../config/factions.js?v=250';
+import { emit } from '../fx/particles.js?v=250';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -28,7 +28,9 @@ function instanced(geo, color, list, perInstanceColor) {
 }
 const unitBox = new THREE.BoxGeometry(1, 1, 1);
 
-let traffic = null, life = null, wt = 0;
+let traffic = null, life = null, wt = 0, oldTrees = [];
+/** B250: the worker's trees replace the icosahedron street trees once they load (clutter.js). */
+export function hideOldTrees() { for (const im of oldTrees) im.visible = false; }
 
 export function buildWorld() {
   // Ground: asphalt everywhere except the trench.
@@ -95,7 +97,7 @@ export function buildWorld() {
   });
   const crownIM = instanced(new THREE.IcosahedronGeometry(1.5, 0), 0x4f7f3a, crowns);
   crownIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  instanced(new THREE.CylinderGeometry(0.22, 0.3, 1.6, 6), 0x5a3d26, trunks);
+  oldTrees = [crownIM, instanced(new THREE.CylinderGeometry(0.22, 0.3, 1.6, 6), 0x5a3d26, trunks)];
 
   // Street lamps along avenues.
   const poles = [], heads = [];
