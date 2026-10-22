@@ -1,8 +1,25 @@
-# Roster v2: species, classes, ranks, factions (Oct 22 2026)
+# Roster v3: four factions, four shapes, the city as the star (Oct 22 2026)
 
-**Direction (Colin, Oct 22):** the culture-war factions are tabled. The game is a war for Earth between alien species,
-monsters, robots and humans. The **living city** (civilians, road crews, firefighters, police -> SWAT -> army -> riot mech)
-stays as the neutral backdrop that every side tramples, feeds on or defends.
+**Direction (Colin, Oct 22, revised the same night):** a war for Earth between alien species over the living human city.
+**The city is the star**: neutral, computer-run (civilians, crews, firefighters, police -> SWAT -> army -> riot mech, all
+built), and every faction is defined by its VERB on it. Humans are not a pick; they are the board that fights back. Robots
+are the city's top tier, not a camp. **Launch with FOUR factions, each a different SHAPE of army**, chosen for the strongest
+and most different verbs; add more camps later, including species Colin invents that fit no lore. The known UFO-lore
+species (greys, reptilians) are a useful scaffold, not the generic part: the generic part was nine factions all filling the
+same seven slots with a different skin.
+
+The test for any new faction or unit: what does it do to the city that nothing else does? "Shoots harder" = cut.
+
+## Launch four
+
+| Faction | Verb | Shape of the army | Art |
+|---|---|---|---|
+| **Greys** | abduct | few, elite, saucers; abductions are the economy; weak in a brawl, strong late | `alien_grey_medium` |
+| **Reptilians** (the Hornbacks table below; Mimics folds in) | possess | infiltrators who wear humans and strike from inside the crowd; ambush, retreat | the red demon (rigged, tail) |
+| **Tuskers** | eat | big, slow, hungry; eating heals and grows them; the front-line brawlers | the alien warrior (rigged, mace) |
+| **Spores** (the Ooze & Spores table) | infect | cheap swarms, goo creep across the map, civilians become bombs | none yet |
+
+Later camps: Mantids (mind-control), Monsters, and Colin's own inventions. 4 x 7 = 28 characters at launch.
 
 **Working titles:** *War for the World* (front-runner), *World War Weird*, *Planet Brawl*, *Invasion Block*.
 "Race War" is a no: an app store will not take it and it reads as the real thing whatever the joke is. *The War of the
@@ -160,7 +177,7 @@ neutral faction** that sides with whoever is losing, or the player's species in 
 
 ---
 
-## 5. Launch scope (proposal)
+## 5. Launch scope (superseded by 'Launch four' above)
 
 Six factions x 3 sub-factions x 7 classes is the full dream (126 looks). For launch:
 - **4 factions:** Humans, Robots, Hornbacks (the demon), Tuskers (the warrior): two already have a rigged Brute.
