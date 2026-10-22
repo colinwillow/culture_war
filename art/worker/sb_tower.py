@@ -23,4 +23,12 @@ for i in range(8):                                                              
     t.rotation_euler = Vector((-math.cos(a), 0, -math.sin(a))).to_track_quat('Z', 'Y').to_euler()
 for (x, z) in ((-0.8, 7.3), (0.75, 7.2), (0.0, 7.9)):
     ball(0.22, (x, -0.2, z), 'gacid', 1)                                             # pustules on the bulb
+
+# ---- v2 detail pass: thorn spikes along the stalk + on the bulb, acid canister strapped to the stalk, crown tag
+for i, (x, y, z) in enumerate(((0.45, 0.4, 1.8), (-0.45, 0.6, 3.0), (0.4, 0.5, 4.2), (-0.38, 0.0, 5.4))):
+    spike(0.08, 0.35, (x, y, z), (x, 0.2, 0.4))
+for (x, z) in ((-1.0, 7.0), (1.0, 6.9), (0.0, 7.95)):
+    spike(0.1, 0.4, (x, -0.4, z), (x, 0.2, 0.6 if z < 7.5 else 1))
+canister(0.16, 0.7, (0.0, -0.05, 2.8), (0, 0.15, 1), 'gacid', bars=3, ribs=1)
+crown(0.6, (0, -0.85, 0.5), normal=(0, -1, 0.3), up=(0, 0, 1), t=0.02)
 print(ship('sb_tower', clip=True))

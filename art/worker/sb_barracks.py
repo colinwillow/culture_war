@@ -13,4 +13,12 @@ for (x, y, s) in eggs:
     ball(0.45 * s, (x, y, 0.4 + 0.9 * s), 'gacid', 1, (1, 1, 1.3))                  # glowing embryo
     ball(0.85 * s, (x, y, 0.35 + 0.95 * s), 'cpurple', 2, (1, 1, 1.35))             # translucent egg sac
     cyl(0.25 * s, 0.4, (x, y, 0.45), 'purple', n=6)                                   # stalk into the goo
+
+# ---- v2 detail pass: thorn spikes on the rim lumps, acid canisters feeding the pool, crown tags on two rim stones
+for a in range(20, 360, 80):
+    r = math.radians(a); spike(0.12, 0.5, (math.cos(r) * 3.1, math.sin(r) * 3.1, 0.55), (math.cos(r) * 0.4, math.sin(r) * 0.4, 1))
+for a in (120, 240):
+    r = math.radians(a); canister(0.2, 0.9, (math.cos(r) * 3.3, math.sin(r) * 3.3, 0.6), (0, 0, 1), 'gacid', bars=3, ribs=1)
+for a in (60, 300):
+    r = math.radians(a); crown(0.6, (math.cos(r) * 3.55, math.sin(r) * 3.55, 0.45), normal=(math.cos(r), math.sin(r), 0.4), up=(0, 0, 1), t=0.02)
 print(ship('sb_barracks', clip=True))

@@ -27,4 +27,18 @@ for a in (-40, 0, 40):
 # little glowing pustules over the mound
 for (x, y) in ((-3.2, -1.2), (3.0, -1.5), (-1.5, -2.0), (2.0, 2.6), (-3.6, 2.4)):
     ball(0.3, (x, y, 0.9), 'gacid', 1)
+
+def surf(x, y):
+    rr = math.hypot(x, (y - 0.3) / 0.95) / 4.6
+    return 4.6 * 0.45 * math.sqrt(max(0.0, 1 - rr * rr))
+# ---- v2 detail pass: thorn spikes out of the mound, scavenged acid canisters plugged into the mound with hoses,
+# a white crown tag painted on the big cap, chains binding the sac
+for (x, y, d) in ((-3.6, -0.5, (-1, -0.3, 0.6)), (3.5, -0.8, (1, -0.3, 0.6)), (-2.0, 2.8, (-0.4, 0.6, 0.8)),
+                  (2.6, 2.4, (0.5, 0.5, 0.8)), (0.0, -2.0, (0, -0.4, 1)), (-1.2, -1.4, (-0.3, -0.5, 1))):
+    spike(0.34, 1.4, (x, y, surf(x, y) - 0.2), d)
+for x in (-2.0, 2.0):
+    canister(0.3, 1.3, (x, -2.4, surf(x, -2.4) + 0.45), (x * 0.1, 0, 1), 'gacid', bars=4, ribs=2)
+    h = cyl(0.08, 1.4, (x * 0.6, -2.2, 1.6), 'dark', n=5); h.rotation_euler = Vector((-x * 0.4, -0.3, 0.5)).to_track_quat('Z', 'Y').to_euler()
+crown(1.3, (cx, cy - 2.2, 8.55), normal=(0, -0.6, 0.8), up=(0, 0.8, 0.6), t=0.04)
+chain((-1.4, -3.0, 2.6), (0, -3.6, 1.9), 0.08); chain((0, -3.6, 1.9), (1.4, -3.0, 0.5), 0.08)
 print(ship('sb_hq', clip=True))

@@ -20,4 +20,13 @@ torus(0.45, 0.14, (0, 0, 5.7), 'purple', n=10, m=5)                             
 cyl(0.42, 0.1, (0, 0, 5.75), 'gacid', n=10)
 box((1.3, 0.1, 0.5), (0, -1.38, 1.4), 'team', rot=(10, 0, 0), bevel=0.0)        # crimson bands front/back of the neck
 box((1.3, 0.1, 0.5), (0, 1.38, 1.4), 'team', rot=(-10, 0, 0), bevel=0.0)
+
+# ---- v2 detail pass: thorn spikes on the puffball, an acid canister cage at the base, crown tag, chain round the neck
+for i in range(5):
+    r = math.radians(i * 72 + 40); spike(0.14, 0.55, (math.cos(r) * 1.7, math.sin(r) * 1.7, 4.2), (math.cos(r), math.sin(r), 0.5))
+for a in (200, 330):
+    r = math.radians(a); canister(0.17, 0.75, (math.cos(r) * 1.6, math.sin(r) * 1.6, 0.6), (0, 0, 1), 'gacid', bars=3, ribs=1)
+crown(0.9, (0, -1.85, 3.2), normal=(0, -1, 0), up=(0, 0, 1), t=0.03)
+for a in range(0, 360, 30):
+    r = math.radians(a); torus(0.09, 0.03, (math.cos(r) * 1.28, math.sin(r) * 1.28, 1.75), 'iron', rot=(0, 90 * (a // 30 % 2), a), n=8, m=4)
 print(ship('sb_depot', clip=True))
