@@ -30,4 +30,20 @@ for a in (0, 120, 240):                                                         
     b.rotation_euler = (0, math.radians(a), 0)
     b.location = (math.sin(math.radians(a)) * 0.5, 4.2, 1.95 + math.cos(math.radians(a)) * 0.5)
     b.rotation_euler.rotate_axis('Z', math.radians(20))
+
+# ---- v2 detail pass: ivory bow armour + ram spikes, crown tags on the hull, glow canisters on the fan pods, rail spikes
+box((2.6, 0.3, 0.8), (0, -4.45, 0.95), 'ivory', rot=(-18, 0, 0), bevel=0.08)
+for x in (-0.9, 0.0, 0.9):
+    spike(0.16, 0.6, (x, -4.6, 1.0), (0, -1, -0.15))
+for s in (-1, 1):
+    crown(1.0, (s * 2.33, 0.6, 0.85), normal=(s, 0, 0), up=(0, 0, 1), t=0.03)
+    canister(0.16, 0.9, (s * 2.75, 0.4, 1.35), (0, 1, 0), 'glow', bars=3, ribs=1)
+    for y in (-3.4, -0.2, 2.8):
+        spike(0.07, 0.3, (s * 2.2, y, 2.25), (s * 0.3, 0, 1))
+crown(0.9, (0, 2.0, 2.46), normal=(0, 0, 1), up=(0, -1, 0), t=0.03)
+crown(2.2, (0, -1.0, 1.46), normal=(0, 0, 1), up=(0, -1, 0), t=0.02)                 # big crown painted on the deck
+for (x, y) in ((-1.4, 0.9), (-1.4, 1.6), (1.5, 1.2)):
+    box((0.6, 0.6, 0.6), (x, y, 1.75), 'wood', bevel=0.04); box((0.62, 0.1, 0.62), (x, y, 1.75), 'iron', bevel=0.0)
+cyl(0.28, 0.75, (1.5, -2.4, 1.83), 'burnt', n=8, bevel=0.03); cyl(0.28, 0.75, (1.0, -2.6, 1.83), 'rust', n=8, bevel=0.03)
+chain((2.2, -1.0, 2.2), (2.25, -1.0, 1.4), 0.06); chain((-2.2, 1.0, 2.2), (-2.25, 1.0, 1.4), 0.06)
 print(ship('s_brute_gunship'))

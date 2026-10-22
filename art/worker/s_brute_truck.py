@@ -26,4 +26,17 @@ for x in (-1, 1):
     for y in (-1.3, 0.6, 1.9):
         cyl(0.52, 0.42, (x * 1.12, y, 0.52), 'tire', (0, 90, 0), n=10, bevel=0.05)
         cyl(0.25, 0.44, (x * 1.12, y, 0.52), 'steel', (0, 90, 0), n=6)
+
+# ---- v2 detail pass: cone spikes on the plough + cab roof, glow canisters on the bed, crown tags, ivory hood plate
+for x in (-1.0, 0.0, 1.0):
+    spike(0.1, 0.4, (x, -2.8, 0.95), (0, -1, 0.35))
+for x in (-0.9, 0.9):
+    spike(0.1, 0.4, (x, 0.15, 2.5), (x * 0.3, 0, 1))
+box((1.6, 1.0, 0.08), (0, -1.5, 1.98), 'ivory', bevel=0.03)
+crown(0.6, (0, -1.5, 2.03), normal=(0, 0, 1), up=(0, -1, 0), t=0.02, col='dark')
+for s in (-1, 1):
+    crown(0.5, (s * 1.27, 0.15, 1.85), normal=(s, 0, 0), up=(0, 0, 1), t=0.02)
+for x in (-0.6, -0.15):
+    canister(0.18, 0.8, (x, 2.0, 2.25), (0, 0, 1), 'glow', bars=3, ribs=1)
+chain((1.2, -2.3, 0.75), (1.25, -2.0, 0.35), 0.04)
 print(ship('s_brute_truck'))
