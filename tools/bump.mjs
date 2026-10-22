@@ -10,7 +10,7 @@ const vf = path.join(root, 'version.json');
 const v = (fs.existsSync(vf) ? JSON.parse(fs.readFileSync(vf, 'utf8')).build : 0) + 1;
 fs.writeFileSync(vf, JSON.stringify({ build: v }) + '\n');
 
-const files = [path.join(root, 'index.html')];
+const files = [path.join(root, 'index.html'), path.join(root, 'duel.html')]; // duel.html: the arena sandbox
 (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (p.endsWith('.js')) files.push(p); } })(path.join(root, 'src'));
 
 // relative imports in JS, plus src= / href= of local .js/.css in index.html
@@ -20,7 +20,7 @@ for (const f of files) {
   let s = fs.readFileSync(f, 'utf8');
   const o = s;
   s = s.replace(RX, (m, pre, q, url) => { n++; return pre + url + '?v=' + v + q; });
-  if (f.endsWith('index.html')) s = s.replace(/<b id="build">[^<]*<\/b>/, '<b id="build">B' + v + '</b>');
+  if (f.endsWith('.html')) s = s.replace(/<b id="build">[^<]*<\/b>/, '<b id="build">B' + v + '</b>');
   if (f.endsWith(path.join('src', 'main.js'))) s = s.replace(/export const BUILD = \d+;/, 'export const BUILD = ' + v + ';');
   if (s !== o) fs.writeFileSync(f, s);
 }

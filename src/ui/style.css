@@ -184,6 +184,9 @@ body.show-mute #gfxBtn { display: grid; }
 #globeBtn svg { width: 22px; height: 22px; }
 #globeBtn.on { color: var(--gold); }
 body.show-mute #globeBtn { display: grid; }
+#duelBtn { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 8px); right: max(216px, calc(env(safe-area-inset-right, 0px) + 216px)); width: 44px; height: 44px; border-radius: 50%; background: var(--panel); border: 2px solid var(--line); color: var(--fg); display: none; place-items: center; padding: 0; z-index: 31; pointer-events: auto; box-sizing: border-box; }
+#duelBtn svg { width: 22px; height: 22px; }
+body.show-mute #duelBtn { display: grid; }
 /* End screen: your faction vs theirs, the winner's badge bigger and the loser's greyed. */
 #vsRow { display: flex; align-items: center; gap: 14px; flex-basis: 100%; justify-content: center; }
 #vsRow .fb { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; border: 3px solid #fff; color: #17170f; box-shadow: 0 4px 0 rgba(0,0,0,.5); transition: transform .4s; }
