@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=194';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=194';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=194';
-import { mulberry32 } from '../util/math.js?v=194';
-import { aiStep } from './ai.js?v=194';
+} from '../config/factions.js?v=195';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=195';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=195';
+import { mulberry32 } from '../util/math.js?v=195';
+import { aiStep } from './ai.js?v=195';
 
 let S = null;
 export const getSim = () => S;

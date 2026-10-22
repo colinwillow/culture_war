@@ -32,13 +32,17 @@ item says so.
 - [x] (B189) Map: hex board under the globe bend (B153) -- does the little-planet look sell it?
 - [x] (B191) Map: leaves/debris + god rays on the RTS map (reuse the arena code); no water body on this map (the hex city has water hexes); whether the hex board replaces the current map is Colin's call
 
+### STEER 2 (Colin, 05:40 UTC): "mechanics, particle effects, game dynamics, UI, levels, attacks, smart AI -- things that make the
+game fun. Research what we're missing. All the aliens have ships: plan flying units." Loop runs to 07:00 UTC.
+
 ### Items, batch 2 (added 02:50 UTC by the loop; same rules, same steer; the species-war direction from docs/roster.md v3)
 - [x] (B193) RTS: the arena's slash trails + impact flashes + hitstop on squad fights near the camera (reuse duel.js code via a shared module; the sim is untouched)
 - [x] (B194) Arena: KO moment -- slow-mo on the final blow, camera push-in on the loser, a beat before the winner's taunt; footstep sounds from weirdport's footsteps folder
-- [ ] Arena: YOU vs one -- a left virtual stick to move, two big buttons (ATTACK / BLOCK), dodge on a stick flick; the AI fighter opposite; same rules
+- [x] (B195) Arena: YOU vs one -- a left virtual stick to move, two big buttons (ATTACK / BLOCK), dodge on a stick flick; the AI fighter opposite; same rules
 - [ ] Hex: street walkability grid + A* on the hex city, a dozen wandering civilians on its streets (the first step toward the hex board carrying the living city)
 - [ ] Core: move the living city (stepCity/fires/civ/crew/cop/truck + alienVerb) from sim.js into src/core/city.js behind a tiny interface {rng, nearestFree, events}; prove no behaviour change with tools/balance.cjs on fixed seeds before and after (identical winners + times)
 - [ ] Hex: two RTS squads spawn on the hex map and fight along its streets (the merge, first half: squads + pathing only, no economy)
+- [ ] Plan: docs/gaps.md -- what a fun RTS match still lacks here vs BFME2/Warcraft (unit abilities, formations, veterancy feel, map objectives, base defence, sound) ranked by fun-per-build; plus a FLYERS design: each species' ship as its Fast or Heavy (saucer, dropship, hive flyer, spore cloud), how flyers path over the hex board, what counters them. No code.
 - [ ] Arena: Spores verb prototype -- a GOO fighter: no weapon, spits a slowing puddle, splits into two smaller on death (placeholder body: the warrior tinted green, scaled .7)
 
 
