@@ -11,7 +11,7 @@ Colin signs off a species row on the roster board.
 - [x] (B221) RTS BATTLE CAM: a picture-in-picture window (bottom-left, ~35% width) that follows the hottest fight from a low side angle like the arena; tap it and the main camera swoops down there. Second render of the same scene, low res, only while a fight is on.
 - [x] (B223) RTS closer by default: start matches closer, cap max zoom-out lower (overview = the minimap's job), units/buildings read at that distance; an idle auto-dip toward an on-screen fight after a few seconds without touch.
 - [x] (B224, arena half) Wire in the worker's Brute weapons (club / blunderbuss / wrench-hammer / cleaver / pipe wrench / cannon / skateboard) on the right Brutes in the arena and RTS.
-- [ ] Brute weapons on the RTS squads too (chars.js props from models/gen); the skateboard under the Skater
+- [x] (B225, weapons; the skateboard waits for a Skater squad slot) Brute weapons on the RTS squads too (chars.js props from models/gen); the skateboard under the Skater
 - [ ] Wire in the worker's city kit + breakable building kit (cars, props, walls that break into chunks when shot).
 - [ ] Wire in the Brute base buildings for Backwoods (HQ, barracks, depot, tower, wall).
 

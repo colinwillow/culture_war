@@ -2,7 +2,7 @@
 // clips drives all of them: the clips come from three DONOR files and are retargeted onto each rig by bone name.
 // Nothing here is required: until the files load (or if they fail, e.g. the single-file artifact build) the
 // box placeholders in models.js are used, and sync.js swaps squads over once this reports ready.
-import { THREE } from './scene.js?v=224';
+import { THREE } from './scene.js?v=225';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -67,10 +67,10 @@ export const CAST = {
   // factions are not in the sim yet, so the first species rides the first faction's slots. Grunts swarm, the plated
   // Brute and the Hero share the melee line, the thin Shooter shoots. Fists, no props: their swings are their own.
   bw: {
-    worker: { who: ['brute_worker'], atk: 'swing' },
-    pike: { who: ['brute_grunt'], atk: ['swing', 'stab'] },
-    melee: { who: ['brute_plated', 'brute_hero'], atk: ['swing', 'stab'] },
-    ranged: { who: ['brute_shooter'], prop: 'shotgun', atk: 'shoot' },
+    worker: { who: ['brute_worker'], prop: 'pipewrench', atk: 'swing' },
+    pike: { who: ['brute_grunt'], prop: 'club', atk: ['swing', 'stab'] },
+    melee: { who: ['brute_plated', 'brute_hero'], prop: ['wrenchhammer', 'cleaver'], atk: ['swing', 'stab'] },
+    ranged: { who: ['brute_shooter'], prop: 'blunderbuss', atk: 'shoot' },
   },
   om: {
     worker: { who: ['guard'], atk: 'swing' },
@@ -192,6 +192,7 @@ export async function loadChars() {
   try {
     const keys = Object.keys(CHARS), dk = Object.keys(DONORS);
     const [gl, dl] = await Promise.all([Promise.all(keys.map((k) => load(CHARS[k].file))), Promise.all(dk.map((k) => load(DONORS[k])))]);
+    await Promise.all(Object.entries(GEN).map(([k, f]) => loader.loadAsync(ROOT + 'models/gen/' + f).then((g) => { GENS[k] = g.scene; }).catch(() => {})));
     const donor = {};
     dk.forEach((k, i) => (donor[k] = { bind: bindOf(dl[i].scene), clips: Object.fromEntries(dl[i].animations.map((a) => [a.name, a])) }));
     keys.forEach((k, i) => {
@@ -222,7 +223,12 @@ export async function loadChars() {
 }
 
 // Props in metres, built pointing along +z, grip at the origin.
+// The geometry worker's pieces (art/DELIVERED.md): metres, origin at the grip, business end along +Z -- the same
+// frame these hand props use, so a worker piece drops straight in. Loaded with the cast; missing = the box prop.
+const GEN = { club: 'w_brute_club.glb', blunderbuss: 'w_brute_blunderbuss.glb', wrenchhammer: 'w_brute_wrenchhammer.glb', cleaver: 'w_brute_cleaver.glb', pipewrench: 'w_brute_pipewrench.glb' };
+const GENS = {};
 function prop(kind) {
+  if (GENS[kind]) { const c = GENS[kind].clone(true); c.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); return c; }
   const g = new THREE.Group();
   const M = (c) => new THREE.MeshLambertMaterial({ color: c });
   const C2 = () => 0xf2e14c;
@@ -301,7 +307,7 @@ export function makeChar(f, slot, i) {
   if (c.prop && p.handQ) {
     let hand = null; m.traverse((o) => { if (o.isBone && o.name === HAND) hand = o; });
     if (hand) {
-      const pr = prop(c.prop);
+      const pr = prop(Array.isArray(c.prop) ? c.prop[i % c.prop.length] : c.prop);
       pr.quaternion.copy(p.handQ).invert(); // undo the hand's bind rotation: the prop points model-forward at bind
       pr.scale.setScalar(1 / p.handS); // the hand lives under the 0.01 armature: give the prop metres back
       hand.add(pr);
