@@ -244,6 +244,14 @@ def ship(name, objs=None, chunk_cuts=None):
     preview(p, os.path.join(PREV, name + '.png'))
     if chunk_cuts:
         ci = verify(os.path.join(OUT, name + '_chunks.glb'))
+        for o in bpy.context.scene.objects:          # exploded view, to eyeball the capped cuts
+            if o.type == 'MESH': o.location = o.location * 1.35
         preview(None, os.path.join(PREV, name + '_chunks.png'))
         info['chunks'] = ci
     return info
+
+def chunk_report(path):
+    reset(); bpy.ops.import_scene.gltf(filepath=path)
+    for o in sorted(bpy.context.scene.objects, key=lambda o: o.name):
+        if o.type == 'MESH':
+            print('  ', o.name, 'origin', tuple(round(v, 2) for v in o.location), 'tris', tris(o))
