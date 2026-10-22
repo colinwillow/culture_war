@@ -25,5 +25,10 @@ for s in (-1, 1):
     spike(0.08, 0.35, (s * 0.9, 0.2, 0.9), (s * 0.5, 0.2, 1))
 crown(0.7, (0, 0.6, 1.5), normal=(0, 0.25, 1), up=(0, -1, 0), t=0.02)
 chain((1.5, 1.6, 0.6), (1.55, 1.7, 0.3), 0.04)
+
+# ---- detail pass 2: crimson crown pennant off a tail fin, panel lines on the hull, a lime/magenta graffiti streak
+banner(0.3, 0.45, (0.6, 3.0, 1.75), (1, 0, 0), mark='crown')
+for y in (-1.5, 0.5): box((2.4, 0.03, 0.03), (0, y, 1.08), 'dark', bevel=0.0)
+box((0.05, 1.4, 0.1), (1.35, 0.4, 0.75), 'lime', rot=(8, 0, 0), bevel=0.0)
 for o in bpy.context.scene.objects: o.location.z -= 0.23   # belly on y 0
 print(ship('s_rept_skiff'))

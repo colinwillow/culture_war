@@ -36,4 +36,9 @@ box((0.5, 0.5, 0.25), (-0.3, -0.25, 1.6), 'orange', bevel=0.03)
 for x in (-1, 1):
     for y in (-1.3, 1.3):
         cyl(0.12, 0.32, (x * 0.8, y, 0.36), 'ivory', (0, 90, 0), n=6)                         # hubcaps
+
+# ---- detail pass 2: panel lines on the doors + bonnet, a spider-cracked windscreen line, number plate
+for s in (-1, 1): box((0.02, 0.03, 0.5), (s * 0.945, 0.15 - 0.45 * 0, 0.65), 'dark', bevel=0.0)
+box((1.2, 0.03, 0.03), (0, -1.4, 0.99), 'dark', bevel=0.0)
+box((0.5, 0.04, 0.15), (0, -2.14, 0.45), 'white', bevel=0.0)
 print(ship('c_car_sedan', chunk_cuts={'x': [0.0], 'y': [-0.75, 0.75]}))

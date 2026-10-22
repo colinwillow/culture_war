@@ -38,4 +38,4 @@ cyl(0.7, 1.2, (2.3, 2.0, F * 2 + 0.7), 'wood', n=10); cyl(0.75, 0.4, (2.3, 2.0, 
 for x in (-3.0, 1.2): box((0.15, 0.03, 1.4), (x, -3.83, 2.4), 'rust', bevel=0.0)
 cyl(0.025, 1.8, (3.9, -3.9, 4.3), 'dark', n=4)
 for o in bpy.context.scene.objects: o.location.x -= 0.44; o.location.y += 0.44   # centre incl. awnings
-print(ship('n_shop', chunk_cuts={'x': [-0.44], 'z': [F]}))
+print(ship('n_shop', chunk_cuts={'x': [-0.44], 'z': [F]}, chunk_tilt=0.08))

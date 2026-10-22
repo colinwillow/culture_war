@@ -157,38 +157,43 @@ def export(path, objs=None):
                               export_yup=True, export_draco_mesh_compression_enable=False,
                               export_cameras=False, export_lights=False, export_materials='EXPORT')
 
-def chunks(ob, cuts, name):
-    """Split `ob` (joined) into pieces by axis-aligned cut planes. cuts = {'x':[...], 'y':[...], 'z':[...]}
-    (Blender coords). Each non-empty cell becomes chunk_i with its origin at its own centre. Holes are capped."""
-    xs = [-1e9] + sorted(cuts.get('x', [])) + [1e9]
-    ys = [-1e9] + sorted(cuts.get('y', [])) + [1e9]
-    zs = [-1e9] + sorted(cuts.get('z', [])) + [1e9]
+def chunks(ob, cuts, name, tilt=0.35, seed=1):
+    """Split `ob` (joined) into pieces by cut planes. cuts = {'x':[...], 'y':[...], 'z':[...]} (Blender coords).
+    Each cut plane is tilted a little (random, shared by both neighbours) so the pieces break as wedges, not boxes.
+    Each non-empty cell becomes chunk_i with its origin at its own centre. Cut faces are capped."""
+    import random
+    rnd = random.Random(seed)
+    planes = {}
+    for ax, key in ((0, 'x'), (1, 'y'), (2, 'z')):
+        lst = []
+        for v in sorted(cuts.get(key, [])):
+            no = Vector((0, 0, 0)); no[ax] = 1
+            for o in range(3):
+                if o != ax: no[o] = rnd.uniform(-tilt, tilt)
+            co = Vector((0, 0, 0)); co[ax] = v
+            lst.append((co, no.normalized()))
+        planes[ax] = lst
     out = []
-    for i in range(len(xs) - 1):
-        for j in range(len(ys) - 1):
-            for k in range(len(zs) - 1):
-                bm = bmesh.new(); bm.from_mesh(ob.data)
-                for lo, hi, ax in ((xs[i], xs[i + 1], 0), (ys[j], ys[j + 1], 1), (zs[k], zs[k + 1], 2)):
-                    for val, keep_pos in ((lo, True), (hi, False)):
-                        if abs(val) > 1e8: continue
-                        no = Vector((0, 0, 0)); no[ax] = 1
-                        co = Vector((0, 0, 0)); co[ax] = val
-                        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
-                        r = bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no,
-                                                   clear_inner=keep_pos, clear_outer=not keep_pos)
-                        cut_edges = [e for e in r['geom_cut'] if isinstance(e, bmesh.types.BMEdge)]
-                        if cut_edges:
-                            try:
-                                f = bmesh.ops.edgenet_fill(bm, edges=cut_edges)
-                            except Exception:
-                                pass
-                            bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
-                if len(bm.faces) < 4:
-                    bm.free(); continue
-                me = bpy.data.meshes.new('c'); bm.to_mesh(me); bm.free()
-                for m in ob.data.materials: me.materials.append(m)
-                o = bpy.data.objects.new('c', me); bpy.context.scene.collection.objects.link(o)
-                out.append(o)
+    import itertools
+    ranges = [range(len(planes[a]) + 1) for a in range(3)]
+    for cell in itertools.product(*ranges):
+        bm = bmesh.new(); bm.from_mesh(ob.data)
+        for ax in range(3):
+            i = cell[ax]
+            for k, (co, no) in enumerate(planes[ax]):
+                if k == i - 1: keep_pos = True        # cell is on the + side of plane k
+                elif k == i: keep_pos = False         # cell is on the - side of plane k
+                else: continue
+                geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+                bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no,
+                                       clear_inner=keep_pos, clear_outer=not keep_pos)
+                bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=0)
+        if len(bm.faces) < 4:
+            bm.free(); continue
+        me = bpy.data.meshes.new('c'); bm.to_mesh(me); bm.free()
+        for m in ob.data.materials: me.materials.append(m)
+        o = bpy.data.objects.new('c', me); bpy.context.scene.collection.objects.link(o)
+        out.append(o)
     for n, o in enumerate(out):
         o.name = o.data.name = f'chunk_{n}'
         c = sum((v.co for v in o.data.vertices), Vector()) / len(o.data.vertices)
@@ -242,7 +247,7 @@ def preview(path, png, dist=None):
     w = bpy.data.worlds.new('w'); sc.world = w
     bpy.ops.render.render(write_still=True)
 
-def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None):
+def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None, chunk_tilt=0.35):
     """Join everything, export <name>.glb (+ <name>_chunks.glb), verify + preview. Returns verify info.
     clip=True cuts away anything below the ground (y 0)."""
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
@@ -252,7 +257,7 @@ def ship(name, objs=None, chunk_cuts=None, clip=False, fit=None):
         ob.data.transform(Matrix.Diagonal((fit[0], fit[1], fit[2], 1.0)))
     p = os.path.join(OUT, name + '.glb'); export(p, [ob])
     if chunk_cuts:
-        cs = chunks(ob, chunk_cuts, name)
+        cs = chunks(ob, chunk_cuts, name, tilt=chunk_tilt)
         export(os.path.join(OUT, name + '_chunks.glb'), cs)
     info = verify(p)
     preview(p, os.path.join(PREV, name + '.png'))

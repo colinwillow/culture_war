@@ -139,3 +139,11 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [sb_depot] DETAIL PASS 2 models/gen/sb_depot.glb -- 2718 tris, size/origin unchanged: crimson crown banner on the neck, goo drips under the puffball
 - [sb_tower] DETAIL PASS 2 models/gen/sb_tower.glb -- 1478 tris, size/origin unchanged: crimson crown pennant on the stalk, goo dripping from the lips
 - [sb_wall] DETAIL PASS 2 models/gen/sb_wall.glb -- 1274 tris, size/origin unchanged: small crimson crown banner on a thorn, goo drips down the face (chunks rebuilt)
+- [s_grey_saucer] DETAIL PASS 2 models/gen/s_grey_saucer.glb -- 2088 tris, size/origin unchanged: two small crimson crown pennants trailing at the back, panel lines on the disc, ring of cyan rim running lights
+- [s_rept_skiff] DETAIL PASS 2 models/gen/s_rept_skiff.glb -- 1606 tris, size/origin unchanged: crimson crown pennant off a tail fin, hull panel lines, a lime graffiti streak
+- [s_spore_cloud] DETAIL PASS 2 models/gen/s_spore_cloud.glb -- 3298 tris, size/origin unchanged: crimson crown pennant trailing off the harness, goo drips on the sac
+- [c_car_sedan] DETAIL PASS 2 models/gen/c_car_sedan.glb -- 1720 tris, size/origin unchanged: panel lines on doors + bonnet, white number plate; chunks re-cut with tilted planes (wedge pieces, 6 chunks)
+- [c_car_van] DETAIL PASS 2 models/gen/c_car_van.glb -- 1824 tris, size/origin unchanged: cargo-box panel lines, yellow number plate, smashed headlight; chunks re-cut with tilted planes
+- [c_bus] DETAIL PASS 2 models/gen/c_bus.glb -- 1964 tris, size/origin unchanged: body panel lines, number plate, cracked windscreen line
+- [breakables] DETAIL PASS 2 -- every *_chunks.glb (c_car_sedan, c_car_van, c_barrier, b_wall_brick/window/door, b_floor, bb_wall, gb_wall, rb_wall, sb_wall, n_shop, n_apartment) re-cut: each cut plane is tilted a little (random, shared by both neighbours) so pieces break as wedges instead of neat boxes; n_shop/n_apartment keep near-level floor cuts (tilt 0.08) so they still break by floor. Same chunk counts and naming (chunk_0..n, origin at each chunk's centre).
+

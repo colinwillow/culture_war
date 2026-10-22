@@ -34,4 +34,8 @@ for a in (60, 240):
 for a in (0, 120, 240):
     r = math.radians(a); spike(0.08, 0.35, (math.cos(r) * 0.6, math.sin(r) * 0.6, 1.75), (math.cos(r), math.sin(r), -0.3))
 crown(0.45, (0, -2.07, 3.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.015)
+
+# ---- detail pass 2: a crimson crown pennant trailing off the harness, goo drips on the sac
+banner(0.35, 0.5, (0, 2.08, 2.95), (0, 1, 0), mark='crown')
+for a in (30, 150, 270): r = math.radians(a); cyl(0.08, 0.4, (math.cos(r) * 1.5, math.sin(r) * 1.5, 2.1), 'goo', n=5, r2=0.02)
 print(ship('s_spore_cloud'))

@@ -23,4 +23,9 @@ for x in (-0.7, 0.7):
 cyl(0.03, 0.9, (0.5, 0.4, 2.2), 'rust', n=4); ball(0.07, (0.5, 0.4, 2.65), 'gcyan', 1)
 for a in (90, 270):
     r = math.radians(a + 45); crown(0.5, (math.cos(r) * 3.04, math.sin(r) * 3.04, 0.72), normal=(math.cos(r), math.sin(r), 0), up=(0, 0, 1), t=0.015)
+
+# ---- detail pass 2: crimson crown pennants trailing from the rear, panel lines on the disc, cyan rim running lights
+for x in (-0.4, 0.4): banner(0.35, 0.35, (x, 3.0, 0.85), (0, 1, 0), mark='crown')
+cyl(2.6, 0.02, (0, 0, 1.0), 'dark', n=N); cyl(2.0, 0.02, (0, 0, 1.2), 'dark', n=N)
+for a in range(0, 360, 30): r = math.radians(a); box((0.2, 0.05, 0.05), (math.cos(r) * 3.03, math.sin(r) * 3.03, 0.82), 'gcyan', rot=(0, 0, a + 90), bevel=0.0)
 print(ship('s_grey_saucer'))

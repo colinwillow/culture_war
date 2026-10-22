@@ -39,4 +39,4 @@ for (x, z) in ((-3.0, 3.8), (1.8, 6.8)):
     for k in (-0.5, 0.0, 0.5): box((0.3, 0.02, 0.35), (x + k, 0.4 - D / 2 - 0.85, z + 0.5), ('magenta', 'yellow', 'blue')[int(k * 2 + 1)], bevel=0.0)
 cyl(0.8, 1.4, (-2.5, 1.5, 4 * F + 0.8), 'wood', n=10); cyl(0.85, 0.4, (-2.5, 1.5, 4 * F + 1.7), 'iron', n=10, r2=0.1)
 cyl(0.04, 2.0, (3.5, 2.8, 4 * F + 1.0), 'iron', n=4)
-print(ship('n_apartment', chunk_cuts={'x': [0.0], 'z': [F, 2 * F, 3 * F]}))
+print(ship('n_apartment', chunk_cuts={'x': [0.0], 'z': [F, 2 * F, 3 * F]}, chunk_tilt=0.08))

@@ -35,4 +35,9 @@ for s in (-1, 1):
 for x in (-1, 1):
     for y in (-3.4, 3.2): cyl(0.16, 0.4, (x * 1.0, y, 0.5), 'ivory', (0, 90, 0), n=6)
 box((1.0, 1.0, 0.5), (-0.6, -2.5, 3.2), 'wood', bevel=0.05); cyl(0.35, 0.8, (0.6, -2.0, 3.35), 'burnt', n=8, bevel=0.03)
+
+# ---- detail pass 2: panel lines along the body, number plate, a cracked windscreen line
+for y in (-2.5, 0.0, 2.5): box((2.48, 0.03, 1.2), (0, y, 0.95), 'dark', bevel=0.0)
+box((0.6, 0.04, 0.18), (0, -5.56, 0.45), 'white', bevel=0.0)
+box((1.2, 0.04, 0.03), (0.3, -5.43, 2.1), 'white', rot=(0, 25, 0), bevel=0.0)
 print(ship('c_bus'))

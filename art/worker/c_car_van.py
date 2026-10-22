@@ -33,4 +33,9 @@ for z in (0.8, 1.2, 1.6, 2.0): box((0.86, 0.05, 0.05), (0, 2.48, z), 'iron', bev
 box((1.0, 0.8, 0.5), (-0.2, -0.2, 2.57), 'wood', bevel=0.04); cyl(0.3, 0.7, (0.4, 1.2, 2.67), 'burnt', n=8, bevel=0.03)
 for x in (-1, 1):
     for y in (-1.6, 1.6): cyl(0.13, 0.34, (x * 0.85, y, 0.4), 'ivory', (0, 90, 0), n=6)
+
+# ---- detail pass 2: panel lines on the cargo box, a number plate, a smashed headlight
+for y in (-0.6, 0.9, 2.0): box((2.03, 0.03, 1.7), (0, y, 1.33), 'steel', bevel=0.0)
+box((0.5, 0.04, 0.15), (0, -2.54, 0.55), 'yellow', bevel=0.0)
+box((0.36, 0.07, 0.2), (0.68, -2.47, 0.95), 'dark', bevel=0.0)
 print(ship('c_car_van', chunk_cuts={'x': [0.0], 'y': [-1.0, 0.8]}))
