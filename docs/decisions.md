@@ -231,3 +231,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - Powers must be visual ("Cancel" as a word on screen fails; Colin liked the Cancel idea itself though).
 - Alien-races edition is a planned second game on the same engine.
 - Parallel agents ("ultracode"): only after the code is split into modules with clear contracts; keep game logic in one place. See agents.md.
+- B226: menu retitled War for the World; only the four alien species (bw=Brutes, nd=Greys, ac=Reptilians, hh=Spores, `ALIEN` in factions.js), opponent drawn from those four; UI art batch 8 to the worker.
