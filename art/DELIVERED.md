@@ -198,4 +198,3 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [e_crates] models/gen/e_crates.glb -- 764 tris, 2.2 x 1.4 x 1.4 m, origin ground centre: three iron-strapped crates (two + one on top) with corner battens, two banded barrels (teal + burnt orange), 1 material
 - [e_debris] models/gen/e_debris.glb -- 596 tris, 2.0 x 1.0 x 1.7 m, origin ground centre: rubble mound with tilted broken sand/ochre slabs, chunks, rebar, a glowing ember, 2 materials: kit + glow (amber)
 - [e_hexpad] models/gen/e_hexpad.glb -- 584 tris, 12.0 x 0.45 x 10.7 m (corner blocks; hex is 12 m vertex-to-vertex on X, 10.4 across flats), origin ground centre, flat-top with a vertex on +X: grey stone rim with six corner blocks, sand deck, CRIMSON team inlay ring + six crimson spokes, pale inner disc, 1 material
-
