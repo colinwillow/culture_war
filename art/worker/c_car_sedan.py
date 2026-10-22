@@ -22,4 +22,18 @@ for x in (-1, 1):
         cyl(0.18, 0.30, (x * 0.8, y, 0.36), 'steel', (0, 90, 0), n=8)
     box((0.05, 0.9, 0.04), (x * 0.94, 0.15, 0.62), 'iron', bevel=0.0)         # door seam strip
     box((0.12, 0.08, 0.08), (x * 0.98, -0.55, 1.0), 'iron', bevel=0.02)       # mirrors
+
+# ---- v2 detail pass (battle-worn city): rust patches, crumpled bonnet corner, crown graffiti on the doors, roof rack
+# with junk, chunky hubcaps, a missing wheel trim
+box((0.5, 0.6, 0.03), (0.55, -1.55, 0.99), 'rust', rot=(0, 0, 12), bevel=0.0)
+box((0.6, 0.4, 0.2), (-0.75, -1.85, 0.95), B, rot=(18, -14, 8), bevel=0.04)                 # crumpled corner
+for s in (-1, 1):
+    crown(0.7, (s * 0.945, 0.2, 0.62), normal=(s, 0, 0), up=(0, 0, 1), t=0.02)
+    box((0.03, 0.5, 0.25), (s * 0.94, 1.5, 0.55), 'rust', bevel=0.0)
+for x in (-0.6, 0.6): box((0.08, 1.4, 0.06), (x, 0.15, 1.46), 'iron', bevel=0.0)              # roof rack
+box((0.9, 0.6, 0.35), (0.1, 0.35, 1.66), 'wood', rot=(0, 0, 8), bevel=0.04)                   # crate on the rack
+box((0.5, 0.5, 0.25), (-0.3, -0.25, 1.6), 'orange', bevel=0.03)
+for x in (-1, 1):
+    for y in (-1.3, 1.3):
+        cyl(0.12, 0.32, (x * 0.8, y, 0.36), 'ivory', (0, 90, 0), n=6)                         # hubcaps
 print(ship('c_car_sedan', chunk_cuts={'x': [0.0], 'y': [-0.75, 0.75]}))
