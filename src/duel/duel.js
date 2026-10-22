@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=193';
-import { makePops, slashTex } from '../fx/pops.js?v=193';
+import { svg } from '../ui/icons.js?v=194';
+import { makePops, slashTex } from '../fx/pops.js?v=194';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -396,7 +396,8 @@ function slashAngle(f, dir) { // screen-space angle of the swing (from the trail
 
 // sound: Colin's own recordings from Weirdport, decoded on the first tap (browsers block audio before one)
 const SND = { hit: ['hit_sound_01', 'hit_sound_02', 'hit_sound_03'], heavy: ['hit_sound_gound_01'], swing: ['swoosh_01', 'swoosh_02', 'swoosh_03'],
-  clang: ['metal_clang_01', 'metal_clang_02'], grunt: ['alien_orc_grunt_01', 'alien_orc_grunt_03', 'alien_orc_grunt_05'], shot: ['blaster_sound_01'] };
+  clang: ['metal_clang_01', 'metal_clang_02'], grunt: ['alien_orc_grunt_01', 'alien_orc_grunt_03', 'alien_orc_grunt_05'], shot: ['blaster_sound_01'],
+  step: ['footstep_l', 'footstep_r', 'footstep_2_l', 'footstep_2_r'] };
 let actx = null; const buf = {};
 function audioOn() {
   if (actx) return; actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -493,7 +494,7 @@ const chest = (f) => f.root.position.clone().setY(f.h * 0.62);
 function setState(f, s, t) { f.state = s; f.t = t; }
 
 function brain(f, dt) {
-  if (!foes(f).length) { if (f.state !== 'taunt' && !f.ko) { setState(f, 'taunt', 99); play(f, f.def.style.taunt, false); } return; } // last team standing
+  if (!foes(f).length) { if (koCam && koCam.t < KO.beat) return; if (f.state !== 'taunt' && !f.ko) { setState(f, 'taunt', 99); play(f, f.def.style.taunt, false); } return; } // last team standing
   const strafing = f.state === 'circle'; // a strafe can be cut short by a read; nothing else can
   if (!['idle', 'move'].includes(f.state) && !strafing) return;
   if ((f.think -= dt) > 0) return; f.think = RULE.think * (0.6 + rng() * 0.8);
@@ -608,7 +609,7 @@ function groundFx(f, dt) {
   [f.foot, f.footL].forEach((t, i) => {
     if (!t || dt <= 0) return; t.getWorldPosition(_fp); const v = _fp.distanceTo(f.toeLast[i]) / dt; f.toeLast[i].copy(_fp);
     if (v > 1.6 * f.h / 1.9) f.feetUp[i] = true;
-    else if (v < 0.5 && f.feetUp[i] && _fp.y < 0.12 * f.h) { f.feetUp[i] = false; puff(_fp, f.state === 'move' ? 4 : 2, { size: 0.24, spread: 0.7, up: 0.45, life: 0.7 }); }
+    else if (v < 0.5 && f.feetUp[i] && _fp.y < 0.12 * f.h) { f.feetUp[i] = false; footstep(f); puff(_fp, f.state === 'move' ? 4 : 2, { size: 0.24, spread: 0.7, up: 0.45, life: 0.7 }); }
   });
   // a body hitting the floor: hips come down low during a fall -> a ring of dust, a heavy thud, a scuff
   // (by TIME into the fall clip: the hips only sink to ~0.3 of his height, late and not reliably enough to test)
@@ -626,7 +627,18 @@ function groundFx(f, dt) {
   const sp = f.vel.length();
   if (sp > 2.2 && Math.random() < dt * 30) { const p = f.root.position.clone(); puff(p, 1, { size: 0.3, spread: 0.4, up: 0.3, life: 0.7, vel: f.vel.clone().multiplyScalar(-0.15) }); if (Math.random() < 0.15) scuff(p, f.vel, 0.6, 0.4); }
 }
+// footsteps: one per planted foot, quieter in a crowd, never more than one every 70 ms across the whole arena
+let stepGap = 0;
+function footstep(f) {
+  if (stepGap > 0) return; stepGap = 0.07;
+  sound('step', (f.state === 'move' ? 0.32 : 0.2) * Math.min(1.4, f.h / 1.9) * (fighters.length > 2 ? 0.6 : 1));
+}
+// KO MOMENT: the blow that ends the fight drops the world into slow motion, the camera pushes in on the one going down,
+// and the winner waits a beat before the taunt. Real-time seconds; window.duel.KO to tune.
+const KO = { slow: 0.22, hold: 1.1, ease: 0.6, push: 0.55, beat: 1.9 };
+let koCam = null; // { t, who }
 function ko(b, dir) {
+  if (fighters.filter((f) => f.team === b.team && f !== b).every((f) => f.ko)) koCam = { t: 0, who: b };
   b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3);
   sound('heavy', 0.9); shake = 0.3; hud();
 }
@@ -717,6 +729,10 @@ const lift = (e) => { pts.delete(e.pointerId); if (!pts.size) drag = null; };
 canvas.addEventListener('pointerup', lift); canvas.addEventListener('pointercancel', lift);
 canvas.addEventListener('wheel', (e) => { view.zoom = Math.min(2.5, Math.max(0.45, view.zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: true });
 function pinchD() { const v = [...pts.values()]; return v.length >= 2 ? Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]) : 0; }
+function koPush() { // 0..1: how far the KO push-in is (in, hold, then back out)
+  if (!koCam) return 0; const t = koCam.t;
+  return t < KO.ease * 0.5 ? t / (KO.ease * 0.5) : t < KO.hold ? 1 : Math.max(0, 1 - (t - KO.hold) / KO.ease);
+}
 function stepCamera(dt) {
   if (!fighters.length) return;
   const up = fighters.filter((f) => !f.ko).length ? fighters.filter((f) => !f.ko) : fighters;
@@ -727,7 +743,8 @@ function stepCamera(dt) {
   for (const f of up) { if (f.team) { cb.add(f.root.position); nb++; } else { ca.add(f.root.position); na++; } }
   const dir = na && nb ? cb.multiplyScalar(1 / nb).sub(ca.multiplyScalar(1 / na)).setY(0).normalize() : new THREE.Vector3(1, 0, 0), perp = new THREE.Vector3(-dir.z, 0, dir.x);
   if (view.dir) { view.dir.lerp(perp, 1 - Math.exp(-dt * 1.5)).normalize(); perp.copy(view.dir); } else view.dir = perp.clone();
-  const k = 1 - Math.exp(-dt * 3); view.cx += (mid.x - view.cx) * k; view.cz += (mid.z - view.cz) * k;
+  const push = koPush(); if (push > 0) mid.lerp(koCam.who.root.position, push);
+  const k = 1 - Math.exp(-dt * (push > 0 ? 6 : 3)); view.cx += (mid.x - view.cx) * k; view.cz += (mid.z - view.cz) * k;
   // fit both fighters (plus a body-width margin) across the SCREEN WIDTH and a tall fighter top to bottom
   const vh = THREE.MathUtils.degToRad(camera.fov) / 2, hh = Math.atan(Math.tan(vh) * camera.aspect);
   // extents in the camera's own frame: across the screen (along dir) and towards it (along perp)
@@ -735,7 +752,7 @@ function stepCamera(dt) {
   for (const f of up) { const dx = f.root.position.x - view.cx, dz = f.root.position.z - view.cz; wide = Math.max(wide, Math.abs(dx * dir.x + dz * dir.z)); deep = Math.max(deep, Math.abs(dx * perp.x + dz * perp.z)); }
   const crowd = up.length > 2;
   const fit = Math.max((wide + 1.3) / Math.tan(hh) + deep, 1.7 / Math.tan(vh) + deep, 4) * (crowd ? 1.1 : 1);
-  view.d += (fit * view.zoom - view.d) * k;
+  view.d += (fit * view.zoom * (1 - push * (1 - KO.push)) - view.d) * k;
   const ang = Math.atan2(perp.x, perp.z) + view.orbit;
   const sx = (shake > 0 ? (Math.random() - 0.5) * shake : 0), sy = (shake > 0 ? (Math.random() - 0.5) * shake : 0);
   camera.position.set(view.cx + Math.sin(ang) * view.d + sx, 1.6 + view.d * (crowd ? 0.42 : 0.18) + sy, view.cz + Math.cos(ang) * view.d); // crowds: look down on them
@@ -762,6 +779,7 @@ function hud() {
   document.getElementById('barA').classList.toggle('win', b.ko && !a.ko); document.getElementById('barB').classList.toggle('win', a.ko && !b.ko);
 }
 function fight() {
+  koCam = null;
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
   for (const q of scuffs) { scene.remove(q.m); q.m.material.dispose(); } scuffs.length = 0;
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
@@ -800,7 +818,9 @@ addEventListener('resize', resize); resize();
 const clock = new THREE.Clock(); let time = 0;
 function frame() {
   requestAnimationFrame(frame);
-  let dt = Math.min(0.05, clock.getDelta()) * (slow ? 0.3 : 1);
+  const real = Math.min(0.05, clock.getDelta()); let dt = real * (slow ? 0.3 : 1);
+  stepGap -= real;
+  if (koCam) { koCam.t += real; if (koCam.t < KO.hold) dt *= KO.slow; else if (koCam.t < KO.hold + KO.ease) dt *= KO.slow + (1 - KO.slow) * (koCam.t - KO.hold) / KO.ease; }
   if (hitstop > 0) { hitstop -= dt; dt *= 0.05; }
   time += dt;
   for (const f of fighters) stepFighter(f, dt);
@@ -814,5 +834,5 @@ function frame() {
 Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
   for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
   document.getElementById('load').remove(); fight(); frame();
-  window.duel = { POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
+  window.duel = { KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
