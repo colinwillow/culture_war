@@ -6,13 +6,14 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=178';
+import { svg } from '../ui/icons.js?v=180';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
 // (blender-addons/pipeline/contact.py on the warrior's clips). `spd` plays a clip faster than authored.
 const MELEE = {
   reach: 1.7, idle: 'standing_idle', walk: 'standing_walk_forward', run: 'standing_run_forward',
+  left: 'standing_walk_left', right: 'standing_walk_right', back: 'standing_walk_back',
   attacks: [
     { c: 'standing_melee_attack_horizontal', at: 0.41, dmg: 16, reach: 2.1, spd: 1.35 },
     { c: 'standing_melee_attack_downward', at: 0.38, dmg: 21, reach: 2.0, spd: 1.35, big: 0.25 },
@@ -26,6 +27,7 @@ const MELEE = {
 };
 const GUN = {
   ...MELEE, reach: 1.7, keep: [4.5, 8.5], idle: 'rifle_idle_01', walk: 'rifle_walk_fwd_01', run: 'rifle_run',
+  left: 'rifle_strafe_left', right: 'rifle_strafe_right', back: 'rifle_walk_fwd_01',
   shoot: { c: 'rifle_shoot_stationary_01', at: 0.31, dmg: 7, spd: 1 }, fall: 'fall_to_back', getup: 'get_up_from_back',
 };
 const RIGS = {
@@ -60,6 +62,10 @@ const RULE = {
   parry: 0.22,       // seconds after a block lands in which a COUNTER is open (the defender swings back at once, unblockable)
   parryP: 0.6,       // chance he takes it
   combo: 0.45,       // chance a landed swing chains straight into a second one (no recovery)
+  circle: 0.14,      // in range: chance to strafe round him instead of swinging
+  backstep: 0.5,     // after taking a hit: chance to step back out of range before re-engaging
+  roll: 0.3,         // on reading a swing: chance to DODGE ROLL sideways instead of blocking (untouchable while rolling)
+  rollT: 0.42,
   hitstop: 0.075,    // both fighters freeze on a clean hit
   ring: 9,           // arena radius (m)
 };
@@ -377,8 +383,8 @@ function spawn(def, side, slot = 0, n = 1) {
   scene.add(root); play(f, def.style.idle);
   return f;
 }
-function play(f, name, once = false, speed = 1, fade = 0.15) {
-  const a = f.actions[name]; if (!a) return null;
+function play(f, name, once = false, speed = 1, fade = 0.15, fallback = null) {
+  const a = f.actions[name] || (fallback && f.actions[fallback]); if (!a) return null;
   if (!once && f.cur === a) return a;
   a.reset(); a.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity); a.clampWhenFinished = once; a.timeScale = speed; a.setEffectiveWeight(1); a.play();
   if (f.cur && f.cur !== a) f.cur.crossFadeTo(a, fade, false);
@@ -396,21 +402,32 @@ function setState(f, s, t) { f.state = s; f.t = t; }
 
 function brain(f, dt) {
   if (!foes(f).length) { if (f.state !== 'taunt' && !f.ko) { setState(f, 'taunt', 99); play(f, f.def.style.taunt, false); } return; } // last team standing
-  if (!['idle', 'move'].includes(f.state)) return;
+  const strafing = f.state === 'circle'; // a strafe can be cut short by a read; nothing else can
+  if (!['idle', 'move'].includes(f.state) && !strafing) return;
   if ((f.think -= dt) > 0) return; f.think = RULE.think * (0.6 + rng() * 0.8);
   if (rng() < 0.08) f.target = nearestFoe(f); // in a brawl, now and then turn to whoever is closest
   const o = other(f), S = f.def.style, d = flat(f, o).length();
-  // seeing a swing coming (from anyone aimed at him): block it
+  // seeing a swing coming (from anyone aimed at him): block it, or roll
   const threat = fighters.find((x) => x.team !== f.team && x.target === f && x.state === 'attack' && x.move && x.prog < x.move.at && flat(f, x).length() < x.move.reach + 0.6);
-  if (threat && f.guard > 25 && rng() < RULE.readBlock) {
+  if (strafing && !threat) return;
+  if (threat && rng() < RULE.readBlock) {
+    if (rng() < RULE.roll || f.guard <= 25) { // DODGE ROLL: out of the line of the swing, untouchable for the roll
+      f.rollDir = rng() < 0.5 ? 1 : -1; setState(f, 'dodge', RULE.rollT); stats.roll++;
+      play(f, S.run, false, 1.6, 0.06); puff(f.root.position.clone(), 4, { size: 0.3, spread: 1, up: 0.5, life: 0.6 }); return;
+    }
     setState(f, 'block', 0.35 + rng() * 0.35); play(f, S.block); return;
   }
-  if (S.shoot && d > S.keep[0] && d < S.keep[1]) return startShot(f);
+  if (f.hurtT > 0 && rng() < RULE.backstep) { f.hurtT = 0; setState(f, 'backstep', 0.35 + rng() * 0.25); stats.backstep++; return; } // just got hit: get out of range
+  if (S.shoot && d > S.keep[0] && d < S.keep[1]) { // gunner: shoot, or strafe along the keep band between shots
+    if (rng() < 0.35) { f.circleDir = rng() < 0.5 ? 1 : -1; setState(f, 'circle', 0.5 + rng() * 0.5); stats.circle++; return; }
+    return startShot(f);
+  }
   const want = S.shoot && d > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15); // whiffing? step in
   if (d > want + 0.2) { setState(f, 'move', 0); return; }
   const r = rng();
   if (r < 0.62) startAttack(f, S.attacks[(rng() * S.attacks.length) | 0]);
-  else if (r < 0.8 && f.guard > 25) { setState(f, 'block', 0.3 + rng() * 0.4); play(f, S.block); }
+  else if (r < 0.62 + RULE.circle) { f.circleDir = rng() < 0.5 ? 1 : -1; setState(f, 'circle', 0.4 + rng() * 0.5); stats.circle++; } // footwork: circle him
+  else if (r < 0.62 + RULE.circle + 0.16 && f.guard > 25) { setState(f, 'block', 0.3 + rng() * 0.4); play(f, S.block); }
   else { setState(f, 'idle', 0); f.think = 0.15 + rng() * 0.25; play(f, S.idle); }
 }
 function startAttack(f, m) {
@@ -433,6 +450,7 @@ function resolve(a, hp) { // the moment of contact: block, dodge, glance, hit or
     return hurt(a, b, m.dmg * (0.8 + rng() * 0.4), dir, 0.35, false);
   }
   if (b.ko || b.state === 'down' || b.state === 'getup') { sound('swing', 0.25); return; }
+  if (b.state === 'dodge') { sound('swing', 0.35); stats.dodge++; return; } // rolled clear
   if (b.state === 'block' && facing(b, a) > 0.2 && !m.counter) return blocked(a, b, m, dir, RULE.blockKeep);
   const r = rng();
   if (b.state !== 'break' && r < RULE.dodge && ['idle', 'move'].includes(b.state)) { // sidestep
@@ -472,7 +490,7 @@ function blocked(a, b, m, dir, keep) {
   b.parryT = RULE.parry; // the counter window
 }
 function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
-  a.landed = true;
+  a.landed = true; b.hurtT = 1.2;
   if (a.move && a.move.limb === 'foot') pebbles(b.root.position.clone(), dir, 8); // a kick throws up the sand
   if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
@@ -521,7 +539,7 @@ function ko(b, dir) {
   sound('heavy', 0.9); shake = 0.3; hud();
 }
 let hitstop = 0;
-const stats = { swings: 0, whiff: 0, block: 0, dodge: 0, glance: 0, hit: 0, floor: 0, breaks: 0, parry: 0, combo: 0 }; // live tally (window.duel.stats)
+const stats = { swings: 0, whiff: 0, block: 0, dodge: 0, glance: 0, hit: 0, floor: 0, breaks: 0, parry: 0, combo: 0, circle: 0, backstep: 0, roll: 0 }; // live tally (window.duel.stats)
 
 function stepFighter(f, dt) {
   const o = other(f), S = f.def.style;
@@ -530,6 +548,14 @@ function stepFighter(f, dt) {
   if (!['down', 'ko', 'getup'].includes(f.state)) {
     const d = flat(f, o), want = Math.atan2(d.x, d.z); let dy = want - f.root.rotation.y;
     dy = Math.atan2(Math.sin(dy), Math.cos(dy)); f.root.rotation.y += dy * Math.min(1, dt * 8);
+  }
+  if (f.state === 'circle' || f.state === 'backstep' || f.state === 'dodge') { // footwork, always facing him
+    const d = flat(f, o), dist = d.length() || 1, fwd = d.clone().divideScalar(dist), side = new THREE.Vector3(-fwd.z, 0, fwd.x);
+    const base = f.def.speed * (f.h / 1.9);
+    if (f.state === 'circle') { f.root.position.addScaledVector(side, f.circleDir * 1.7 * base * dt); if (dist > S.reach + 0.4 && !S.shoot) f.root.position.addScaledVector(fwd, 0.6 * base * dt); play(f, f.circleDir > 0 ? S.left : S.right, false, 1.1, 0.15, S.walk); }
+    else if (f.state === 'backstep') { f.root.position.addScaledVector(fwd, -2.2 * base * dt); play(f, S.back, false, 1.2, 0.1, S.walk); }
+    else { f.root.position.addScaledVector(side, f.rollDir * 6 * base * dt); f.root.position.addScaledVector(fwd, -0.8 * base * dt); }
+    if (f.t <= 0) { setState(f, 'idle', 0); f.think = 0.05 + rng() * 0.15; play(f, S.idle); }
   }
   if (f.state === 'move') {
     const d = flat(f, o), dist = d.length(), want = S.shoot && dist > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15);
@@ -557,6 +583,7 @@ function stepFighter(f, dt) {
   }
   if ((f.state === 'block' || f.state === 'hit' || f.state === 'break') && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle); }
   if (f.state !== 'block') f.guard = Math.min(RULE.guard, f.guard + RULE.guardRegen * dt);
+  if (f.hurtT > 0) f.hurtT -= dt;
   if (f.parryT > 0) { f.parryT -= dt; const o = other(f); // PARRY: counter straight out of the block, unblockable, fast
     if (f.state === 'block' && o && !o.ko && flat(f, o).length() < f.def.style.reach + 0.5 && rng() < RULE.parryP * dt * 12) {
       f.parryT = 0; const m = S.attacks[0]; startAttack(f, { ...m, spd: m.spd * 1.3, dmg: m.dmg * 1.3, counter: true }); stats.parry++;

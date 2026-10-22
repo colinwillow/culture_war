@@ -1,16 +1,16 @@
 // HUD: resource chips, context panel, command buttons, floating placement confirm, long-press labels.
 // Buttons are described as data ("specs") each refresh; the DOM is rebuilt only when the set of buttons changes.
 // Every action goes through sim.command(); Q.* is used only for instant feedback (shake, dim).
-import { svg } from './icons.js?v=178';
-import { UI, select, selSquads } from './state.js?v=178';
-import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=178';
-import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=178';
-import { CAM, toggleView, focus } from '../camera/camera.js?v=178';
-import { camera } from '../render/scene.js?v=178';
-import { walkH } from '../map/layout.js?v=178';
-import { THREE } from '../render/scene.js?v=178';
-import { showHint } from './hint.js?v=178';
-import { sfx } from '../fx/sfx.js?v=178';
+import { svg } from './icons.js?v=180';
+import { UI, select, selSquads } from './state.js?v=180';
+import { getSim, pl, fac, Q, command, count, cpUsed, cpCap, hqOf, HQ_UP } from '../sim/sim.js?v=180';
+import { BLD, BUILD_KINDS, TRAIN_SLOTS, UPG, REQ } from '../config/factions.js?v=180';
+import { CAM, toggleView, focus } from '../camera/camera.js?v=180';
+import { camera } from '../render/scene.js?v=180';
+import { walkH } from '../map/layout.js?v=180';
+import { THREE } from '../render/scene.js?v=180';
+import { showHint } from './hint.js?v=180';
+import { sfx } from '../fx/sfx.js?v=180';
 
 const panelEl = document.getElementById('panel'), cmdEl = document.getElementById('cmd'), queueEl = document.getElementById('queue');
 const placeBar = document.getElementById('placeBar'), tipEl = document.getElementById('tip');

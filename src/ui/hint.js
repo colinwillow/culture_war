@@ -1,5 +1,5 @@
 // Briefly flashes a big icon at the top of the screen (e.g. "drag" while placing).
-import { svg } from './icons.js?v=178';
+import { svg } from './icons.js?v=180';
 
 let el = null, t = null;
 export function showHint(icon) {

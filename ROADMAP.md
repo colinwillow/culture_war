@@ -22,7 +22,7 @@ item says so.
 - [x] (B171) Duel: ground FX -- dust puffs on footsteps/landings/knockdowns, scuff marks where a body hits the floor, debris kicked by the kick
 - [x] (B174) Duel: colour system v2 -- both sides pick a team colour (palette of 6 with names-free swatches), weapon trails/sparks/HP bar take the team colour, tint threshold tuned so skin markings + paint shift but steel/leather never do
 - [x] (B178) Duel: gameplay depth 1 -- guard meter (blocking drains it, guard break stuns), parry window right after a block lands (counter-attack), 2-hit combos
-- [ ] Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips
+- [x] (B180) Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips
 - [x] (B166) Duel: BRAWL mode -- 2v2 and 3v3 in the ring (target choice, flanking), same rules
 - [ ] Atmosphere (arena first): wind-blown low-poly LEAVES + debris (instanced, cheap), pushed away by swings, bodies and knockbacks
 - [ ] Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade; a small pond with a real WATER shader (waves, fresnel, foam ring)
