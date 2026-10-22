@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=197';
-import { makePops, slashTex } from '../fx/pops.js?v=197';
+import { svg } from '../ui/icons.js?v=198';
+import { makePops, slashTex } from '../fx/pops.js?v=198';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -34,6 +34,12 @@ const GUN = {
 const RIGS = {
   warrior: { file: 'models/characters/alien_warrior.glb', own: 'mace' },   // his own weapon_root bone carries the mace
   demon: { file: 'models/characters/demon.glb', tail: /^c_tail_\d+/ },
+  // Colin's Brutes (Oct 22): Tripo meshes off his art, ARP rigs, the warrior's + Colin's clips baked on. Team colour
+  // is a KEY: only the crimson pieces (shoulder plates, banner, emblem) take the team hue; the skin is left alone.
+  brute_grunt: { file: 'models/characters/brute_grunt.glb', key: true },
+  brute_shooter: { file: 'models/characters/brute_shooter.glb', key: true },
+  brute_plated: { file: 'models/characters/brute_plated.glb', key: true },
+  brute_hero: { file: 'models/characters/brute_hero.glb', key: true },
 };
 // Borrowed weapons. A rig with no mount bone still gets the weapon in its RIGHT HAND at the grip the weapon's own rig
 // holds it at in rest pose: offset from the hand / rig height, rotation in model space (both donors read IDENTITY),
@@ -46,6 +52,10 @@ const ROSTER = [
   { name: 'WARRIOR', rig: 'warrior', style: MELEE, h: 1.9, hp: 150, speed: 1, weapon: 'mace' },
   { name: 'BRUTE', rig: 'demon', style: MELEE, h: 2.25, hp: 180, speed: 0.9, weapon: 'mace' },
   { name: 'GUNNER', rig: 'demon', style: GUN, h: 2.05, hp: 130, speed: 1, weapon: 'blaster' },
+  { name: 'GRUNT', rig: 'brute_grunt', style: MELEE, h: 1.5, hp: 110, speed: 1.1, weapon: 'mace' },
+  { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blaster' },
+  { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'mace' },
+  { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'mace' },
 ];
 const RULE = {
   pace: 1.35,        // EVERYTHING plays this much faster than authored (Colin: "a little quicker")
@@ -421,10 +431,17 @@ function tint(mat, list, hue) {
   mat.emissive = new THREE.Color(0); list.push(mat);
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uHue = mat.userData.hue || hue || { value: 0 };
-    sh.fragmentShader = 'uniform float uHue;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+    sh.uniforms.uKey = { value: mat.userData.key ? 1.0 : 0.0 };
+    sh.fragmentShader = 'uniform float uHue; uniform float uKey;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       {
-        vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
-        float w = smoothstep(0.28, 0.45, mx > 0.0 ? (mx - mn) / mx : 0.0) * step(uHue, 50.0); // 99 = as painted
+        vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b)), d = mx - mn, sat = mx > 0.0 ? d / mx : 0.0;
+        float w = smoothstep(0.28, 0.45, sat) * step(uHue, 50.0); // 99 = as painted
+        if (uKey > 0.5) { // KEY rigs: only pure crimson (hue within ~18 deg of 352, sat > .55, value > .3) is team paint
+          float h = 0.0;
+          if (d > 0.0) { if (mx == c.r) h = mod((c.g - c.b) / d, 6.0); else if (mx == c.g) h = (c.b - c.r) / d + 2.0; else h = (c.r - c.g) / d + 4.0; h *= 60.0; }
+          float dh = min(abs(h - 352.0), 360.0 - abs(h - 352.0));
+          w = (1.0 - smoothstep(14.0, 22.0, dh)) * smoothstep(0.45, 0.6, sat) * step(0.3, mx) * step(uHue, 50.0);
+        }
         const mat3 toY = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);
         const mat3 toR = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);
         vec3 y = toY * c; float r = length(y.yz); y.yz = vec2(cos(uHue), sin(uHue)) * r; // swing to the team hue
@@ -445,7 +462,7 @@ function spawn(def, side, slot = 0, n = 1) {
   const mats = [], hue = { value: hueOf(side < 0 ? 0 : 1) }; // one team colour per side
   model.traverse((o) => {
     if (!o.isMesh) return; o.castShadow = true; o.frustumCulled = false;
-    o.material = tint(o.material.clone(), mats, hue);
+    o.material = o.material.clone(); o.material.userData.key = !!RIGS[def.rig].key; o.material = tint(o.material, mats, hue);
   });
   let hand = null; model.traverse((o) => { if (!hand && o.isBone && o.name === 'mixamorig_RightHand') hand = o; });
   const W = def.weapon && WEAPDATA[def.weapon]; let weaponTip = null;
