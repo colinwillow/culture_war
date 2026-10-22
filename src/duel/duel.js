@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=163';
+import { svg } from '../ui/icons.js?v=166';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -278,10 +278,10 @@ let rng = Math.random;
 const mulberry = (a) => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const RIGDATA = {};
 const fighters = [];
-function spawn(def, side) {
+function spawn(def, side, slot = 0, n = 1) {
   const R = RIGDATA[def.rig], model = skClone(R.scene), k = def.h / (R.box.max.y - R.box.min.y);
   const root = new THREE.Group(); model.scale.setScalar(k); model.position.y = -R.box.min.y * k; root.add(model);
-  const mats = [], hue = { value: TEAM_HUE[side < 0 ? 0 : 1] };
+  const mats = [], hue = { value: TEAM_HUE[side < 0 ? 0 : 1] }; // one team colour per side
   model.traverse((o) => {
     if (!o.isMesh) return; o.castShadow = true; o.frustumCulled = false;
     o.material = tint(o.material.clone(), mats, hue);
@@ -309,7 +309,9 @@ function spawn(def, side) {
   const trail = makeTrail(); trail.mesh.visible = true;
   const f = { def, side, root, model, mixer, actions, mats, hand, tail, hue, tip: weaponTip, foot, trail, hp: def.hp, cur: null, state: 'idle', t: 0, think: 0,
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
-  root.position.set(side * 3.2, 0, 0); scene.add(root); play(f, def.style.idle);
+  f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
+  root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
+  scene.add(root); play(f, def.style.idle);
   return f;
 }
 function play(f, name, once = false, speed = 1, fade = 0.15) {
@@ -320,19 +322,24 @@ function play(f, name, once = false, speed = 1, fade = 0.15) {
   f.cur = a; return a;
 }
 const dur = (f, name, speed = 1) => (f.actions[name] ? f.actions[name].getClip().duration / speed : 0.6);
-const other = (f) => fighters.find((o) => o !== f);
+// whoever he is fighting: his current target if still standing, else the nearest enemy still up (brawls), else anyone
+const foes = (f) => fighters.filter((o) => o.team !== f.team && !o.ko);
+function nearestFoe(f) { let best = null, bd = 1e9; for (const o of foes(f)) { const d = flat(f, o).length(); if (d < bd) { bd = d; best = o; } } return best; }
+const other = (f) => (f.target && !f.target.ko ? f.target : (f.target = nearestFoe(f))) || f.target || fighters.find((o) => o !== f);
 const flat = (a, b) => new THREE.Vector3(b.root.position.x - a.root.position.x, 0, b.root.position.z - a.root.position.z);
 const facing = (a, b) => { const d = flat(a, b).normalize(); return Math.sin(a.root.rotation.y) * d.x + Math.cos(a.root.rotation.y) * d.z; };
 const chest = (f) => f.root.position.clone().setY(f.h * 0.62);
 function setState(f, s, t) { f.state = s; f.t = t; }
 
 function brain(f, dt) {
-  const o = other(f), S = f.def.style, d = flat(f, o).length();
-  if (o.ko) { if (f.state !== 'taunt') { setState(f, 'taunt', 99); play(f, S.taunt, false); } return; }
+  if (!foes(f).length) { if (f.state !== 'taunt' && !f.ko) { setState(f, 'taunt', 99); play(f, f.def.style.taunt, false); } return; } // last team standing
   if (!['idle', 'move'].includes(f.state)) return;
   if ((f.think -= dt) > 0) return; f.think = RULE.think * (0.6 + rng() * 0.8);
-  // seeing a swing coming: block it
-  if (o.state === 'attack' && o.move && o.prog < o.move.at && d < o.move.reach + 0.6 && rng() < RULE.readBlock) {
+  if (rng() < 0.08) f.target = nearestFoe(f); // in a brawl, now and then turn to whoever is closest
+  const o = other(f), S = f.def.style, d = flat(f, o).length();
+  // seeing a swing coming (from anyone aimed at him): block it
+  const threat = fighters.find((x) => x.team !== f.team && x.target === f && x.state === 'attack' && x.move && x.prog < x.move.at && flat(f, x).length() < x.move.reach + 0.6);
+  if (threat && rng() < RULE.readBlock) {
     setState(f, 'block', 0.35 + rng() * 0.35); play(f, S.block); return;
   }
   if (S.shoot && d > S.keep[0] && d < S.keep[1]) return startShot(f);
@@ -451,8 +458,10 @@ function stepFighter(f, dt) {
   // knockback slide, ring edge, and no walking through each other
   f.root.position.addScaledVector(f.vel, dt); f.vel.multiplyScalar(Math.exp(-6 * dt));
   const r = Math.hypot(f.root.position.x, f.root.position.z); if (r > RULE.ring - 0.6) f.root.position.multiplyScalar((RULE.ring - 0.6) / r);
-  const d = flat(o, f), dl = d.length(), min = 0.95;
-  if (dl < min && dl > 1e-4) f.root.position.addScaledVector(d.normalize(), (min - dl) * 0.5);
+  for (const x of fighters) { // no walking through anybody (bodies on the floor included)
+    if (x === f) continue; const d = flat(x, f), dl = d.length(), min = 0.95;
+    if (dl < min && dl > 1e-4) f.root.position.addScaledVector(d.normalize(), (min - dl) * 0.5);
+  }
   // hit flash
   if (f.flash > 0) { f.flash = Math.max(0, f.flash - dt * 6); for (const m of f.mats) m.emissive.setRGB(f.flash * 0.6, f.flash * 0.1, f.flash * 0.06); }
 }
@@ -479,27 +488,41 @@ canvas.addEventListener('pointerup', lift); canvas.addEventListener('pointercanc
 canvas.addEventListener('wheel', (e) => { view.zoom = Math.min(2.5, Math.max(0.45, view.zoom * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: true });
 function pinchD() { const v = [...pts.values()]; return v.length >= 2 ? Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]) : 0; }
 function stepCamera(dt) {
-  const [a, b] = fighters; if (!a) return;
-  const mid = a.root.position.clone().add(b.root.position).multiplyScalar(0.5), sep = flat(a, b).length();
-  const dir = flat(a, b).normalize(), perp = new THREE.Vector3(-dir.z, 0, dir.x);
+  if (!fighters.length) return;
+  const up = fighters.filter((f) => !f.ko).length ? fighters.filter((f) => !f.ko) : fighters;
+  const mid = new THREE.Vector3(); for (const f of up) mid.add(f.root.position); mid.multiplyScalar(1 / up.length);
+  let sep = 0; for (const f of up) sep = Math.max(sep, 2 * Math.hypot(f.root.position.x - mid.x, f.root.position.z - mid.z));
+  // side-on to the line between the two teams' centres
+  const ca = new THREE.Vector3(), cb = new THREE.Vector3(); let na = 0, nb = 0;
+  for (const f of up) { if (f.team) { cb.add(f.root.position); nb++; } else { ca.add(f.root.position); na++; } }
+  const dir = na && nb ? cb.multiplyScalar(1 / nb).sub(ca.multiplyScalar(1 / na)).setY(0).normalize() : new THREE.Vector3(1, 0, 0), perp = new THREE.Vector3(-dir.z, 0, dir.x);
+  if (view.dir) { view.dir.lerp(perp, 1 - Math.exp(-dt * 1.5)).normalize(); perp.copy(view.dir); } else view.dir = perp.clone();
   const k = 1 - Math.exp(-dt * 3); view.cx += (mid.x - view.cx) * k; view.cz += (mid.z - view.cz) * k;
   // fit both fighters (plus a body-width margin) across the SCREEN WIDTH and a tall fighter top to bottom
   const vh = THREE.MathUtils.degToRad(camera.fov) / 2, hh = Math.atan(Math.tan(vh) * camera.aspect);
-  const fit = Math.max((sep / 2 + 1.3) / Math.tan(hh), 1.7 / Math.tan(vh), 4);
+  // extents in the camera's own frame: across the screen (along dir) and towards it (along perp)
+  let wide = 0, deep = 0;
+  for (const f of up) { const dx = f.root.position.x - view.cx, dz = f.root.position.z - view.cz; wide = Math.max(wide, Math.abs(dx * dir.x + dz * dir.z)); deep = Math.max(deep, Math.abs(dx * perp.x + dz * perp.z)); }
+  const crowd = up.length > 2;
+  const fit = Math.max((wide + 1.3) / Math.tan(hh) + deep, 1.7 / Math.tan(vh) + deep, 4) * (crowd ? 1.1 : 1);
   view.d += (fit * view.zoom - view.d) * k;
   const ang = Math.atan2(perp.x, perp.z) + view.orbit;
   const sx = (shake > 0 ? (Math.random() - 0.5) * shake : 0), sy = (shake > 0 ? (Math.random() - 0.5) * shake : 0);
-  camera.position.set(view.cx + Math.sin(ang) * view.d + sx, 1.6 + view.d * 0.18 + sy, view.cz + Math.cos(ang) * view.d);
+  camera.position.set(view.cx + Math.sin(ang) * view.d + sx, 1.6 + view.d * (crowd ? 0.42 : 0.18) + sy, view.cz + Math.cos(ang) * view.d); // crowds: look down on them
   camera.lookAt(view.cx, 1.15, view.cz);
   shake = Math.max(0, shake - dt * 1.2);
 }
 
 // ---------------------------------------------------------------- UI
 const picks = [0, 1];
+const SIZES = [1, 3, 5]; let size = 0; // 1v1, 3v3, 5v5 (Colin: "see the hordes fight")
 let slow = false;
 function hud() {
-  const [a, b] = fighters;
-  document.getElementById('nameA').textContent = ROSTER[picks[0]].name; document.getElementById('nameB').textContent = ROSTER[picks[1]].name;
+  const team = (t) => fighters.filter((f) => f.team === t), sum = (l, k) => l.reduce((v, f) => v + Math.max(0, k(f)), 0);
+  const A = team(0), B = team(1), a = A.length && { hp: sum(A, (f) => f.hp), def: { hp: sum(A, (f) => f.def.hp) }, ko: A.every((f) => f.ko) },
+    b = B.length && { hp: sum(B, (f) => f.hp), def: { hp: sum(B, (f) => f.def.hp) }, ko: B.every((f) => f.ko) };
+  const nm = (i, n) => (n > 1 ? n + ' ' : '') + ROSTER[picks[i]].name;
+  document.getElementById('nameA').textContent = nm(0, A.length); document.getElementById('nameB').textContent = nm(1, B.length);
   document.querySelector('#pickA b').textContent = ROSTER[picks[0]].name; document.querySelector('#pickB b').textContent = ROSTER[picks[1]].name;
   if (!a) return;
   document.getElementById('hpA').style.width = Math.max(0, (a.hp / a.def.hp) * 100) + '%';
@@ -509,18 +532,20 @@ function hud() {
 function fight() {
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
   fighters.length = 0; rng = mulberry((Math.random() * 1e9) | 0);
-  const a = spawn(ROSTER[picks[0]], -1), b = spawn(ROSTER[picks[1]], 1);
-  a.root.rotation.y = Math.PI / 2; b.root.rotation.y = -Math.PI / 2; fighters.push(a, b); hud();
+  const n = SIZES[size];
+  for (let i = 0; i < n; i++) fighters.push(spawn(ROSTER[picks[0]], -1, i, n), spawn(ROSTER[picks[1]], 1, i, n));
+  view.dir = null; hud();
 }
 document.querySelectorAll('[data-i]').forEach((el) => (el.outerHTML = svg(el.dataset.i)));
 const tap = (id, fn) => document.getElementById(id).addEventListener('pointerup', (e) => { e.stopPropagation(); audioOn(); fn(); });
 tap('pickA', () => { picks[0] = (picks[0] + 1) % ROSTER.length; fight(); });
 tap('pickB', () => { picks[1] = (picks[1] + 1) % ROSTER.length; fight(); });
 tap('fight', fight);
+tap('size', () => { size = (size + 1) % SIZES.length; document.querySelector('#size small').textContent = SIZES[size] + 'V' + SIZES[size]; fight(); });
 tap('slow', () => { slow = !slow; document.getElementById('slow').classList.toggle('on', slow); });
 tap('view', () => { view.orbit = 0; view.zoom = 1; });
 tap('hue', () => { // the right-hand fighter's team colour, live (no respawn)
-  TEAM_HUE[1] = HUES[(HUES.indexOf(TEAM_HUE[1]) + 1) % HUES.length]; if (fighters[1]) fighters[1].hue.value = TEAM_HUE[1];
+  TEAM_HUE[1] = HUES[(HUES.indexOf(TEAM_HUE[1]) + 1) % HUES.length]; for (const f of fighters) if (f.team === 1) f.hue.value = TEAM_HUE[1];
 });
 tap('home', () => { location.href = './'; });
 

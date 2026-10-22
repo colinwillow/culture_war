@@ -23,7 +23,7 @@ item says so.
 - [ ] Duel: colour system v2 -- both sides pick a team colour (palette of 6 with names-free swatches), weapon trails/sparks/HP bar take the team colour, tint threshold tuned so skin markings + paint shift but steel/leather never do
 - [ ] Duel: gameplay depth 1 -- guard meter (blocking drains it, guard break stuns), parry window right after a block lands (counter-attack), 2-hit combos
 - [ ] Duel: gameplay depth 2 -- footwork: circle/strafe, back-step out of range, dodge roll on a read; gunner strafes with the rifle strafe clips
-- [ ] Duel: BRAWL mode -- 2v2 and 3v3 in the ring (target choice, flanking), same rules
+- [x] (B166) Duel: BRAWL mode -- 2v2 and 3v3 in the ring (target choice, flanking), same rules
 - [ ] Atmosphere (arena first): wind-blown low-poly LEAVES + debris (instanced, cheap), pushed away by swings, bodies and knockbacks
 - [ ] Atmosphere: god rays (billboard sun shafts), height fog, warm/cool grade; a small pond with a real WATER shader (waves, fresnel, foam ring)
 - [ ] Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
