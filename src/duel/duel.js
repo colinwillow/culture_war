@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=204';
-import { makePops, slashTex } from '../fx/pops.js?v=204';
+import { svg } from '../ui/icons.js?v=205';
+import { makePops, slashTex } from '../fx/pops.js?v=205';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -917,6 +917,8 @@ function hud() {
   document.getElementById('barA').classList.toggle('win', b.ko && !a.ko); document.getElementById('barB').classList.toggle('win', a.ko && !b.ko);
 }
 function fight() {
+  const need = needRigs();
+  if (need.length) { loadCard(true); Promise.all(need.map(ensureRig)).then(() => { loadCard(false); fight(); }); return; }
   koCam = null;
   for (const p of pickups) scene.remove(p.mesh); pickups.length = 0;
   for (const f of fighters) { scene.remove(f.root); scene.remove(f.trail.mesh); f.trail.mesh.geometry.dispose(); f.mixer.stopAllAction(); }
@@ -973,8 +975,13 @@ function frame() {
   stepCamera(dt); hud();
   renderer.render(scene, camera);
 }
-Promise.all([...Object.keys(RIGS).map(loadRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => ({ weapon: k, w })))]).then((rs) => {
-  for (const r of rs) if (r.weapon) WEAPDATA[r.weapon] = r.w; else RIGDATA[r.key] = r;
-  document.getElementById('load').remove(); fight(); frame();
+// Rigs load ON DEMAND: the boot fetches the two weapons and the two fighters on the card, nothing else (six rigs at
+// boot was 25 MB before anyone tapped a thing); a pick that needs a new rig shows the LOADING card for that one file.
+const rigLoads = {};
+const ensureRig = (key) => RIGDATA[key] ? Promise.resolve() : (rigLoads[key] = rigLoads[key] || loadRig(key).then((r) => { RIGDATA[key] = r; }));
+const needRigs = () => [ROSTER[picks[0]].rig, ROSTER[picks[1]].rig].filter((k) => !RIGDATA[k]);
+const loadCard = (on) => { const el = document.getElementById('load'); if (el) el.hidden = !on; };
+Promise.all([...needRigs().map(ensureRig), ...Object.keys(WEAPONS).map((k) => loadWeapon(k).then((w) => { WEAPDATA[k] = w; }))]).then(() => {
+  loadCard(false); fight(); frame();
   window.duel = { ko, pickups, PAD, RPAD, KO, POND, inPond, rays, pond, leaves, dust, scuffs, stats, fighters, RULE, ROSTER, MELEE, GUN, RIGDATA, WEAPDATA, TEAM, PALETTE }; // live tuning from a desktop console
 });
