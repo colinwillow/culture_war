@@ -61,6 +61,7 @@ export function sfx(name, k = 1) {
   if (!ctx || muted || ctx.state !== 'running' || k < 0.05) return;
   switch (name) {
     case 'thud': if (ok(name, 70)) { if (!sample('hit', 0.6 * k)) { tone('sine', 140, 60, 0.12, 0.35 * k); burst(0.06, 0.15 * k, 900); } if (Math.random() < 0.25 && ok('grunt', 400)) sample('grunt', 0.45 * k); } break;
+    case 'grunt': if (ok(name, 300)) { if (!sample('grunt', 0.8 * k)) sfx('sting', k); } break;
     case 'heavy': if (ok(name, 120)) { if (!sample('heavy', 0.7 * k)) sfx('boom', k * 0.5); } break;
     case 'clang': if (ok(name, 90)) { if (!sample('clang', 0.5 * k)) sfx('thud', k); } break;
     case 'pop': if (ok(name, 60)) { burst(0.08, 0.3 * k, 3000); tone('square', 900, 200, 0.05, 0.05 * k); } break;

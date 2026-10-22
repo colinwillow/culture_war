@@ -9,11 +9,11 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME, OBJ_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=211';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=211';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=211';
-import { mulberry32 } from '../util/math.js?v=211';
-import { aiStep } from './ai.js?v=211';
+} from '../config/factions.js?v=213';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=213';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=213';
+import { mulberry32 } from '../util/math.js?v=213';
+import { aiStep } from './ai.js?v=213';
 
 let S = null;
 export const getSim = () => S;
@@ -443,6 +443,24 @@ function alienVerb(s, dt) {
 function heroAbility(s) {
   if (s.abil > 0) return;
   if (s.f === 'bw') {
+    // The Brute Hero (Backwoods wears the Brutes, B206) EATS: gulps the nearest civilian within 7 m for a big heal and
+    // ROARS -- every enemy squad within 7 m is shoved 3 m back and stands stunned for 1.5 s. The old eagle screech
+    // stays as the fallback when nobody is on the menu. (Species hero ability #1, docs/gaps.md A6.)
+    const c = civNear(s, 7);
+    if (c) {
+      for (let i = 0; i < s.members.length; i++) if (s.members[i] > 0) s.members[i] = Math.min(s.mhp, s.members[i] + s.mhp * 0.45);
+      const p = pl(s.owner); p.meter = Math.min(100, p.meter + 10); addHeat(s.owner, 2, c.x, c.z);
+      S.events.push({ k: 'eat', x: c.x, z: c.z, sx: s.x, sz: s.z, owner: s.owner, id: c.id });
+      killSquad(c);
+      for (const o of S.squads) {
+        if (o.owner === s.owner || o.owner === 2 || o.gar || o.def.vehicle) continue;
+        const dx = o.x - s.x, dz = o.z - s.z, d = Math.hypot(dx, dz); if (d > 7 + o.r || d < 1e-6) continue;
+        const to = nearestFree(o.x + (dx / d) * 3, o.z + (dz / d) * 3); if (to) { o.x = to[0]; o.z = to[1]; o.px = o.x; o.pz = o.z; o.path = null; }
+        o.stun = Math.max(o.stun, 1.5);
+      }
+      s.abil = 24; S.events.push({ k: 'roar', x: s.x, z: s.z, owner: s.owner });
+      return;
+    }
     const near = S.squads.filter((o) => o.owner !== s.owner && Math.hypot(o.x - s.x, o.z - s.z) < 5 + o.r);
     if (near.length) { near.forEach((o) => (o.stun = Math.max(o.stun, 2))); s.abil = 20; S.events.push({ k: 'screech', x: s.x, z: s.z }); }
   } else if (s.f === 'hh') {
