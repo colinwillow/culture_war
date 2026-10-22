@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=252';
-import { makePops, slashTex } from '../fx/pops.js?v=252';
+import { svg } from '../ui/icons.js?v=254';
+import { makePops, slashTex } from '../fx/pops.js?v=254';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -520,8 +520,13 @@ function spawn(def, side, slot = 0, n = 1) {
     vel: new THREE.Vector3(), flash: 0, swingDone: false, move: null, ko: false, h: def.h };
   // ARMOUR (B251, Colin: "you shoot him, his shoulder armour falls off... until he's got no armour on, and that's when
   // he's vulnerable"): every mesh named armor_<bone> is a rigid piece on that bone with its own health (by size).
-  f.armor = []; model.traverse((o) => { if (o.isMesh && o.name.startsWith('armor_')) { o.geometry.computeBoundingSphere(); f.armor.push({ m: o, hp: 0, r: 0 }); } });
-  for (const a of f.armor) { const sc = new THREE.Vector3(); a.m.getWorldScale(sc); a.r = a.m.geometry.boundingSphere.radius * sc.x; a.hp = ARMOR.hpBase + ARMOR.hpPerM * a.r; }
+  // B253: each piece is RE-CENTRED on its own plate. A bone-parented mesh's origin is the BONE, so "where is the chest
+  // plate" answered with a point inside his spine and real hits on the plate read as misses (and debris spun about the
+  // joint). The geometry is shared by every clone of the rig, so it moves once; every clone's node takes the offset.
+  f.armor = []; model.traverse((o) => { if (!o.isMesh || !o.name.startsWith('armor_')) return;
+    const g = o.geometry; if (!g.userData.cen) { g.computeBoundingSphere(); const c = g.boundingSphere.center.clone(); g.translate(-c.x, -c.y, -c.z); g.computeBoundingSphere(); g.userData.cen = c; }
+    o.position.add(g.userData.cen.clone().multiply(o.scale).applyQuaternion(o.quaternion)); f.armor.push({ m: o, hp: 0, r: 0 }); });
+  for (const a of f.armor) { const sc = new THREE.Vector3(); a.m.getWorldScale(sc); a.r = a.m.geometry.boundingSphere.radius * sc.x; a.hp = Math.min(ARMOR.maxHits, 1 + Math.round(a.r * ARMOR.hitsPerM)); }
   if (def.weapon) mountWeapon(f, def.weapon);
   f.team = side < 0 ? 0 : 1; // two lines facing each other, a stagger so the back row is not hidden
   root.position.set(side * (3.2 + (slot % 2) * 1.3), 0, (slot - (n - 1) / 2) * 1.5); root.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -749,6 +754,7 @@ function whereHit(b, p) { // head / gut / body, or the side it came from (in the
 function blocked(a, b, m, dir, keep) {
   stats.block++;
   b.hp -= m.dmg * keep; b.guard -= m.dmg * (m.big ? 2.8 : 2.1);
+  if (b.armor && b.armor.length) armorHit(b, chest(b).addScaledVector(dir, -0.3), m.dmg * sizeK(a, b).dmg * ARMOR.blockChip, dir); // the guard takes it on the plates
   b.vel.addScaledVector(dir, 1.2); burst(chest(b).addScaledVector(dir, -0.3), dir.clone().negate(), 0x9fe0ff, 14, 3);
   pop(chest(b).addScaledVector(dir, -0.35), 0x9fe0ff, 0.8, 0.14); sound('clang', 0.5); shake = Math.max(shake, 0.06);
   if (b.hp <= 0) return ko(b, dir);
@@ -763,7 +769,10 @@ function blocked(a, b, m, dir, keep) {
 // The nearest armour piece still on (within its own radius + ARMOR.reach of the blow) soaks the hit: it loses the
 // damage, the body takes ARMOR.through of it. At 0 the piece flies off the way the blow went, tumbling, and lies on the
 // sand. No piece near the blow = bare skin = full damage.
-const ARMOR = { hpBase: 18, hpPerM: 90, through: 0.2, reach: 0.25, debrisLife: 7 };
+// B253 (Colin: "I don't see the armour coming off"): armour counts HITS, not health -- it had 50-85 hp a piece and a
+// grunt's size-scaled swing does ~4, so nothing ever broke. A piece takes 1-3 solid blows (by size); a blow chips
+// dmg / hitDmg of a hit (a big guy's swing ~1.5, a grunt's ~0.5, a glance half that); a BLOCKED blow chips too.
+const ARMOR = { hitDmg: 9, minChip: 0.35, hitsPerM: 3.5, maxHits: 3, blockChip: 0.5, through: 0.2, reach: 0.25, debrisLife: 7 };
 const debris = [];
 const _ac = new THREE.Vector3();
 function armorHit(b, at, dmg, dir) {
@@ -771,7 +780,7 @@ function armorHit(b, at, dmg, dir) {
   let best = null, bd = 1e9;
   for (const a of b.armor) { if (a.off) continue; a.m.getWorldPosition(_ac); const d = _ac.distanceTo(at) - a.r; if (d < bd) { bd = d; best = a; } }
   if (!best || bd > ARMOR.reach * b.h / 1.9) return dmg;
-  best.hp -= dmg;
+  best.hp -= Math.max(ARMOR.minChip, dmg / ARMOR.hitDmg);
   best.m.getWorldPosition(_ac); burst(_ac.clone(), dir.clone().negate().add(new THREE.Vector3(0, 0.5, 0)), 0xffd9a0, 10, 3);
   if (best.hp <= 0) armorOff(b, best, dir); else sound('clang', 0.45);
   return dmg * ARMOR.through;
