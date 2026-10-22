@@ -1,6 +1,7 @@
 # Neutral apartment block: 4 floors, balconies, BREAKABLE by floor. Origin ground centre, balconies face +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 F = 3.0
 W, D = 9.6, 6.8
 for k in range(4):
@@ -39,4 +40,11 @@ for (x, z) in ((-3.0, 3.8), (1.8, 6.8)):
     for k in (-0.5, 0.0, 0.5): box((0.3, 0.02, 0.35), (x + k, 0.4 - D / 2 - 0.85, z + 0.5), ('magenta', 'yellow', 'blue')[int(k * 2 + 1)], bevel=0.0)
 cyl(0.8, 1.4, (-2.5, 1.5, 4 * F + 0.8), 'wood', n=10); cyl(0.85, 0.4, (-2.5, 1.5, 4 * F + 1.7), 'iron', n=10, r2=0.1)
 cyl(0.04, 2.0, (3.5, 2.8, 4 * F + 1.0), 'iron', n=4)
+
+# ---- CITY PASS (key art): teal-domed spires on two roof corners, a big violet alien-sign screen on the side, flower
+# boxes on the balconies, palms by the door
+for (x, y) in ((-4.5, 3.6), (4.5, -2.8)): spire(0.6, 3.0, (x, y, 4 * F + 0.1))
+screen(2.2, 1.6, (W / 2 + 0.03, 0.8, 9.0), (1, 0, 0))
+for (x, z) in ((-3.0, 3.0), (1.8, 6.0), (-3.0, 9.0)): flowers((x + 0.6, 0.4 - D / 2 - 0.5, z + 0.3), 0.35, 4, seed=int(z))
+for x in (-2.0, 2.0): palm((x, 0.4 - D / 2 - 0.9, 0.0), 2.6, seed=int(x + 5))
 print(ship('n_apartment', chunk_cuts={'x': [0.0], 'z': [F, 2 * F, 3 * F]}, chunk_tilt=0.08))

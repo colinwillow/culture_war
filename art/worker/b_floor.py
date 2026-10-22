@@ -1,6 +1,7 @@
 # floor slab 4 x 0.3 x 4, BREAKABLE. Origin at the slab's bottom centre (y = 0).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 box((4.0, 4.0, 0.24), (0, 0, 0.12), 'concrete', bevel=0.03)                     # slab
 box((3.9, 3.9, 0.06), (0, 0, 0.27), 'steel', bevel=0.02)                        # worn top screed
 for i in range(-1, 2):

@@ -1,6 +1,7 @@
 # parapet / roof edge 4 x 0.6 x 0.3. Origin ground centre (sits on the roof slab), runs along X.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 box((4.0, 0.24, 0.48), (0, 0, 0.24), 'brick', bevel=0.02)                       # parapet wall
 box((4.0, 0.3, 0.1), (0, 0, 0.54), 'concrete', bevel=0.025)                     # coping cap
 box((4.0, 0.03, 0.04), (0, -0.135, 0.3), 'bone', bevel=0.0)                     # mortar line

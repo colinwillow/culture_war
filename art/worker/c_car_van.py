@@ -1,6 +1,7 @@
 # delivery van, BREAKABLE. Origin on the ground at the footprint centre, front along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 W = 'white'
 box((2.0, 3.7, 1.85), (0, 0.55, 1.33), W, bevel=0.08)                       # cargo box y -1.3 .. 2.4
 box((1.96, 1.2, 0.9), (0, -1.85, 0.85), W, bevel=0.08)                      # nose/engine y -2.45 .. -1.25

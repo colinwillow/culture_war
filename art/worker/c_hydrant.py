@@ -1,6 +1,7 @@
 # fire hydrant (hazard orange -- never red, red is the team key). Origin at the base centre on the ground.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 O = 'orange'
 cyl(0.2, 0.08, (0, 0, 0.04), 'iron', n=8, bevel=0.015)                      # flange
 for a in range(0, 360, 60):

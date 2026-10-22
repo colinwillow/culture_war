@@ -3,6 +3,7 @@
 # Each origin at its ground centre; nodes spread along X (reset node position when placing).
 import sys, os, random; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 def pile(size, h, n, seed):
     rnd = random.Random(seed); out = []
     out.append(ball(size * 0.45, (0, 0, 0), 'concrete', 1, (1, 0.9, h * 1.6 / size)))  # mound core

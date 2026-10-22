@@ -1,6 +1,7 @@
 # street lamp: chunky post-top lantern (keeps the 0.4 m footprint). Origin at the base centre on the ground.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 box((0.4, 0.4, 0.12), (0, 0, 0.06), 'concrete', bevel=0.03)                 # footing
 cyl(0.17, 0.5, (0, 0, 0.37), 'iron', n=8, r2=0.1, bevel=0.0)               # flared base
 cyl(0.09, 4.3, (0, 0, 2.75), 'iron', n=8)                                   # pole

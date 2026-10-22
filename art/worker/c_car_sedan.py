@@ -1,6 +1,7 @@
 # boxy sedan, BREAKABLE. Origin on the ground at the footprint centre, front along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 B = 'blue'
 box((1.86, 4.1, 0.55), (0, 0, 0.62), B, bevel=0.08, seg=1)                    # lower body
 box((1.84, 1.05, 0.12), (0, -1.45, 0.94), B, bevel=0.05)                      # hood top

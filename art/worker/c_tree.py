@@ -23,4 +23,8 @@ c += [ball(0.55, (0.3, -0.8, 3.4), 'leaf2', 2), ball(0.45, (-0.5, 0.9, 3.6), 'le
 for g in (a, b, c):
     for o in g:
         if o.name.startswith('Ico'): o.rotation_euler = (0.3, 0.2, len(g) * 0.7)
+# ---- CITY PASS (key art): tree_b becomes a twin palm, tree_c a purple-cap mushroom tree (names/origins unchanged)
+for o in b + c: bpy.data.objects.remove(o)
+b = palm((0, 0, 0), 4.2, 7, seed=1) + palm((0.5, 0.3, 0), 3.0, 6, seed=2) + flowers((0.0, 0.0, 0.1), 0.45, 5, seed=3)
+c = mushtree((0, 0, 0), 3.6, 1.6) + mushtree((0.9, 0.5, 0), 2.2, 0.8) + flowers((-0.4, -0.3, 0.1), 0.4, 4, seed=5)
 print(ship_multi('c_tree', {'tree_a': a, 'tree_b': b, 'tree_c': c}, spacing=4.0, clip=True))

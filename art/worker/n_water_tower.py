@@ -1,6 +1,7 @@
 # Neutral water tower (rooftop style) on legs. Origin ground centre.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 for x in (-1.4, 1.4):
     for y in (-1.4, 1.4):
         box((0.5, 0.5, 0.3), (x, y, 0.15), 'concrete', bevel=0.04)
@@ -33,4 +34,9 @@ cyl(0.04, 0.5, (1.2, -1.2, 4.3), 'blue', n=5)
 for a in range(0, 360, 30):
     r = math.radians(a); box((0.03, 0.03, 2.9), (math.cos(r) * 1.76, math.sin(r) * 1.76, 6.15), 'dark', bevel=0.0)
 cyl(0.02, 2.0, (1.6, 1.0, 5.0), 'bone', n=4)
+
+# ---- CITY PASS (key art): teal onion-dome roof spire, a violet screen on the tank, flowers on the platform
+spire(0.5, 2.0, (0, 0, 8.8), 'teal')
+screen(1.0, 0.7, (1.79, 0, 6.2), (1, 0, 0))
+flowers((-1.2, -1.2, 4.8), 0.3, 4, seed=4)
 print(ship('n_water_tower'))

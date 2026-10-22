@@ -2,6 +2,7 @@
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 import bmesh
 reset()
+city_style()   # Colin's key-art palette
 # jersey profile (y, z) extruded along X
 prof = [(-0.3, 0), (-0.3, 0.08), (-0.22, 0.3), (-0.1, 0.9), (0.1, 0.9), (0.22, 0.3), (0.3, 0.08), (0.3, 0)]
 me = bpy.data.meshes.new('jb'); bm = bmesh.new()

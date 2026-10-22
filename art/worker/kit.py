@@ -733,3 +733,67 @@ def glowslots(w, h, loc, normal=(0, -1, 0), n_slots=2, col='glow'):
         f = box((w / n_slots * 0.7, w * 0.04, h * 0.6), tuple(p + nn * w * 0.11 + x * off), 'dark', bevel=0.0); f.rotation_euler = q; obs.append(f)
         g = box((w / n_slots * 0.5, w * 0.04, h * 0.45), tuple(p + nn * w * 0.13 + x * off), col, bevel=0.0); g.rotation_euler = q; obs.append(g)
     return obs
+
+# ---------------------------------------------------------------- neutral city (Colin's BATTLE FOR EARTH key art):
+# weathered ochre/gold sandstone towers with teal trim, onion-dome spires, glowing violet alien-sign screens, palms,
+# purple flowers, purple-cap mushroom trees, wooden rope bridges.
+for _k, _h in dict(ochre='c98a34', sand='d9b77a', sandlt='ead2a0', teal='3a9a94', tealdk='2a6a6a', violet='7a3ac0',
+                   palm='4f8a2a', palm2='7aa83a', flower='b04ad8', capviolet='8a4ac8').items():
+    PAL[_k] = _lin(_h)
+PAL['gviolet'] = _lin('b07aff'); GLOW['gviolet'] = 'glow_violet'; GLOW_HEX['gviolet'] = 'b07aff'
+
+def city_style():
+    """Remap the generic city colours to the key-art palette (call after reset())."""
+    PAL['brick'] = PAL['ochre']; PAL['concrete'] = PAL['sand']; PAL['white'] = PAL['sandlt']; PAL['blue'] = PAL['teal']
+
+def spire(r, h, loc, col='teal'):
+    """Onion-dome spire: drum, bulb, needle with a tiny gold ball."""
+    x, y, z = loc; obs = []
+    obs.append(cyl(r, h * 0.25, (x, y, z + h * 0.125), 'sand', n=8))
+    obs.append(cyl(r * 1.1, h * 0.05, (x, y, z + h * 0.27), col, n=8))
+    obs.append(ball(r * 1.05, (x, y, z + h * 0.42), col, 1, (1, 1, 1.1)))
+    obs.append(cyl(r * 0.5, h * 0.35, (x, y, z + h * 0.68), col, n=6, r2=0.0))
+    obs.append(ball(r * 0.15, (x, y, z + h * 0.88), 'gold', 1))
+    return obs
+
+def screen(w, h, loc, normal=(0, -1, 0)):
+    """Glowing violet sign screen with a dark alien-head silhouette, in a teal frame."""
+    n = Vector(normal).normalized(); p = Vector(loc); q = n.to_track_quat('Y', 'Z').to_euler(); obs = []
+    o = box((w + 0.12, 0.1, h + 0.12), tuple(p + n * 0.05), 'tealdk', bevel=0.02); o.rotation_euler = q; obs.append(o)
+    o = box((w, 0.04, h), tuple(p + n * 0.11), 'gviolet', bevel=0.0); o.rotation_euler = q; obs.append(o)
+    hd = ball(h * 0.28, tuple(p + n * 0.14 + Vector((0, 0, h * 0.06))), 'dark', 1, (0.9, 0.3, 1.15)); hd.rotation_euler = q; obs.append(hd)
+    x = Vector((0, 0, 1)).cross(n).normalized()
+    for s in (-1, 1):
+        e = ball(h * 0.08, tuple(p + n * 0.2 + x * s * h * 0.11 + Vector((0, 0, h * 0.08))), 'gviolet', 1, (1.3, 0.4, 0.8)); e.rotation_euler = q; obs.append(e)
+    return obs
+
+def palm(loc, h=2.6, fronds=6, seed=0):
+    import random
+    rnd = random.Random(seed); x, y, z = loc; obs = []
+    lean = Vector((rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), 1)).normalized()
+    for i in range(4):
+        p0 = Vector((x, y, z)) + lean * h * i / 4; p1 = Vector((x, y, z)) + lean * h * (i + 1) / 4
+        o = cyl(0.13 - i * 0.015, h / 4 * 1.05, tuple((p0 + p1) / 2), 'bark', n=6, r2=0.11 - i * 0.015); _aim(o, p1 - p0); obs.append(o)
+    top = Vector((x, y, z)) + lean * h
+    for k in range(fronds):
+        a = 2 * math.pi * k / fronds + rnd.uniform(-0.2, 0.2)
+        d = Vector((math.cos(a), math.sin(a), -0.25)).normalized()
+        f = box((0.28, 1.2, 0.04), tuple(top + d * 0.6), 'palm' if k % 2 else 'palm2', bevel=0.0, taper=(0.3, 1))
+        f.rotation_euler = d.to_track_quat('Y', 'Z').to_euler(); obs.append(f)
+    obs.append(ball(0.16, tuple(top), 'bark', 1))
+    return obs
+
+def flowers(loc, r=0.5, n=6, seed=0):
+    """A clump of purple flower balls + leaves (planter fill)."""
+    import random
+    rnd = random.Random(seed); x, y, z = loc; obs = [ball(r, (x, y, z), 'palm', 1, (1, 1, 0.5))]
+    for i in range(n):
+        a = rnd.uniform(0, 6.28); d = rnd.uniform(0, r * 0.8)
+        obs.append(ball(r * rnd.uniform(0.18, 0.3), (x + math.cos(a) * d, y + math.sin(a) * d, z + r * 0.35), 'flower', 1))
+    return obs
+
+def mushtree(loc, h=4.0, r=1.6, seed=0):
+    x, y, z = loc
+    return [cyl(r * 0.16, h, (x, y, z + h / 2), 'sandlt', n=6, r2=r * 0.12),
+            ball(r, (x, y, z + h), 'capviolet', 2, (1, 1, 0.42)),
+            cyl(r * 0.85, 0.08, (x, y, z + h - 0.1), 'teal', n=10)]

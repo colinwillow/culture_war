@@ -1,6 +1,7 @@
 # city bus. Origin on the ground at the footprint centre, front along +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 Y = 'yellow'
 box((2.45, 10.8, 1.2), (0, 0, 0.95), Y, bevel=0.1)                         # lower body
 box((2.42, 10.6, 1.0), (0, 0.05, 2.05), 'glass', bevel=0.06)               # window band

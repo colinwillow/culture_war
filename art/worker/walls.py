@@ -16,6 +16,7 @@ def slab_with_hole(hole):
 
 def build(name, hole=None, frame='wood'):
     reset()
+    city_style()   # key-art palette
     slab_with_hole(hole)
     box((W + 0.04, T + 0.12, 0.2), (0, 0, 0.1), 'concrete', bevel=0.03)          # footing
     box((W + 0.04, T + 0.08, 0.14), (0, 0, H - 0.07), 'concrete', bevel=0.03)    # cap

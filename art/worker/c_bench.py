@@ -1,6 +1,7 @@
 # park bench: chunky wood slats on iron legs. Origin ground centre, seat faces +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 for y in (-0.18, -0.04, 0.10):
     box((1.8, 0.12, 0.06), (0, y, 0.45), 'wood', bevel=0.015)                # seat slats
 for z in (0.62, 0.78):

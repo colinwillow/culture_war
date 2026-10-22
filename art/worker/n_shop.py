@@ -1,6 +1,7 @@
 # Neutral corner shop: 2 floors, awning, BREAKABLE by floor. Origin ground centre, shopfront faces +Z (and +X corner).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 F = 3.2  # floor height
 box((7.6, 7.6, F), (0, 0, F / 2), 'brick', bevel=0.06)                           # ground floor
 box((7.6, 7.6, F), (0, 0, F * 1.5), 'concrete', bevel=0.06)                      # first floor
@@ -37,5 +38,12 @@ cyl(0.06, 0.5, (2.4, -2.4, F * 2 + 0.3), 'iron', n=5)
 cyl(0.7, 1.2, (2.3, 2.0, F * 2 + 0.7), 'wood', n=10); cyl(0.75, 0.4, (2.3, 2.0, F * 2 + 1.5), 'iron', n=10, r2=0.1)
 for x in (-3.0, 1.2): box((0.15, 0.03, 1.4), (x, -3.83, 2.4), 'rust', bevel=0.0)
 cyl(0.025, 1.8, (3.9, -3.9, 4.3), 'dark', n=4)
+
+# ---- CITY PASS (key art): ochre/sand stone + teal trim, an onion-dome spire on the corner, a violet alien-sign screen,
+# flower planters, a palm on the roof
+spire(0.7, 3.2, (3.0, -3.0, F * 2 + 0.2))
+screen(1.4, 1.0, (-3.84, 1.6, 4.9), (-1, 0, 0))
+for x in (-3.0, -1.0): flowers((x, -4.1, 0.25), 0.4, 5, seed=int(x * 10))
+palm((-2.4, 2.6, F * 2 + 0.1), 2.4, seed=3)
 for o in bpy.context.scene.objects: o.location.x -= 0.44; o.location.y += 0.44   # centre incl. awnings
 print(ship('n_shop', chunk_cuts={'x': [-0.44], 'z': [F]}, chunk_tilt=0.08))

@@ -1,6 +1,7 @@
 # dumpster: olive steel bin, sloped lid, side pockets, casters. Origin ground centre, front +Z (Blender -Y).
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 G = 'olive'
 box((1.9, 1.05, 1.1), (0, 0.02, 0.7), G, bevel=0.05, taper=(1.0, 1.12))   # bin, flares toward the top
 box((1.96, 0.62, 0.08), (0, -0.22, 1.33), 'iron', rot=(-8, 0, 0), bevel=0.02)  # front lid

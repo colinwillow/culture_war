@@ -1,6 +1,7 @@
 # Neutral gas station: canopy, two pumps, a small kiosk. Origin ground centre, forecourt faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 box((12.0, 8.0, 0.12), (0, 0, 0.06), 'asphalt', bevel=0.0)                       # forecourt
 box((6.0, 3.0, 0.2), (-1.6, -0.8, 0.2), 'concrete', bevel=0.04)                  # pump island
 # canopy on 4 posts
@@ -43,4 +44,10 @@ for x in (-4.0, 0.8): box((0.37, 0.37, 0.4), (x, -2.0, 0.4), 'yellow', bevel=0.0
 # ---- detail pass 2: panel lines on the canopy fascia, a cracked price panel, a yellow/black hazard curb
 for x in (-4.5, -1.6, 1.3): box((0.04, 4.52, 0.27), (x, -0.8, 4.35), 'dark', bevel=0.0)
 for k in range(10): box((0.6, 0.2, 0.18), (-4.3 + k * 0.6, -2.4, 0.2), 'yellow' if k % 2 else 'dark', bevel=0.0)
+
+# ---- CITY PASS (key art): violet alien-sign screen on the price pole, a teal dome on the kiosk, palms + flowers
+screen(1.2, 0.9, (5.4, -3.7, 2.9), (0, -1, 0))
+ball(1.0, (4.0, 2.2, 3.2), 'teal', 1, (1, 1, 0.6)); ball(0.1, (4.0, 2.2, 3.85), 'gold', 1)
+for (x, y) in ((-5.0, 3.0), (5.0, 0.3)): palm((x, y, 0.12), 2.6, seed=int(x * 3))
+flowers((-5.0, -3.3, 0.3), 0.5, 6, seed=9)
 print(ship('n_gas'))

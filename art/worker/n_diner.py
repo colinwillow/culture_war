@@ -1,6 +1,7 @@
 # Neutral roadside diner with a big sign. Origin ground centre, front (windows + door) faces +Z.
 import sys, os; sys.path.insert(0, os.path.dirname(__file__)); from kit import *
 reset()
+city_style()   # Colin's key-art palette
 box((10.0, 7.0, 0.15), (0, 0, 0.075), 'asphalt', bevel=0.0)                        # lot
 # rounded railcar-style body: box + half-cylinder roof
 box((7.6, 4.0, 2.4), (-0.6, 0.6, 1.45), 'white', bevel=0.25)
@@ -35,4 +36,9 @@ box((0.6, 0.9, 0.5), (3.6, -2.6, 0.55), 'steel', bevel=0.0); cyl(0.1, 0.1, (3.4,
 for x in (-3.5, -1.5, 0.5, 2.5): box((0.06, 4.1, 0.06), (x, 0.6, 3.36), 'dark', bevel=0.0)
 box((0.6, 0.08, 0.3), (1.6, -1.47, 1.9), 'glow', bevel=0.0)
 cyl(0.3, 0.8, (-4.4, 2.6, 0.55), 'olive', n=8)
+
+# ---- CITY PASS (key art): violet alien-sign screen on the sign pole, teal trim, palms + flower beds round the lot
+screen(1.6, 1.0, (-3.6, -2.92, 4.2), (0, -1, 0))
+for (x, y) in ((-4.0, 2.7), (4.0, -2.7)): palm((x, y, 0.15), 2.8, seed=int(x))
+for x in (-2.0, 0.5): flowers((x, -1.85, 0.3), 0.4, 5, seed=int(x * 7))
 print(ship('n_diner'))
