@@ -12,7 +12,7 @@ STEER (Colin, 09:20): "SEXY UI, SEXY MAP" -- strictly alien (human factions tabl
 - [x] B227 arena: fist / shooting-pose grips, gunners never club, size drives damage + launch
 - [x] B228 health rings at the feet (segmented per member); RTS Brute props true size
 - [x] B229 Weirdport ground textures (asphalt / sidewalk / curb / grass)
-- [ ] HUD restyle to the menu's look: dark glass chips with species-colour neon edge, Bungee numbers, command buttons glow in the species colour (--fc)
+- [x] B231 HUD restyle to the menu's look: dark glass chips with species-colour neon edge, Bungee numbers, command buttons glow in the species colour (--fc)
 - [ ] Building textures: Weirdport's brick / concrete / plaster / corrugated / roof tar on the placeholder city blocks (groundMat-style world UVs)
 - [ ] Sky + light: dusk-alien grade (magenta horizon, teal shadows), fog tinted to match; billboard god rays already exist
 - [x] B230 worker UI batch 8: logo + four emblems on the menu (command icons still to wire)

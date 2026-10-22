@@ -233,3 +233,17 @@ body.show-mute #duelBtn { display: grid; }
 @media (orientation: landscape) { #menu h1 { font-size: clamp(36px, 9vh, 64px); } #menu h1 span { margin-top: 4px; } .pick.sp { width: 140px; } .pick.sp .em { width: 44px; height: 44px; } }
 #menu h1 .logo { display: block; width: min(78vw, 520px); height: auto; color: #ffe9ec; filter: drop-shadow(0 4px 0 #2a0610) drop-shadow(0 0 22px rgba(255, 40, 80, .6)); margin: 0 auto; }
 @media (orientation: landscape) { #menu h1 .logo { width: auto; height: min(26vh, 150px); } }
+
+/* ALIEN HUD (B231, "sexy UI"): the menu's look in the match -- dark violet glass, a neon edge in YOUR species colour
+   (--fc, set per match), Bungee figures. Overrides only; layout and states above are untouched. */
+:root { --panel: rgba(14, 10, 22, .82); --line: color-mix(in srgb, var(--fc) 38%, #2a2238); }
+.chip { border: 1px solid color-mix(in srgb, var(--fc) 55%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--fc) 28%, transparent), inset 0 0 10px color-mix(in srgb, var(--fc) 12%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.btn { background: linear-gradient(170deg, rgba(36, 26, 52, .88), rgba(10, 8, 16, .92)); border: 2px solid color-mix(in srgb, var(--fc) 45%, #2a2238);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fc) 22%, transparent), inset 0 0 14px color-mix(in srgb, var(--fc) 10%, transparent), 0 4px 0 rgba(0, 0, 0, .45); }
+.btn .ic { color: var(--fc2); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--fc) 70%, transparent)); }
+.btn.sm.army .ic, .btn.sm.build .ic, .btn.sm.view .ic { color: var(--fc2); }
+.btn.ready { border-color: var(--fc); box-shadow: 0 0 18px var(--fc), 0 4px 0 rgba(0, 0, 0, .45); }
+.btn.on { border-color: var(--fc); background: color-mix(in srgb, var(--fc) 26%, rgba(10, 8, 16, .9)); }
+.btn small, .btn .lbl { font-family: var(--num); letter-spacing: .08em; }
+#pauseBtn, #muteBtn, #gfxBtn, #globeBtn, #duelBtn { border-color: color-mix(in srgb, var(--fc) 45%, #2a2238) !important; box-shadow: 0 0 10px color-mix(in srgb, var(--fc) 22%, transparent); }
+#mini { border: 2px solid color-mix(in srgb, var(--fc) 55%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--fc) 30%, transparent); }

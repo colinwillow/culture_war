@@ -236,3 +236,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B228: health bars over heads replaced by a ring on the ground per squad (a segment per member, lit round by its health; buildings one segment); RTS Brute props sized in world metres (were door-sized) and gripped by the fist.
 - B229: ground textured with Weirdport's toon-city surfaces (textures/: asphalt, sidewalk, curb, grass, dirt, concrete), laid in world metres by groundMat (scene.js); kerb sides take the curb texture.
 - B230: menu wears the worker's logo (ringed-planet O) and four species emblems, inlined SVG.
+- B231: HUD in the menu's look: violet glass chips/buttons/minimap with a neon edge in your species colour (--fc from the menu's NEON table).
