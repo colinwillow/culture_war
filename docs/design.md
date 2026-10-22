@@ -146,6 +146,11 @@ in a headless page; needs `python3 -m http.server 4174` from the repo's parent).
 Other systems: time of day (morning -> golden hour over ~11 min, lamps + windows glow), AI garrisons its towers,
 end-of-match camera swoop, hero entrance spotlight, faction-coloured HUD accents, voice barks on orders, graffiti tags.
 
+## DIRECTION CHANGE (Colin, Oct 22 2026): species war, culture war tabled
+The culture-war factions are shelved. The game is a war for Earth between ALIEN SPECIES, MONSTERS, ROBOTS and HUMANS,
+over the living city (which stays neutral and computer-run). Classes, ranks, factions and sub-factions: `docs/roster.md`.
+Working title: War for the World. Say "species" or "faction" in the game, never "race".
+
 ## Main direction (Colin, Oct 21 2026): aliens vs aliens, with the humans as the living city
 Every player is an alien faction (greys abduct, mantis mind-control, lizards possess hosts, toad brutes smash and eat,
 parasites infect, fungus spreads...). Each is a different verb applied to the same human city. The humans are never a

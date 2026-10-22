@@ -1,65 +1,176 @@
-# Roster: alien races and their unit tiers (working draft, Oct 22 2026)
+# Roster v2: species, classes, ranks, factions (Oct 22 2026)
 
-The alien direction (see `design.md`, "Main direction") needs a cast before it needs code. This is the sheet to fill in:
-every race gets the same set of **tiers**, so each piece of art lands in a slot the game already has. Colin designs and
-generates the art; `blender-addons/pipeline/` turns four views into a rigged character (Tripo -> Auto-Rig Pro).
+**Direction (Colin, Oct 22):** the culture-war factions are tabled. The game is a war for Earth between alien species,
+monsters, robots and humans. The **living city** (civilians, road crews, firefighters, police -> SWAT -> army -> riot mech)
+stays as the neutral backdrop that every side tramples, feeds on or defends.
 
-## The tiers (shared by every race)
+**Working titles:** *War for the World* (front-runner), *World War Weird*, *Planet Brawl*, *Invasion Block*.
+"Race War" is a no: an app store will not take it and it reads as the real thing whatever the joke is. *The War of the
+Worlds* is public domain but crowded. **Wording rule in the game:** they are SPECIES / FACTIONS, never "races".
 
-These are the game's existing unit slots. Each race fills every slot, and its own look and verb set it apart.
+**App-store guard:** no species may be a caricature of a real human group (accents, dress, features coded to a real
+ethnicity, religion or nationality). Humans in the game are a mixed, fictional military, not any real country or agency.
 
-| Tier | Code slot | Size on the map | Squad | What it is for |
-|---|---|---|---|---|
-| Worker | `worker` | small (~1.2 m) | 1 | Builds, repairs, gathers. The humble one. |
-| Grunts | `pike` | small (~1.3 m) | 5-8 | Cheap swarm with reach. Beats fast units. |
-| Brutes | `melee` | medium-big (~1.9 m) | 3-5 | The punch-up line. Beats shooters. |
-| Shooters | `ranged` | medium (~1.6 m) | 4-5 | Fragile, hit from range. Beats grunts. |
-| Fast | `cav` | mount or vehicle | 1-6 | Flanks and raids. Beats brutes. |
-| Big | `siege` | huge (3-5 m) or machine | 1 | Knocks buildings down. Slow, weak up close. |
-| Hero | `hero` | stand-out (~2 m) | 1 | One per side, one special ability. |
+How to use this file: pick one SUB-FACTION and ask for its prompts (one image per class, front view T-pose, plain
+background, then Tripo multiview -> pipeline). Names below are placeholders until Colin likes them.
 
-Counter loop (already in the sim): grunts > fast > shooters > brutes > grunts. Big and Hero sit outside it.
-Humans 1.6 m for scale. Units are tiny on a phone screen, so **silhouette beats detail**: horns, tails, hunches and
-weapons read; fingers and faces barely do (procedural tails and props matter more than finger bones here).
+---
 
-## Races (draft: names and verbs are placeholders until Colin picks)
+## 1. Classes (every faction fills the same seven slots)
 
-Each race has one **verb** toward the human city: the thing that makes it different to play.
+The slot in brackets is the unit slot the game already runs on, so new art drops straight in. Sizes are at a 1.6 m human.
 
-| Race (working name) | Verb on humans | Feel | Built in code as |
-|---|---|---|---|
-| Greys | **Abduct**: beam civilians up for cash/tech | Cold, techy, saucers | Nerds' `traits.abduct` (B148) |
-| Mantids | **Mind-control**: hypnotised humans fight for them | Elegant, insect, hypnotic | Street Crew's `traits.mind` (B149) |
-| Shapeshifters / lizards | **Possess**: wear a human, invisible until they strike | Sneaky, scaly | Activists' `traits.possess` (B148) |
-| Brutes / toads | **Eat**: gulp a human to heal | Big, loud, hungry | Old Money's `traits.eat` (B149) |
-| Parasites | **Infect**: humans become walking goo bombs | Gross, spreading | Backwoods' `traits.infect` (B149) |
-| Fungus / spores | (spare) **Spread**: territory creep | Slow, inevitable | not built |
+| # | Class | Slot | Size | Squad | Job | Duel move set |
+|---|---|---|---|---|---|---|
+| 1 | **Worker** | `worker` | small | 1 | builds, repairs, gathers, does the faction's VERB to civilians | tool swings, flee |
+| 2 | **Grunt** | `pike` | small | 6-8 | cheap swarm, reach weapon, beats Fast | light melee, mob |
+| 3 | **Brute** | `melee` | big | 3-4 | the front line, heavy weapon or shield, beats Shooters | heavy melee + block (the warrior's set) |
+| 4 | **Shooter** | `ranged` | medium | 4-5 | ranged infantry, beats Grunts | rifle set (Colin's set) + melee fallback |
+| 5 | **Fast** | `cav` | mount / bike / flyer | 1-4 | raids and flanks, beats Brutes | charge, hit-and-run |
+| 6 | **Heavy** | `siege` | huge (3-6 m) | 1 | walker, tank, giant beast: wrecks buildings | slam, stomp |
+| 7 | **Hero** | `hero` | stand-out | 1 | one per side, levels 1-5, one signature power | full set + special |
 
-The six current factions keep running as stand-ins until a race's art exists; each verb then moves to its race.
+Counter loop (already in the sim): Grunt > Fast > Shooter > Brute > Grunt. Heavy and Hero sit outside it.
+Small on a phone = **silhouette over detail**: horns, tails, hunches, glowing bits and big weapons read; fingers and
+faces barely do.
 
-## Where the red demon fits
+## 2. Ranks
 
-The horned red guy with the mace tail (first Tripo -> Auto-Rig Pro test, Oct 21) reads as a **Brute**-tier unit or a
-**Hero**: big frame, heavy armour, a tail weapon. He could anchor the Brutes/toads race (the jaw and gut) or a
-lizard/dino race (the tail and scales). **Colin's call.** He is already rigged with a 6-bone tail for procedural sway.
+- **Units:** Recruit -> **Veteran** (after 10 kills: +20% damage, a shoulder piece / glow) -> **Elite** (after 25: +40%,
+  a second trim colour). Same art, an extra bolt-on mesh per rank.
+- **Heroes:** levels 1-5 from kills and objectives; each level adds to the signature power.
+- **Faction tech tiers:** T1 (HQ: Worker, Grunt) -> T2 (Barracks L2: Brute, Shooter, Fast) -> T3 (L3: Heavy) -> Hero.
 
-## Art checklist (per character)
+## 3. Sub-factions
 
-1. **Four views**: front, left, back, right. Same lighting, plain background, square images (his 1254 px are fine).
-   The front is required; Tripo can work from two, but four is better.
-2. **T-pose or A-pose**, hands open with fingers apart (the finger AI fails on fists and chunky gloves; for units this
-   small, finger bones are optional anyway).
-3. **One character per image set.** Props he holds come out welded to the hand; give them a separate set of views if
-   they need to be swappable.
-4. Drop the images in `blender-addons/art/<race>/<tier>/` (private repo), named `front/left/back/right.png`.
-5. The pipeline makes it: Tripo P2 quad mesh about 5,000 quads, 4K texture with lighting kept, then the Auto-Rig Pro AI
-   rig with voxel weights and an optional tail chain. About 120 credits and 2 minutes per character.
+Every faction has **three sub-factions** (clans, divisions, models). A sub-faction is the SAME seven classes with its own
+**look** (palette + gear kit), one **twist** (a passive or one swapped unit), and a name. The player picks the faction,
+then the sub-faction. Art-wise: one base model per class, three outfits.
 
-## Decisions waiting on Colin
+---
 
-- **Species per faction, or mixed?** The design note says "mix species across every faction; costume/gear defines the
-  side, never the body". A race-per-faction roster (StarCraft style) contradicts it. Fictional aliens are not human
-  ethnicities; the line to hold is that no species may be a caricature of a real human group. Pick one model.
-- Race names, colours and the verb for each.
-- How many races at launch (6 tiers x N races = the art list).
-- Is the demon a brute, a hero or a dino race?
+## 4. The factions
+
+Each faction has a **verb**: what it does to the human city. That verb is its identity in both games.
+
+### HUMANS: *Earthguard* (verb: DEFEND / REBUILD)
+The home team: rebuild what breaks, shield civilians, grow stronger the more of the city stands.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Iron Line** (regular army) | olive armour, big helmets, sandbags | bunkers on any rubble |
+| **Halcyon Security** (corporate private force) | white-and-chrome armour, visors, drones | hires mercenaries with cash |
+| **Block Watch** (civilian resistance) | mismatched gear, hoodies, hockey pads, junk weapons | civilians join them instead of fleeing |
+
+Classes: Engineer, Rifleman Squad (Grunt: bayonets), Shield Trooper (Brute: riot shield), Marksman (Shooter),
+Bike Scout (Fast), Walker Tank (Heavy), Commander (Hero: airstrike).
+
+### ROBOTS: *The Assembly* (verb: CONVERT: scrap and buildings become more robots)
+Machines that turn the city into more machines. Slow to start, a flood once the factories run.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Factory Line** (industrial) | yellow-black hazard paint, claws, conveyor parts | Workers build twice as fast |
+| **Defense Grid** (military AI) | sleek gunmetal, red optics | Shooters overcharge (burst fire) |
+| **Junkers** (rogue scrapbots) | rust, mismatched parts, sparks | rebuild dead units from wreckage |
+
+Classes: Fixbot, Drone Swarm (Grunt), Crusher (Brute: hydraulic fists), Gunbot (Shooter), Wheelbot (Fast),
+Megawalker (Heavy), Prime Unit (Hero: overclock aura).
+
+### MONSTERS: *The Brood* (verb: FEED: eating civilians grows them)
+Earth's own nightmares, woken by the war: things from sewers, swamps and labs.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Sewer Kin** | slimy, pale, glowing eyes | tunnel under walls |
+| **Swamp Things** | moss, bark, vines | heal standing in water/parks |
+| **Lab Escapes** | stitched, tubes, mismatched mutations | random mutation per squad |
+
+Classes: Crawler (Worker), Biter Pack (Grunt), Hulk (Brute), Spitter (Shooter: acid), Leaper (Fast),
+Behemoth (Heavy), Alpha (Hero: roar that panics enemies).
+
+### ALIEN SPECIES
+
+**Greys** (verb: ABDUCT: beam civilians up for tech). Art: `alien_grey_medium`. Cold, clinical, saucers.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Probe Corps** | white lab suits, probes | abductions give more tech |
+| **Saucer Wing** | flight suits, small hover discs | Fast and Heavy can fly |
+| **Silent Choir** | robed, big glowing heads | psychic stun on the Hero |
+
+Classes: Drone Tech, Probe Squad, Psi Guard, Ray Gunner, Hover Disc, Mothership Leg (tripod walker), Overseer.
+
+**Mantids** (verb: MIND-CONTROL: hypnotise civilians to fight for them). Insectoid, elegant, hypnotic.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Hive Court** | gold-trimmed carapace | thralls last longer |
+| **Silkweavers** | pale, webbing | webs slow enemies |
+| **Swarmborn** | small, many, buzzing | Grunt squads +50% bigger |
+
+Classes: Drone, Scythe Swarm, Mantis Knight, Stinger (Shooter), Wing Rider, Hive Queen Walker, Hivelord.
+
+**Hornbacks** (verb: RAID / BURN: loot and set the city alight). Art: **the red demon** (horns, mace tail, tusked jaw).
+Dino-lizard raiders: loud, armoured, tails as weapons.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Scorch Clan** | red, black iron, burn marks | hits set fires |
+| **Bone Riders** | bleached bone armour, war paint patterns (abstract, not cultural) | Fast units are beasts |
+| **Scrap Raiders** | rusted plates, junk guns | loot gives double cash |
+
+Classes: Thrall, Tailspike Pack, Gorehorn (Brute: the demon), Scrap Gunner (the demon GUNNER), Raptor Rider,
+Siege Saurus, Warchief.
+
+**Tuskers** (verb: EAT: gulp civilians to heal). Art: **the alien warrior** (tusks, spiked mace, purple hide).
+Boar-rhino brutes: tough, hungry, simple.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Iron Tusk** | heavy plate, spiked maces | Brutes +30% HP |
+| **Mud Snouts** | mud, hides, bones | regenerate in rubble |
+| **Feast Band** | belly armour, cooking pots | eating heals the whole squad |
+
+Classes: Gobbler, Tusk Gang, Warbeast (Brute: the warrior), Blunderbuss (Shooter), Boar Rider, Gut Titan, Big Tusk.
+
+**Mimics** (verb: POSSESS: wear a human, invisible until they strike). Shapeshifters, gooey underneath.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Masks** | porcelain-smooth faces | disguise lasts longer |
+| **Doubles** | half-human, half-ooze | ambush hits triple |
+| **Veil** | translucent, shimmering | short cloak on Fast |
+
+Classes: Seeper, Faceless Pack, Husk Brute, Lure (Shooter: hypnotic shot), Slider, Amalgam (Heavy), Prime Mimic.
+
+**Ooze & Spores** (verb: INFECT: civilians become walking goo bombs). Slime and fungus: grows over the map.
+
+| Sub-faction | Look | Twist |
+|---|---|---|
+| **Slime Hive** | bright green goo | goo pools slow and hurt |
+| **Spore Choir** | mushrooms, caps, spore clouds | infection spreads further |
+| **Rot Knights** | goo inside rusted armour | Brutes split in two on death |
+
+Classes: Blob, Splitter Swarm, Goo Knight, Spore Spitter, Puddle Racer, Mother Mound, Overgrowth.
+
+**Antennae** (the neutral alien: Colin's hero `alien_antenna_game` / zap and friends: `alien_female_purple`,
+`alien_rollerskate_blue`). The quiet power keeping the peace in the third-person game. In the RTS: a **mercenary /
+neutral faction** that sides with whoever is losing, or the player's species in a campaign. Not a launch faction.
+
+---
+
+## 5. Launch scope (proposal)
+
+Six factions x 3 sub-factions x 7 classes is the full dream (126 looks). For launch:
+- **4 factions:** Humans, Robots, Hornbacks (the demon), Tuskers (the warrior): two already have a rigged Brute.
+- **1 sub-faction each** at launch, the other two as palettes and gear variants later.
+- That is **28 characters**, and Tripo + the rig pipeline makes each one about 2 minutes and ~120 credits.
+
+## 6. Decisions waiting on Colin
+
+1. Title.
+2. Which 4 at launch (or a different count).
+3. Humans: playable faction, or neutral city only?
+4. Monsters as their own faction, or fold the best ideas into the alien species?
+5. Names you like / hate in the tables above.
