@@ -28,4 +28,9 @@ for a in (30, 150, 250):
     r = math.radians(a); box((0.15, 0.03, 1.2), (math.cos(r) * 1.77, math.sin(r) * 1.77, 5.6), 'rust', rot=(0, 0, a + 90), bevel=0.0)
 ball(0.12, (0, 0, 9.2), 'glow', 1)
 cyl(0.04, 0.5, (1.2, -1.2, 4.3), 'blue', n=5)
+
+# ---- detail pass 2: plank lines on the tank, bolts on the hoops, a hanging rope
+for a in range(0, 360, 30):
+    r = math.radians(a); box((0.03, 0.03, 2.9), (math.cos(r) * 1.76, math.sin(r) * 1.76, 6.15), 'dark', bevel=0.0)
+cyl(0.02, 2.0, (1.6, 1.0, 5.0), 'bone', n=4)
 print(ship('n_water_tower'))

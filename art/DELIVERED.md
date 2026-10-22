@@ -146,4 +146,13 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [c_car_van] DETAIL PASS 2 models/gen/c_car_van.glb -- 1824 tris, size/origin unchanged: cargo-box panel lines, yellow number plate, smashed headlight; chunks re-cut with tilted planes
 - [c_bus] DETAIL PASS 2 models/gen/c_bus.glb -- 1964 tris, size/origin unchanged: body panel lines, number plate, cracked windscreen line
 - [breakables] DETAIL PASS 2 -- every *_chunks.glb (c_car_sedan, c_car_van, c_barrier, b_wall_brick/window/door, b_floor, bb_wall, gb_wall, rb_wall, sb_wall, n_shop, n_apartment) re-cut: each cut plane is tilted a little (random, shared by both neighbours) so pieces break as wedges instead of neat boxes; n_shop/n_apartment keep near-level floor cuts (tilt 0.08) so they still break by floor. Same chunk counts and naming (chunk_0..n, origin at each chunk's centre).
-
+- [c_lamp] DETAIL PASS 2 models/gen/c_lamp.glb -- 724 tris, size/origin unchanged: blue street sign plate on the pole, bolts on the footing
+- [c_hydrant] DETAIL PASS 2 models/gen/c_hydrant.glb -- 1264 tris, size/origin unchanged: white reflective band on the top, a puddle disc on the flange
+- [c_bench] DETAIL PASS 2 models/gen/c_bench.glb -- 948 tris, size/origin unchanged: magenta graffiti streak on a slat, rust on the legs, a newspaper on the seat
+- [c_barrier] DETAIL PASS 2 models/gen/c_barrier.glb -- 304 tris, size/origin unchanged: yellow end reflectors (chunks re-cut)
+- [c_dumpster] DETAIL PASS 2 models/gen/c_dumpster.glb -- 1176 tris, size/origin unchanged: hazard stripes on the front corners, panel lines
+- [n_gas] DETAIL PASS 2 models/gen/n_gas.glb -- 1320 tris, size/origin unchanged: panel lines on the canopy fascia, yellow/black hazard curb along the pump island
+- [n_diner] DETAIL PASS 2 models/gen/n_diner.glb -- 876 tris, size/origin unchanged: ribs across the barrel roof, a glowing sign box by the door, an olive bin
+- [n_water_tower] DETAIL PASS 2 models/gen/n_water_tower.glb -- 1220 tris, size/origin unchanged: plank lines round the tank, a hanging rope
+- [b_roof_edge] DETAIL PASS 2 models/gen/b_roof_edge.glb -- 376 tris, size/origin unchanged: mortar cracks, a moss tuft on the coping
+- [c_tree, b_rubble, ui_*] DETAIL PASS 2 -- skipped this round (trees + rubble got pass 1; UI gets its own pass next)

@@ -39,4 +39,8 @@ for (x, y, s) in ((-2.0, -2.6, 1.2), (1.5, -3.0, 0.8), (-4.0, 1.5, 1.0)):
 box((0.8, 0.5, 1.6), (-0.2, -0.8, 1.1), 'yellow', rot=(0, 18, 0), bevel=0.06) if False else None
 box((0.5, 0.5, 0.15), (-0.2, -0.2, 0.37), 'burnt', rot=(0, 0, 25), bevel=0.02)
 for x in (-4.0, 0.8): box((0.37, 0.37, 0.4), (x, -2.0, 0.4), 'yellow', bevel=0.03)          # bollards' hazard sleeves
+
+# ---- detail pass 2: panel lines on the canopy fascia, a cracked price panel, a yellow/black hazard curb
+for x in (-4.5, -1.6, 1.3): box((0.04, 4.52, 0.27), (x, -0.8, 4.35), 'dark', bevel=0.0)
+for k in range(10): box((0.6, 0.2, 0.18), (-4.3 + k * 0.6, -2.4, 0.2), 'yellow' if k % 2 else 'dark', bevel=0.0)
 print(ship('n_gas'))

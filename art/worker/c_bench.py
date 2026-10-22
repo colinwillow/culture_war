@@ -18,4 +18,9 @@ for x in (-0.72, 0.72):
     for y in (-0.18, -0.04, 0.10): hexbolt(0.015, (x, y, 0.485), (0, 0, 1), 'ivory')
 box((0.4, 0.13, 0.06), (0.7, 0.1, 0.4), 'wood', rot=(0, 25, 0), bevel=0.01)                  # broken slat end
 cyl(0.03, 0.18, (-0.4, -0.05, 0.57), 'olive', n=6)
+
+# ---- detail pass 2: graffiti streak on a seat slat, rust on the legs, a newspaper on the seat
+box((0.5, 0.125, 0.005), (-0.3, 0.1, 0.483), 'magenta', bevel=0.0)
+for x in (-0.72, 0.72): box((0.085, 0.085, 0.1), (x, -0.22, 0.1), 'rust', bevel=0.0)
+box((0.35, 0.25, 0.02), (0.5, -0.05, 0.49), 'white', rot=(0, 0, 15), bevel=0.0)
 print(ship('c_bench'))

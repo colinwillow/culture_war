@@ -23,4 +23,9 @@ box((0.4, 0.3, 0.3), (-0.4, 0.4, 1.42), 'orange', rot=(-10, 5, -20), bevel=0.03)
 for x in (-0.85, 0.85):
     for z in (0.5, 1.0): hexbolt(0.03, (x, -0.57, z), (0, -1, 0), 'ivory')
 chain((0.8, -0.6, 1.25), (0.95, -0.62, 0.95), 0.03)
+
+# ---- detail pass 2: hazard stripes on the corners, panel lines
+for x in (-0.95, 0.95): 
+    for k in range(3): box((0.08, 0.03, 0.15), (x, -0.58, 0.4 + k * 0.3), 'orange' if k % 2 == 0 else 'dark', bevel=0.0)
+for x in (-0.3, 0.3): box((0.02, 0.03, 0.9), (x, -0.57, 0.7), 'dark', bevel=0.0)
 print(ship('c_dumpster'))

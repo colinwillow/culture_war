@@ -30,4 +30,9 @@ crown(1.0, (4.92, 1.5, 1.4), normal=(1, 0, 0), up=(0, 0, 1), t=0.02, col='dark')
 box((1.0, 0.8, 0.6), (3.6, 1.4, 3.05), 'steel', bevel=0.05)
 for (x, y) in ((4.6, 3.0), (4.1, 3.2)): ball(0.35, (x, y, 0.4), 'dark', 1, (1, 1, 0.8))
 box((0.6, 0.9, 0.5), (3.6, -2.6, 0.55), 'steel', bevel=0.0); cyl(0.1, 0.1, (3.4, -2.3, 0.15), 'tire', (0, 90, 0), n=6)
+
+# ---- detail pass 2: panel ribs on the barrel roof, a hanging OPEN-style glow box (no text), bins
+for x in (-3.5, -1.5, 0.5, 2.5): box((0.06, 4.1, 0.06), (x, 0.6, 3.36), 'dark', bevel=0.0)
+box((0.6, 0.08, 0.3), (1.6, -1.47, 1.9), 'glow', bevel=0.0)
+cyl(0.3, 0.8, (-4.4, 2.6, 0.55), 'olive', n=8)
 print(ship('n_diner'))

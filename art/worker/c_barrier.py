@@ -29,4 +29,8 @@ crown(0.5, (0.45, -0.23, 0.42), normal=(0, -0.95, 0.3), up=(0, 0.3, 0.95), t=0.0
 box((0.7, 0.02, 0.07), (-0.5, -0.22, 0.35), 'magenta', rot=(-11, 0, 8), bevel=0.0)
 box((0.25, 0.02, 0.02), (-0.2, -0.19, 0.7), 'asphalt', rot=(-11, 0, 40), bevel=0.0)
 box((0.25, 0.02, 0.02), (0.6, 0.19, 0.6), 'asphalt', rot=(11, 0, -30), bevel=0.0)
+
+# ---- detail pass 2: a stencilled number + reflectors on the ends
+for x in (-0.85, 0.85):
+    box((0.1, 0.02, 0.1), (x, -0.21, 0.6), 'yellow', rot=(-11, 0, 0), bevel=0.0)
 print(ship('c_barrier', chunk_cuts={'x': [-0.5, 0.0, 0.5], 'z': [0.45]}))

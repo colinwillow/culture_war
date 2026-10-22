@@ -20,4 +20,9 @@ box((0.22, 0.03, 0.35), (0, -0.1, 2.0), 'yellow', bevel=0.0)
 box((0.2, 0.03, 0.3), (0.0, 0.1, 1.7), 'magenta', bevel=0.0)
 crown(0.16, (0, -0.12, 2.0), normal=(0, -1, 0), up=(0, 0, 1), t=0.008, col='dark')
 cyl(0.015, 1.2, (0.12, 0, 4.4), 'dark', n=4)
+
+# ---- detail pass 2: a dented sign bracket with a street sign, bolts on the footing
+box((0.36, 0.05, 0.16), (0, -0.13, 3.2), 'blue', bevel=0.01)
+for x in (-0.15, 0.15):
+    for y in (-0.15, 0.15): hexbolt(0.025, (x, y, 0.13), (0, 0, 1))
 print(ship('c_lamp'))

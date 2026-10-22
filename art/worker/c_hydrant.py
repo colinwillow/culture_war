@@ -23,4 +23,8 @@ crown(0.12, (0, -0.135, 0.33), normal=(0, -1, 0), up=(0, 0, 1), t=0.006, col='da
 for a in (45, 135, 225, 315):
     r = math.radians(a); hexbolt(0.02, (math.cos(r) * 0.135, math.sin(r) * 0.135, 0.5), (math.cos(r), math.sin(r), 0))
 box((0.03, 0.02, 0.15), (0.1, -0.1, 0.45), 'rust', bevel=0.0)
+
+# ---- detail pass 2: hazard-white reflective band on the top, panel line, a small puddle disc
+cyl(0.162, 0.03, (0, 0, 0.6), 'white', n=8)
+cyl(0.19, 0.01, (0.0, 0.0, 0.085), 'blue', n=8)
 print(ship('c_hydrant'))
