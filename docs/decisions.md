@@ -234,3 +234,4 @@ First playable: Backwoods vs Activists, flat board, preset build pads, Versus vs
 - B226: menu retitled War for the World; only the four alien species (bw=Brutes, nd=Greys, ac=Reptilians, hh=Spores, `ALIEN` in factions.js), opponent drawn from those four; UI art batch 8 to the worker.
 - B227: arena -- gen weapons gripped by the FIST (index-pinky axis) or the shooting pose, not the T-pose; gunners never club-swing (back off / point-blank); size ratio scales melee damage and knockback, a big-on-small blow LAUNCHES (RULE.size).
 - B228: health bars over heads replaced by a ring on the ground per squad (a segment per member, lit round by its health; buildings one segment); RTS Brute props sized in world metres (were door-sized) and gripped by the fist.
+- B229: ground textured with Weirdport's toon-city surfaces (textures/: asphalt, sidewalk, curb, grass, dirt, concrete), laid in world metres by groundMat (scene.js); kerb sides take the curb texture.

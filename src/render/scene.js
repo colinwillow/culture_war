@@ -80,6 +80,32 @@ export function mat(c) {
   if (!matCache.has(c)) { const m = new THREE.MeshLambertMaterial({ color: c }); matCache.set(c, m); cached.add(m); }
   return matCache.get(c);
 }
+// TEXTURED GROUND (B229): Weirdport's toon-city surfaces (textures/*.webp, lifted from toon_city_visual.glb), laid in
+// WORLD metres so a 120 m street and a 4 m kerb share one scale; side faces (kerbs) take their own texture, projected
+// along the face. Each call is its own material: mat() is cached by colour and shared with unrelated boxes.
+const texLoader = new THREE.TextureLoader(), texCache = {};
+function groundTex(name) {
+  if (!texCache[name]) { const t = texLoader.load('./textures/' + name + '.webp'); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; texCache[name] = t; }
+  return texCache[name];
+}
+export function groundMat(top, side = top, metres = 4, tint = 0xffffff) {
+  const m = new THREE.MeshLambertMaterial({ color: tint, map: groundTex(top) });
+  const side_ = groundTex(side);
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uSide = { value: side_ }; sh.uniforms.uM = { value: metres };
+    sh.vertexShader = 'varying vec3 vGW; varying vec3 vGN;\n' + sh.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+      vec4 gw = vec4(transformed, 1.0); vec3 gn = objectNormal;
+      #ifdef USE_INSTANCING
+        gw = instanceMatrix * gw; gn = mat3(instanceMatrix) * gn;
+      #endif
+      vGW = (modelMatrix * gw).xyz; vGN = normalize(mat3(modelMatrix) * gn);`);
+    sh.fragmentShader = 'uniform sampler2D uSide; uniform float uM; varying vec3 vGW; varying vec3 vGN;\n' + sh.fragmentShader.replace('#include <map_fragment>', `
+      vec4 sampledDiffuseColor = abs(vGN.y) > 0.5 ? texture2D(map, vGW.xz / uM)
+        : texture2D(uSide, vec2(abs(vGN.x) > 0.5 ? vGW.z : vGW.x, vGW.y) / (uM * 0.25));
+      diffuseColor *= sampledDiffuseColor;`);
+  };
+  return m;
+}
 export function box(w, h, d, c, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.position.set(x, y, z); return m; }
 export function cyl(rt, rb, h, c, x = 0, y = 0, z = 0, seg = 12) { const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat(c)); m.position.set(x, y, z); return m; }
 export function basic(c, o = 1) { return new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide }); }

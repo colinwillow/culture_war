@@ -1,11 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF } from './scene.js?v=228';
-import { CAM } from '../camera/camera.js?v=228';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=228';
-import { hash } from '../util/math.js?v=228';
-import { TICK } from '../config/factions.js?v=228';
-import { emit } from '../fx/particles.js?v=228';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF, groundMat } from './scene.js?v=229';
+import { CAM } from '../camera/camera.js?v=229';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=229';
+import { hash } from '../util/math.js?v=229';
+import { TICK } from '../config/factions.js?v=229';
+import { emit } from '../fx/particles.js?v=229';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -34,16 +34,16 @@ export function buildWorld() {
   // Ground: asphalt everywhere except the trench.
   const span = MAP.h / 2 - TRENCH.half;
   for (const s of [1, -1]) {
-    const g = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, span), mat(COL.asphalt));
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, span), groundMat('asphalt', 'asphalt', 6));
     g.rotation.x = -Math.PI / 2; g.position.set(0, 0, s * (TRENCH.half + span / 2)); g.receiveShadow = true; scene.add(g);
-    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h / 2 - HOME_Z), mat(COL.lawn));
+    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h / 2 - HOME_Z), groundMat('grass', 'grass', 5));
     lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0.03, s * (HOME_Z + (MAP.h / 2 - HOME_Z) / 2)); lawn.receiveShadow = true; scene.add(lawn);
   }
-  const outer = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), mat(0x5d6a54));
+  const outer = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), groundMat('grass', 'grass', 8, 0x9aa890));
   outer.rotation.x = -Math.PI / 2; outer.position.y = -0.2; scene.add(outer);
 
   // Freeway trench: floor, walls, lane dashes, overpasses with pillars.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w + 40, TRENCH.half * 2), mat(COL.trench));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w + 40, TRENCH.half * 2), groundMat('asphalt', 'asphalt', 6, 0xb8b8b8));
   floor.rotation.x = -Math.PI / 2; floor.position.y = -TRENCH.depth; scene.add(floor);
   for (const s of [1, -1]) scene.add(box(MAP.w + 40, TRENCH.depth, 0.6, COL.wall, 0, -TRENCH.depth / 2, s * (TRENCH.half - 0.3)));
   const dashes = [];
@@ -80,7 +80,9 @@ export function buildWorld() {
       for (let x = b.x0 + 2; x < b.x1 - 1; x += 3) stalls.push({ x, y: 0.19, z: (b.z0 + b.z1) / 2, sx: 0.15, sy: 0.02, sz: b.z1 - b.z0 - 2 });
     }
   }
-  for (const im of [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)]) im.receiveShadow = true;
+  const ims = [instanced(unitBox, COL.sidewalk, walks), instanced(unitBox, COL.grass, greens), instanced(unitBox, COL.lot, lots)];
+  ims[0].material = groundMat('sidewalk', 'curb', 3); ims[1].material = groundMat('grass', 'dirt', 5); ims[2].material = groundMat('asphalt', 'curb', 5, 0xc8c8c8);
+  for (const im of ims) im.receiveShadow = true;
   instanced(unitBox, COL.stripe, stalls);
   buildCity();
 
