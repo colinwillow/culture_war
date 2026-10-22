@@ -255,3 +255,18 @@ def chunk_report(path):
     for o in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if o.type == 'MESH':
             print('  ', o.name, 'origin', tuple(round(v, 2) for v in o.location), 'tris', tris(o))
+
+def ship_multi(name, groups, spacing=0.0):
+    """Several named variants in one GLB. groups = {'tree_a': [objs], ...}; each joined mesh keeps its origin at
+    its own base centre (world 0,0,0 when built), then the nodes are spread along X by `spacing` (node offset only)."""
+    os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
+    out = []
+    for i, (n, obs) in enumerate(groups.items()):
+        ob = join(n, obs); out.append(ob)
+    for i, ob in enumerate(out):
+        ob.location.x = (i - (len(out) - 1) / 2) * spacing
+    p = os.path.join(OUT, name + '.glb'); export(p, out)
+    info = verify(p); preview(p, os.path.join(PREV, name + '.png'))
+    for o in bpy.context.scene.objects:
+        if o.type == 'MESH': print('  ', o.name, 'node at', tuple(round(v, 2) for v in o.location), 'tris', tris(o))
+    return info

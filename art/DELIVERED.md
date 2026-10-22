@@ -15,3 +15,4 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [c_bench] models/gen/c_bench.glb -- 660 tris, 1.8 x 0.88 x 0.62 m, origin ground centre, seat faces +Z, 1 material
 - [c_barrier] models/gen/c_barrier.glb -- 188 tris, 2.0 x 0.98 x 0.64 m (rebar stubs on top), origin ground centre, long axis X, jersey profile, orange hazard stripe, 1 material; c_barrier_chunks.glb = 8 capped chunks (4 along X x top/bottom), 478 tris
 - [c_dumpster] models/gen/c_dumpster.glb -- 576 tris, 2.06 x 1.41 x 1.27 m, origin ground centre, front +Z, olive with an orange band, 1 material
+- [c_tree] models/gen/c_tree.glb -- 736 tris total (tree_a round 280, tree_b cone 100, tree_c lumpy 356), each ~2.7-3 x 4.2-4.9 x 2.7 m, three named meshes tree_a/tree_b/tree_c, each origin at its trunk base; nodes spread 4 m apart on X (reset node position when placing), 1 material
