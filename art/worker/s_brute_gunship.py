@@ -51,4 +51,11 @@ chain((2.2, -1.0, 2.2), (2.25, -1.0, 1.4), 0.06); chain((-2.2, 1.0, 2.2), (-2.25
 banner(0.9, 1.0, (0, 3.6, 2.3), (0, 1, 0), mark='crown')
 skull(0.3, (0, -4.62, 1.15), (0, -1, -0.3), 'ivory')
 for k in range(6): box((0.5, 0.1, 0.25), (-1.25 + k * 0.5, 3.12, 1.1), 'orange' if k % 2 else 'dark', bevel=0.0)
+
+# ---- detail pass 6 (silhouette): twin side cannons on swivels + a big ivory ram spike under the bow
+for s_ in (-1, 1):
+    cyl(0.3, 0.4, (s_ * 1.7, -1.8, 1.65), 'iron', n=8)
+    cyl(0.14, 1.6, (s_ * 1.85, -2.6, 1.95), 'iron', (90, 0, s_ * 10), n=8)
+    cyl(0.2, 0.25, (s_ * 1.97, -3.35, 1.95), 'burnt', (90, 0, s_ * 10), n=8)
+spike(0.35, 1.4, (0, -4.3, 0.5), (0, -1, -0.1))
 print(ship('s_brute_gunship'))

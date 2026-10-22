@@ -29,4 +29,8 @@ box((0.106, 0.035, 0.106), (0, -0.72, 0), 'team', bevel=0.01)
 for y in (-0.6, -0.66): box((0.104, 0.006, 0.104), (0, y, 0), 'dark', bevel=0.0)
 box((0.03, 0.06, 0.004), (-0.02, -0.66, -0.051), 'rust', bevel=0.0)
 cyl(0.034, 0.02, (0, -0.79, 0), 'burnt', (90, 0, 0), n=6)
+
+# ---- detail pass 6 (silhouette): a diagonal ring of extra spikes so the head reads as a spiked mace from any angle
+for d in ((0.7, 0, 0.7), (-0.7, 0, 0.7), (0.7, 0, -0.7), (-0.7, 0, -0.7)):
+    spike(0.017, 0.055, (d[0] * 0.07, -0.675, d[2] * 0.07), d)
 print(ship('w_brute_club'))

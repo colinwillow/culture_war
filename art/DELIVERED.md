@@ -162,3 +162,12 @@ Format: `- [id] models/gen/<id>.glb -- tris, size W x H x D m, origin, notes`
 - [gb_hq] DETAIL PASS 5 models/gen/gb_hq.glb -- 3500 tris, size/origin unchanged: silhouette -- a translucent cyan tractor-beam cone from the belly lens to the ground + a glowing cyan ground ring (beam uses clear_cyan); 3 materials: kit + glow_cyan + clear_cyan
 - [rb_hq] DETAIL PASS 5 models/gen/rb_hq.glb -- 5260 tris, size/origin unchanged: silhouette -- a moss/bronze stone serpent coiling up round the tier edges with cone spikes along its back, its head (magenta eyes, fangs) rearing beside the shrine
 - [sb_hq] DETAIL PASS 5 models/gen/sb_hq.glb -- 4126 tris, 10.6 x 10.5 x 9.1 m (spore haze adds 1.15 m on top), origin unchanged: silhouette -- translucent acid spore-haze puffs over the big cap, 8 purple tendrils with glowing tips dangling from its rim
+- [bb_hq] DETAIL PASS 6 models/gen/bb_hq.glb -- 5940 tris, origin unchanged: giant ivory tusked skull crowning the gate with two big tusks curling up (trimmed a few rivets to stay under 6k); 9.7 x 8.2 x 9.2 m
+- [bb_barracks] DETAIL PASS 6 models/gen/bb_barracks.glb -- 3484 tris, origin unchanged: two huge tusks curving up off the front of the roof with a skull between; height now 6.05 m
+- [gb_tower] DETAIL PASS 6 models/gen/gb_tower.glb -- 2090 tris, origin unchanged: two more floating rings (above and below the first, tilted the other way) with cyan nodes
+- [gb_barracks] DETAIL PASS 6 models/gen/gb_barracks.glb -- 2178 tris, origin unchanged: a needle spire with a floating ring on the dome cap; height now 6.0 m
+- [sb_barracks] DETAIL PASS 6 models/gen/sb_barracks.glb -- 2586 tris, origin unchanged: two tall purple mushrooms rising behind the pool with glowing gill rings; height now 3.35 m
+- [rb_barracks] DETAIL PASS 6 models/gen/rb_barracks.glb -- 2652 tris, origin unchanged: two stone pillars topped with bronze serpent heads (magenta eyes, fang) flanking the entrance; depth now 7.7 m
+- [w_brute_club] DETAIL PASS 6 models/gen/w_brute_club.glb -- 1494 tris, origin unchanged: a diagonal ring of extra cone spikes so the head reads as a spiked mace from any angle
+- [s_brute_gunship] DETAIL PASS 6 models/gen/s_brute_gunship.glb -- 4360 tris, origin unchanged: twin swivel side cannons on the deck + a big ivory ram spike under the bow; depth now 10.0 m
+- [rb_hq] DETAIL PASS 6 models/gen/rb_hq.glb -- 5424 tris, 10.0 x 8.0 x 10.7 m, origin unchanged: the stone serpent is pushed out and thickened so the coil reads round the tier edges (flat-cut at y 0)

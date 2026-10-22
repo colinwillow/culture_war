@@ -65,12 +65,12 @@ pts = []
 for i in range(26):
     t = i / 25; a = -math.pi * 0.75 + t * 2.3 * math.pi; z = 0.45 + t * 5.0
     hw = 4.8 if z < 1.4 else 3.8 if z < 2.7 else 2.8 if z < 3.9 else 2.1
-    R = hw + 0.32
+    R = hw + 0.6                                                           # pass 6: pushed out so the coil reads
     cx_, cy_ = math.cos(a), math.sin(a)
     sq = lambda v: math.copysign(abs(v) ** 0.35, v)                     # squarish path hugging the tiers
     pts.append(Vector((sq(cx_) * R, 0.2 + sq(cy_) * R, z)))
 for i in range(len(pts) - 1):
-    a_, b_ = pts[i], pts[i + 1]; d = b_ - a_; r = 0.42 - i * 0.008
+    a_, b_ = pts[i], pts[i + 1]; d = b_ - a_; r = 0.52 - i * 0.009
     seg = cyl(r, d.length + 0.15, tuple((a_ + b_) / 2), 'moss' if i % 2 else 'bronze', n=8); seg.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
     if i % 3 == 0: spike(0.1, 0.35, tuple(a_ + Vector((0, 0, r * 0.8))), (0, 0, 1))
 H = pts[-1]
@@ -78,4 +78,4 @@ box((0.9, 1.3, 0.6), tuple(H + Vector((0, 0, 0.4))), 'bronze', bevel=0.15, taper
 for s_ in (-1, 1):
     ball(0.13, tuple(H + Vector((s_ * 0.3, -0.5, 0.65))), 'gmagenta', 1)
     cyl(0.06, 0.35, tuple(H + Vector((s_ * 0.2, -0.6, 0.05))), 'bone', rot=(180, 0, 0), n=5, r2=0.0)
-print(ship('rb_hq'))
+print(ship('rb_hq', clip=True))

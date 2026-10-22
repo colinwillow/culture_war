@@ -36,13 +36,13 @@ cyl(0.42, 0.1, (-3.3, 3.2, 8.0), 'tire', n=10)                                  
 # rivet rows + spikes on the roofline
 for x in (-4.0, -2.0, 0.0, 2.0, 4.0):
     cyl(0.12, 0.6, (x, -0.6, 5.5), 'bone', n=6, r2=0.0)
-for x in (-3.0, -1.0, 1.0, 3.0):
+for x in (-3.0, 3.0):                                                               # (pass 6: trimmed for the 6k budget)
     rivets([(x, -0.62, 3.0), (x, -0.62, 4.8)], 0.07, 'bone', 'Y')
 
 # ---- v2 detail pass
 for x in (-4.4, -2.9, 2.9, 4.4):                                                    # big spikes along the top container
     spike(0.28, 1.0, (x, -0.6, 5.2), (x * 0.08, -0.25, 1))
-for y in (1.2, 2.6, 4.0):
+for y in (1.2, 2.6):
     spike(0.24, 0.8, (4.5, y, 5.2), (0.5, 0, 1)); spike(0.22, 0.7, (-4.5, y - 0.8, 2.6), (-0.6, 0, 1))
 for x in (-3.3, 3.3):                                                               # glow canister pylons at the gate
     canister(0.32, 1.6, (x, -4.25, 3.4), (0, 0, 1), 'glow', bars=4, ribs=2)
@@ -50,7 +50,7 @@ for x in (-3.3, 3.3):                                                           
 crown(2.0, (2.0, -4.02, 1.4), normal=(0, -1, 0), up=(0, 0, 1), t=0.06)             # giant crown tag on the gate panel
 crown(1.6, (4.56, 1.5, 1.4), normal=(1, 0, 0), up=(0, 0, 1), t=0.05)              # and on the side container
 for x0, x1 in ((-1.9, -0.4), (0.4, 1.9)):                                           # chains swagging over the gate
-    chain((x0, -4.15, 2.6), ((x0 + x1) / 2, -4.2, 2.1), 0.13); chain(((x0 + x1) / 2, -4.2, 2.1), (x1, -4.15, 2.6), 0.13)
+    chain((x0, -4.15, 2.6), ((x0 + x1) / 2, -4.2, 2.1), 0.16); chain(((x0 + x1) / 2, -4.2, 2.1), (x1, -4.15, 2.6), 0.16)
 cyl(0.62, 0.2, (-3.3, 3.2, 6.0), 'glow', n=10)                                     # glowing band on the stack
 for a in (0, 120, 240):
     r = math.radians(a); spike(0.14, 0.5, (-3.3 + math.cos(r) * 0.7, 3.2 + math.sin(r) * 0.7, 7.85), (math.cos(r), math.sin(r), 1.2))
@@ -67,4 +67,9 @@ for x in (-1.9, 1.9):
     for z in (0.4, 1.0, 1.6, 2.2): box((0.42, 0.52, 0.18), (x, -3.9, z), 'orange' if int(z * 10) % 12 == 4 or z in (0.4, 1.6) else 'dark', bevel=0.0)
 for (x, y, z) in ((-2.0, -0.12, 4.0), (1.0, -0.12, 3.6), (4.62, 2.8, 1.4)):
     box((0.12, 0.04, 0.9) if x < 4 else (0.04, 0.12, 0.9), (x, y if x < 4 else y, z), 'rust', bevel=0.0)
+
+# ---- detail pass 6 (silhouette): giant ivory tusked skull crowning the gate, tusks curling up either side
+skull(0.95, (0, -4.05, 3.55), (0, -1, 0), 'ivory')
+for s_ in (-1, 1):
+    spike(0.22, 1.2, (s_ * 0.75, -4.1, 2.75), (s_ * 0.5, -0.25, 1))
 print(ship('bb_hq'))

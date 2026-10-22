@@ -29,4 +29,9 @@ crown(0.6, (0, -0.56, 1.1), normal=(0, -1, 0.35), up=(0, 0, 1), t=0.02)
 # ---- detail pass 2: crimson crown pennant below the ring, panel lines up the needle
 banner(0.5, 0.9, (0, -0.33, 6.6), (0, -1, 0), mark='crown')
 for z in (2.0, 3.0, 4.0, 5.0): cyl(0.45 - z * 0.037, 0.02, (0, 0, z), 'dark', n=10)
+
+# ---- detail pass 6 (silhouette): two more floating rings stacked above/below, tilted the other way
+torus(0.75, 0.15, (0, 0, 6.5), 'gunmetal', rot=(-10, 6, 0), n=14, m=5)
+torus(0.6, 0.12, (0, 0, 8.45), 'pearl', rot=(12, -8, 0), n=14, m=5)
+for z in (6.5, 8.45): ball(0.12, (0.0, -0.75 if z < 7 else -0.6, z), 'gcyan', 1)
 print(ship('gb_tower'))

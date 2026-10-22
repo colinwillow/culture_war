@@ -45,4 +45,12 @@ for i in (0, 6):
 for (a, k) in ((-75, 0), (-105, 1)):
     r = math.radians(a); banner(0.5, 0.8, (math.cos(r) * 3.0, math.sin(r) * 3.0 - 0.4, 1.9), (0, -1, 0), mark='crown')
 for (x, y) in ((0.6, 0.8), (-1.0, -0.4)): cyl(0.5, 0.01, (x, y, 0.105), 'rust', n=8)
+
+# ---- detail pass 6 (silhouette): two bronze serpent-head pillars flanking the entrance
+for s_ in (-1, 1):
+    x = s_ * 1.4; y = -3.35
+    cyl(0.32, 2.3, (x, y, 1.15), 'stone', n=6)
+    box((0.7, 0.9, 0.55), (x, y - 0.25, 2.55), 'bronze', bevel=0.12, taper=(0.7, 0.8))
+    ball(0.1, (x + 0.2, y - 0.62, 2.7), 'gmagenta', 1); ball(0.1, (x - 0.2, y - 0.62, 2.7), 'gmagenta', 1)
+    cyl(0.05, 0.25, (x, y - 0.68, 2.3), 'bone', rot=(180, 0, 0), n=5, r2=0.0)
 print(ship('rb_barracks'))

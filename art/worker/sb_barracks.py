@@ -26,4 +26,10 @@ for a in (60, 300):
 for a in (-60, -120):
     r = math.radians(a); x, y = math.cos(r) * 3.4, math.sin(r) * 3.4
     cyl(0.05, 1.6, (x, y, 0.8), 'iron', n=4); banner(0.5, 0.6, (x, y - 0.05, 1.55), (0, -1, 0), mark='crown')
+
+# ---- detail pass 6 (silhouette): two tall mushrooms rising behind the pool + a glowing cap ring
+for (x, y, h, r) in ((-1.9, 2.6, 2.9, 1.0), (1.4, 2.9, 2.3, 0.8)):
+    cyl(r * 0.4, h, (x, y, h / 2), 'fungus', n=8, r2=r * 0.3)
+    ball(r, (x, y, h), 'purple', 2, (1, 1, 0.45))
+    cyl(r * 0.8, 0.12, (x, y, h - 0.15), 'gacid', n=10)
 print(ship('sb_barracks', clip=True))

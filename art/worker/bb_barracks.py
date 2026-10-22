@@ -60,4 +60,9 @@ for s in (-1, 1):
     banner(0.7, 1.4, (s * 2.9, -D / 2 - 0.2, Hw - 0.6), (0, -1, 0), mark='skull' if s < 0 else 'crown')
     for z in (0.5, 1.1, 1.7, 2.3, 2.9): box((0.1, 0.16, 0.3), (s * 2.05, -D / 2 - 0.3, z), 'orange' if int(z * 10) % 12 == 5 else 'dark', bevel=0.0)
     box((0.04, 0.2, 1.2), (s * (Wd / 2 + 0.16), 2.4, 1.4), 'rust', bevel=0.0)
+
+# ---- detail pass 6 (silhouette): two huge tusks curving up off the front of the roof, a skull between them
+for s_ in (-1, 1):
+    spike(0.3, 1.5, (s_ * 1.2, -D / 2 + 0.1, Hw + 0.95), (s_ * 0.45, -0.35, 1))
+skull(0.45, (0, -D / 2 - 0.1, Hw + 1.0), (0, -1, 0), 'ivory')
 print(ship('bb_barracks'))
