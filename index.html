@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-<title>Culture Wars Greybox</title>
+<title>War for the World</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lilita+One&display=swap">
-<link rel="stylesheet" href="./src/ui/style.css?v=225">
+<link rel="stylesheet" href="./src/ui/style.css?v=226">
 <!-- No build step needed: GitHub Pages serves this file straight from main, so bare 'three' imports resolve here. -->
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.min.js", "three/examples/jsm/": "./vendor/three/jsm/" } }
@@ -39,15 +39,13 @@
 <div id="box"></div>
 <div id="holdRing" hidden></div>
 <div id="menu" class="overlay">
-  <h1>Culture <em>Wars</em><span>GREYBOX 04 · <b id="build">B225</b></span></h1>
+  <h1><small>WAR FOR THE</small>World<span><b id="build">B226</b></span></h1>
   <div class="diff" id="diff"><button type="button" data-d="0" aria-label="Easy"><span class="ic" data-i="star"></span></button><button type="button" data-d="1" class="on" aria-label="Normal"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><button type="button" data-d="2" aria-label="Hard"><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span><span class="ic" data-i="star"></span></button><i class="sep"></i><button type="button" class="mode" data-m="vs" aria-label="Versus"><span class="ic" data-i="home"></span><small>VERSUS</small></button><button type="button" class="mode" data-m="hill" aria-label="King of the Hill"><span class="ic" data-i="flag"></span><small>HILL</small></button><button type="button" class="mode" data-m="cap" aria-label="Capture and Hold"><span class="ic" data-i="hold"></span><small>FLAGS</small></button><button type="button" class="mode" data-m="race" aria-label="Resource Race"><span class="ic" data-i="coin"></span><small>RACE</small></button><button type="button" class="mode" data-m="hero" aria-label="Hero vs Hero"><span class="ic" data-i="hero"></span><small>HEROES</small></button><button type="button" class="mode" data-m="down-w" aria-label="Downtown: you smash the city"><span class="ic" data-i="ball"></span><small>SMASH</small></button><button type="button" class="mode" data-m="down-b" aria-label="Downtown: you keep the city standing"><span class="ic" data-i="hammer"></span><small>FIX</small></button><i class="sep"></i><button type="button" class="mode arena" id="arenaBtn" aria-label="Duel arena: the alien fighters"><span class="ic" data-i="shield"></span><small>ARENA</small></button><button type="button" class="mode arena" id="hexBtn" aria-label="Hex city map prototype"><span class="ic" data-i="tower"></span><small>HEX</small></button></div>
   <div class="picks">
-    <button class="pick" data-f="bw" type="button"><span class="ic" data-i="truck"></span>Backwoods<small>FEWER · TOUGHER</small></button>
-    <button class="pick" data-f="ac" type="button"><span class="ic" data-i="megaphone"></span>Activists<small>MORE · FASTER</small></button>
-    <button class="pick" data-f="hh" type="button"><span class="ic" data-i="hardhat"></span>Hard Hats<small>BUILD · DIG IN</small></button>
-    <button class="pick" data-f="om" type="button"><span class="ic" data-i="coin"></span>Old Money<small>FEW · ELITE</small></button>
-    <button class="pick" data-f="sc" type="button"><span class="ic" data-i="music"></span>Street Crew<small>FAST · HYPE</small></button>
-    <button class="pick" data-f="nd" type="button"><span class="ic" data-i="wifi"></span>Nerds<small>RANGE · TECH</small></button>
+    <button class="pick sp" data-f="bw" type="button" aria-label="Brutes"><svg class="em" viewBox="0 0 64 64"><path d="M10 20c4-8 40-8 44 0l-4 22c-3 10-33 10-36 0z"/><path d="M18 40l-4-16M46 40l4-16" class="cut"/><circle cx="23" cy="28" r="3" class="cut"/><circle cx="41" cy="28" r="3" class="cut"/></svg>Brutes<small>EAT</small></button>
+    <button class="pick sp" data-f="nd" type="button" aria-label="Greys"><svg class="em" viewBox="0 0 64 64"><ellipse cx="32" cy="22" rx="24" ry="7"/><path d="M22 18c2-8 18-8 20 0"/><path d="M24 30l-8 26h32l-8-26z" class="beam"/></svg>Greys<small>ABDUCT</small></button>
+    <button class="pick sp" data-f="ac" type="button" aria-label="Reptilians"><svg class="em" viewBox="0 0 64 64"><path d="M4 32c10-16 46-16 56 0-10 16-46 16-56 0z"/><path d="M32 18c-5 8-5 20 0 28 5-8 5-20 0-28z" class="cut"/></svg>Reptilians<small>POSSESS</small></button>
+    <button class="pick sp" data-f="hh" type="button" aria-label="Spores"><svg class="em" viewBox="0 0 64 64"><circle cx="32" cy="32" r="12"/><circle cx="14" cy="18" r="6"/><circle cx="50" cy="16" r="5"/><circle cx="52" cy="46" r="7"/><circle cx="14" cy="48" r="5"/><circle cx="32" cy="8" r="3"/><circle cx="32" cy="58" r="3"/></svg>Spores<small>INFECT</small></button>
   </div>
 </div>
 <div id="end" class="overlay" hidden>
@@ -69,6 +67,6 @@
   setTimeout(function () { if (!window.__cwBooted) show('Game script did not start (old cached file? wait a few minutes and reload)'); }, 8000);
 })();
 </script>
-<script type="module" src="./src/main.js?v=225" onerror="__cwLoadFail()"></script>
+<script type="module" src="./src/main.js?v=226" onerror="__cwLoadFail()"></script>
 </body>
 </html>

@@ -71,3 +71,14 @@ Each species' base must read as THAT species from 40 m: the silhouette carries i
 - [n_gas] gas station: canopy, two pumps, a small kiosk -- 12 x 5 x 8
 - [n_diner] roadside diner with a big sign -- 10 x 5 x 7
 - [n_water_tower] rooftop-style water tower on legs -- 4 x 9 x 4
+
+## Batch 8 -- UI art (2D, NOT geometry): SVG files into `models/gen/ui/` (worker owns that folder like the rest of models/gen/)
+Menu is now "War for the World" with the four species only (B226). Aesthetic: dark, neon-lit, chunky, a little mean; one flat
+colour per emblem so the game can tint it (`fill="currentColor"`, viewBox 0 0 64 64, no text, no gradients, < 4 KB each).
+Species colours for reference: Brutes #ff7a2e, Greys #7fe3ff, Reptilians #9dff4a, Spores #e06bff.
+- [ui_logo] title lockup "WAR FOR THE WORLD" as outlined paths (the game sets the colour), with a small planet or saucer in it -- viewBox free, wide
+- [ui_em_brute] Brute emblem: a bitten gear / tusked jaw, heavy and blunt
+- [ui_em_grey] Grey emblem: saucer with an abduction beam
+- [ui_em_rept] Reptilian emblem: a slit-pupil eye or a grinning mask
+- [ui_em_spore] Spore emblem: a bursting spore pod / cluster
+- [ui_ic_*] command icons in the same style, 24x24 viewBox, stroke-only (`stroke="currentColor"`, width 2.2, round joins): train, build, attack, move, stop, power, repair, hero

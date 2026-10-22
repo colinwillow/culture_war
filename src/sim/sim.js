@@ -9,11 +9,12 @@
 import {
   TICK, START_CASH, BUILD_RADIUS, MAX_WORKERS, NODE_AMOUNT, GATHER_T, CARRY, BASE_INCOME, DEPOT_INCOME, OBJ_INCOME,
   COUNTER, REQ, UPG, UPT, BLD, FACTIONS, CITYFOLK,
-} from '../config/factions.js?v=225';
-import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=225';
-import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=225';
-import { mulberry32 } from '../util/math.js?v=225';
-import { aiStep } from './ai.js?v=225';
+  ALIEN,
+} from '../config/factions.js?v=226';
+import { MAP, NODES, BASES, CITY, walkH } from '../map/layout.js?v=226';
+import { markCircle, isBlocked, lineClear, nearestFree, findPath, blocked, cellOf, cellCenter, inGrid } from '../map/grid.js?v=226';
+import { mulberry32 } from '../util/math.js?v=226';
+import { aiStep } from './ai.js?v=226';
 
 let S = null;
 export const getSim = () => S;
@@ -27,7 +28,7 @@ function mkPlayer(i, f, side) {
 // diff: 0 easy, 1 normal, 2 hard - the computer earns 70% / 100% / 135% and attacks with smaller / bigger waves.
 export function newSim(pf, seed = 12345, diff = 1, mode = 'vs') {
   if (S) for (const b of S.blds) markCircle(b.x, b.z, b.r, -1); // free old building cells
-  const others = Object.keys(FACTIONS).filter((k) => k !== pf), af = others[seed % others.length]; // random opponent
+  const others = (ALIEN.includes(pf) ? ALIEN : Object.keys(FACTIONS)).filter((k) => k !== pf), af = others[seed % others.length]; // random opponent
   S = {
     t: 0, nid: 1, rng: mulberry32(seed),
     players: [mkPlayer(0, pf, 1), mkPlayer(1, af, -1)],

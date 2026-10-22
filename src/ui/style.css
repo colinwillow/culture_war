@@ -218,3 +218,16 @@ body.show-mute #duelBtn { display: grid; }
 .heatc .hb i::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--w, 0%); background: linear-gradient(90deg, #f2c232, #ff5a4f); }
 .heatc.hunted .ic { animation: sirenFlash .5s steps(2) infinite; }
 @keyframes sirenFlash { 0% { color: #ff3030; } 50% { color: #3060ff; } }
+
+/* War for the World menu (B226): four alien species, dark cards lit in each species' colour. */
+#menu { background: radial-gradient(ellipse at 50% 18%, rgba(120, 20, 40, .55), rgba(8, 6, 14, .95) 70%); }
+#menu h1 { font-family: "Bungee", var(--display); color: #ffe9ec; letter-spacing: .02em; text-shadow: 0 4px 0 #2a0610, 0 0 36px rgba(255, 40, 80, .55); }
+#menu h1 small { display: block; font-size: .28em; letter-spacing: .5em; color: #ff4d6d; text-shadow: 0 0 14px rgba(255, 40, 80, .8); margin-bottom: 6px; }
+.pick.sp { --c: #ff4d6d; background: linear-gradient(170deg, rgba(40, 30, 50, .9), rgba(10, 8, 16, .95)); color: #fff; border: 2px solid var(--c); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent), inset 0 0 26px color-mix(in srgb, var(--c) 22%, transparent), 0 8px 0 rgba(0, 0, 0, .6); font-family: "Bungee", var(--display); text-transform: uppercase; letter-spacing: .03em; }
+.pick.sp small { color: var(--c); opacity: 1; font-weight: 700; letter-spacing: .3em; }
+.pick.sp .em { width: 64px; height: 64px; fill: var(--c); filter: drop-shadow(0 0 8px var(--c)); }
+.pick.sp .em .cut { fill: #0b0812; }
+.pick.sp .em .beam { opacity: .45; }
+.pick.sp[data-f="bw"] { --c: #ff7a2e; } .pick.sp[data-f="nd"] { --c: #7fe3ff; } .pick.sp[data-f="ac"] { --c: #9dff4a; } .pick.sp[data-f="hh"] { --c: #e06bff; }
+@media (orientation: portrait) { .pick.sp .em { width: 48px; height: 48px; } }
+@media (orientation: landscape) { #menu h1 { font-size: clamp(36px, 9vh, 64px); } #menu h1 span { margin-top: 4px; } .pick.sp { width: 140px; } .pick.sp .em { width: 44px; height: 44px; } }

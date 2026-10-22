@@ -11,6 +11,7 @@ export const CARRY = 30; // cash carried per trip
 export const BASE_INCOME = 10; // HQ trickle every 10 s
 export const DEPOT_INCOME = 20; // extra trickle per depot every 10 s
 export const OBJ_INCOME = 15; // per objective spot held, every 10 s (Versus)
+export const ALIEN = ['bw', 'nd', 'ac', 'hh']; // the four species on the menu (Brutes, Greys, Reptilians, Spores); the human factions are tabled
 
 // Counter loop: key beats value (2x damage).
 export const COUNTER = { pike: 'cav', cav: 'ranged', ranged: 'melee', melee: 'pike' };
@@ -30,7 +31,7 @@ export const BUILD_KINDS = ['depot', 'barracks', 'tower', 'wall'];
 
 export const FACTIONS = {
   bw: {
-    name: 'Backwoods',
+    name: 'Brutes',
     traits: { infect: true }, // infect: civilians turn into walking goo bombs that spread and burst on the enemy
     bldNames: { hq: 'Homestead', depot: 'Bait Shop', barracks: 'Barracks', tower: 'Deer Stand' },
     units: {
@@ -48,7 +49,7 @@ export const FACTIONS = {
     ],
   },
   ac: {
-    name: 'Activists',
+    name: 'Reptilians',
     traits: { possess: true }, // alien verb prototype: walks into a civilian and wears them until it strikes
     bldNames: { hq: 'Community Center', depot: 'Crowdfund Booth', barracks: 'Organizing Hall', tower: 'Banner Tower' },
     units: {
@@ -67,7 +68,7 @@ export const FACTIONS = {
   },
   // Hard Hats (Turtle / builder): sturdy, a bit slow, builds twice as fast and its buildings are 30% tougher.
   hh: {
-    name: 'Hard Hats',
+    name: 'Spores',
     traits: { buildMul: 2, bldHp: 1.3, selfRepair: 4 }, // selfRepair: hp/s on finished buildings with no enemy close
     bldNames: { hq: 'Site Office', depot: 'Tool Shed', barracks: 'Union Hall', tower: 'Crane Tower' },
     units: {
@@ -124,7 +125,7 @@ export const FACTIONS = {
   },
   // Nerds (Tech): fragile up close, deadly at range; their towers are souped-up (+30% tower damage and range).
   nd: {
-    name: 'Nerds',
+    name: 'Greys',
     traits: { towerMul: 1.3, abduct: true }, // alien verb prototype: beams up civilians for cash + power
     bldNames: { hq: 'Game Shop', depot: 'Server Rack', barracks: 'LAN Cafe', tower: 'Antenna Tower' },
     units: {
