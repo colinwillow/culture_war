@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=214';
-import { makePops, slashTex } from '../fx/pops.js?v=214';
+import { svg } from '../ui/icons.js?v=215';
+import { makePops, slashTex } from '../fx/pops.js?v=215';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -40,6 +40,8 @@ const RIGS = {
   brute_shooter: { file: 'models/characters/brute_shooter.glb', key: true },
   brute_plated: { file: 'models/characters/brute_plated.glb', key: true },
   brute_hero: { file: 'models/characters/brute_hero.glb', key: true },
+  brute_worker: { file: 'models/characters/brute_worker.glb', key: true },
+  brute_skater: { file: 'models/characters/brute_skater.glb', key: true },
 };
 // Borrowed weapons. A rig with no mount bone still gets the weapon in its RIGHT HAND at the grip the weapon's own rig
 // holds it at in rest pose: offset from the hand / rig height, rotation in model space (both donors read IDENTITY),
@@ -56,6 +58,8 @@ const ROSTER = [
   { name: 'SHOOTER', rig: 'brute_shooter', style: GUN, h: 2.1, hp: 120, speed: 1.05, weapon: 'blaster' },
   { name: 'PLATED', rig: 'brute_plated', style: MELEE, h: 2.2, hp: 200, speed: 0.85, weapon: 'mace' },
   { name: 'HERO', rig: 'brute_hero', style: MELEE, h: 2.4, hp: 220, speed: 0.95, weapon: 'mace' },
+  { name: 'WORKER', rig: 'brute_worker', style: MELEE, h: 1.9, hp: 140, speed: 0.95, weapon: 'mace' },
+  { name: 'SKATER', rig: 'brute_skater', style: MELEE, h: 2.0, hp: 110, speed: 1.25, weapon: 'mace' },
 ];
 const RULE = {
   pace: 1.35,        // EVERYTHING plays this much faster than authored (Colin: "a little quicker")
