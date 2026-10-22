@@ -10,4 +10,7 @@ box((0.05, 0.05, 0.12), (0, -0.09, 0), 'iron', bevel=0.012)                     
 banner(0.06, 0.08, (0.03, -0.09, 0.02), (1, 0, 0), mark='crown')
 horn(0.055, 0.62, (0, -0.11, 0.0), (0, -1, 0.05), (0, -0.2, 0.9), segs=4)                # the fang blade, curving up
 horn(0.035, 0.18, (0, -0.25, 0.04), (0, -0.4, 1), segs=2)                                # back barb
+
+# ---- REPTILIAN PASS 2: glow-slot guard plate, dark crown plate on the pommel
+box((0.054, 0.02, 0.06), (0, -0.115, 0.0), 'glow', bevel=0.0)
 print(ship('w_rept_blade'))

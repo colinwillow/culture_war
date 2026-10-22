@@ -501,7 +501,7 @@ def skull(r, loc, normal=(0, -1, 0), col='ivory'):
     return obs
 
 # ---------------------------------------------------------------- Reptilian organic parts (Colin's lizard-punk sheets)
-for _k, _h in dict(scale='3f6a6c', scale2='5e7f3c', belly='e6cfa2', spot='2c4a78', leather='4a3022', gold='c99a2e',
+for _k, _h in dict(scale='3f6a6c', scale2='8f8a3a', belly='e6cfa2', spot='1f2b45', leather='4a3022', gold='c99a2e',
                    web='ead7b0', scaledark='2a3a3a').items():
     PAL[_k] = _lin(_h)
 
@@ -710,3 +710,25 @@ def grey_style():
         return obs + ufomark(w * 0.8, tuple(mp), tuple(n), (0, 0, 1), 'ivory', 0.015)
     g['crown'] = ufo_crown; g['banner'] = ufo_banner
     return ufo_crown, ufo_banner
+
+# ---------------------------------------------------------------- Reptilian pass 2 (Colin's lizard sheets #2)
+def crownplate(w, loc, normal=(0, -1, 0), up=(0, 0, 1), t=None):
+    """Dark riveted plate with a white crown tag (belt buckles, helmet bands, maul faces on the sheets)."""
+    t = t or w * 0.12; n = Vector(normal).normalized(); p = Vector(loc); obs = []
+    o = box((w, t, w * 0.8), tuple(p + n * t / 2), 'dark', bevel=t * 0.3)
+    o.rotation_euler = n.to_track_quat('Y', 'Z').to_euler(); obs.append(o)
+    obs.append(_CROWN_ORIG(w * 0.62, tuple(p + n * t * 1.02), normal=tuple(n), up=up, t=t * 0.3, col='white'))
+    side = n.orthogonal().normalized()
+    return obs
+
+def glowslots(w, h, loc, normal=(0, -1, 0), n_slots=2, col='glow'):
+    """Bone-white armour plate with recessed dark frames holding orange glowing slots."""
+    nn = Vector(normal).normalized(); p = Vector(loc); obs = []
+    q = nn.to_track_quat('Y', 'Z').to_euler()
+    o = box((w, w * 0.1, h), tuple(p + nn * w * 0.05), 'plate', bevel=w * 0.04); o.rotation_euler = q; obs.append(o)
+    x = Vector((0, 0, 1)).cross(nn).normalized()
+    for i in range(n_slots):
+        off = (i - (n_slots - 1) / 2) * w / n_slots
+        f = box((w / n_slots * 0.7, w * 0.04, h * 0.6), tuple(p + nn * w * 0.11 + x * off), 'dark', bevel=0.0); f.rotation_euler = q; obs.append(f)
+        g = box((w / n_slots * 0.5, w * 0.04, h * 0.45), tuple(p + nn * w * 0.13 + x * off), col, bevel=0.0); g.rotation_euler = q; obs.append(g)
+    return obs

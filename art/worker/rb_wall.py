@@ -12,4 +12,7 @@ for i, x in enumerate((-0.85, -0.42, 0.0, 0.42, 0.85)):
 banner(0.4, 0.5, (0.42, -0.34, 0.85), (0, -1, 0), mark='crown')
 ring(0.14, 0.035, (-0.6, -0.3, 0.55), rot=(90, 0, 0))
 ring(0.12, 0.03, (0.75, 0.3, 0.6), rot=(90, 0, 0))
+
+# ---- REPTILIAN PASS 2: a dark crown plate on the front, a glow slot
+crownplate(0.3, (-0.6, -0.36, 0.55), (0, -1, 0), (0, 0, 1))
 print(ship('rb_wall', clip=True, chunk_cuts={'x': [-0.4, 0.38], 'z': [0.62]}))

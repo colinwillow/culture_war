@@ -27,7 +27,7 @@ for x in (-1.0, -0.4, 0.4, 1.0):
 for x in (-0.7, 0.0, 0.7):
     horn(0.13, 0.6, (x, -3.55, 0.55), (0, -0.2, 1), (0, -0.3, 0), segs=2)                  # lower fangs
 for s in (-1, 1):
-    ball(0.32, (s * 1.0, -3.85, 2.75), 'gmagenta', 1, (1.2, 0.6, 0.7))                    # eyes
+    ball(0.32, (s * 1.0, -3.85, 2.75), 'gorange', 1, (1.2, 0.6, 0.7))                    # eyes
     horn(0.3, 1.8, (s * 1.4, -2.9, 3.0), (s * 0.6, -0.2, 1), (s * 0.6, 0.3, -0.3), segs=3)  # brow horns
 crown(1.0, (0, -3.77, 3.25), normal=(0, -1, 0.3), up=(0, 0.3, 1), t=0.04)                  # crown tag on the brow
 # crimson tattered rags with crowns + skulls + chains on the flanks
@@ -41,6 +41,14 @@ for s in (-1, 1):
 # magenta canister lanterns on gold-ringed posts at the plinth corners (front two)
 for x in (-3.3, 3.3):
     cyl(0.1, 2.2, (x, -3.6, 1.6), 'leather', n=5)
-    canister(0.18, 0.6, (x, -3.6, 2.9), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
+    canister(0.18, 0.6, (x, -3.6, 2.9), (0, 0, 1), 'gorange', bars=3, ribs=1)
     ring(0.14, 0.04, (x, -3.6, 1.2), rot=(0, 0, 0))
+
+# ---- REPTILIAN PASS 2 (lizard sheet #2): dark crown plate on the brow, glow-slot armour plates on the flanks, skulls
+# with bone spikes over the gate, a crown-and-skull banner, goggle-lens eyes
+crownplate(0.9, (0, -3.62, 3.55), (0, -1, 0.3), (0, 0.3, 1))
+for s in (-1, 1):
+    glowslots(1.0, 0.7, (s * 3.0, -1.9, 1.3), (s * 0.5, -1, 0), 2)
+    skull(0.3, (s * 0.6, -3.75, 3.95), (0, -1, 0.2), 'plate')
+banner(1.0, 1.6, (0, -3.9, 1.95), (0, -1, 0), mark='skull')
 print(ship('rb_hq', clip=True))

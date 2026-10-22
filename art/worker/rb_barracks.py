@@ -37,6 +37,12 @@ for s in (-1, 1):
     gx, gy = s * 1.25, -R * 0.87
     cyl(0.25, 1.8, (gx, gy - 0.1, 0.9), 'scale', n=6)
     frill(0.8, (gx, gy - 0.1, 1.8), normal=(0, -1, 0), up=(0, 0, 1), spread=180, spines=5, t=0.05)
-    canister(0.12, 0.45, (gx, gy - 0.45, 1.1), (0, 0, 1), 'gmagenta', bars=3, ribs=1)
+    canister(0.12, 0.45, (gx, gy - 0.45, 1.1), (0, 0, 1), 'gorange', bars=3, ribs=1)
 chain((-1.0, -R * 0.87 - 0.2, 1.7), (0, -R * 0.87 - 0.25, 1.35), 0.06); chain((0, -R * 0.87 - 0.25, 1.35), (1.0, -R * 0.87 - 0.2, 1.7), 0.06)
+
+# ---- REPTILIAN PASS 2: dark crown plates on two rim blocks, glow-slot plates on the gate posts
+for k in (0, 2):
+    (x0, y0), (x1, y1) = verts[k], verts[(k + 1) % 6]; mx, my = (x0 + x1) / 2, (y0 + y1) / 2; d = Vector((mx, my, 0)).normalized()
+    crownplate(0.6, (mx + d.x * 0.47, my + d.y * 0.47, 0.5), tuple(d), (0, 0, 1))
+for s in (-1, 1): glowslots(0.4, 0.5, (s * 1.25, -R * 0.87 - 0.36, 0.6), (0, -1, 0), 1)
 print(ship('rb_barracks', clip=True))

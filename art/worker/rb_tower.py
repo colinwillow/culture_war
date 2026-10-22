@@ -22,9 +22,14 @@ T = pts[-1] + Vector((0, 0, 0.3))
 ball(0.95, tuple(T), 'scale', 2, (1.0, 1.15, 0.6))
 box((1.0, 0.9, 0.45), tuple(T + Vector((0, -0.9, -0.1))), 'scale', bevel=0.15, taper=(0.7, 0.8))          # snout
 for s in (-1, 1):
-    ball(0.17, tuple(T + Vector((s * 0.42, -0.85, 0.25))), 'gmagenta', 1)
+    ball(0.17, tuple(T + Vector((s * 0.42, -0.85, 0.25))), 'gorange', 1)
     horn(0.16, 1.0, tuple(T + Vector((s * 0.55, 0.0, 0.35))), (s * 0.5, 0.2, 1), (s * 0.4, 0.4, 0), segs=3)
 for x in (-0.3, 0.0, 0.3): horn(0.06, 0.3, tuple(T + Vector((x, -1.25, -0.25))), (0, -0.2, -1), segs=2)
 frill(1.2, tuple(T + Vector((0, 0.5, 0.0))), normal=(0, -1, 0.2), up=(0, 0.2, 1), spread=230, spines=9, t=0.06)
 crown(0.5, tuple(T + Vector((0, -0.65, 0.48))), normal=(0, -0.3, 1), up=(0, 1, 0.3), t=0.02)
+
+# ---- REPTILIAN PASS 2: goggle band with orange lenses + a dark crown plate on the lookout head, glow-slot plate on the stalk
+for s in (-1, 1): speaker(0.2, tuple(T + Vector((s * 0.38, -0.8, 0.42))), (0, -1, 0.2), 'gorange')
+crownplate(0.4, tuple(T + Vector((0, -0.9, 0.5))), (0, -1, 0.3), (0, 0.3, 1))
+glowslots(0.5, 0.5, tuple(pts[5] + Vector((0, -0.5, 0))), (0, -1, 0), 2)
 print(ship('rb_tower', clip=True))
