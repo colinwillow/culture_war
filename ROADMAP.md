@@ -30,7 +30,17 @@ item says so.
 - [x] (B189) Map: HEX prototype page (hexmap.html) -- a hex board of districts; inside each hex a small grid of square city blocks, roads leaving through the hex-edge midpoints (Colin: "roads tend to be more square")
 - [x] (B189) Map: buildings on the hex districts -- low-poly procedural blocks per district type (downtown towers, shops, houses, park, industrial), varied silhouettes
 - [x] (B189) Map: hex board under the globe bend (B153) -- does the little-planet look sell it?
-- [ ] Map: leaves/debris + god rays + water on the RTS map (reuse the arena code), then decide whether the hex board replaces the current map
+- [x] (B191) Map: leaves/debris + god rays on the RTS map (reuse the arena code); no water body on this map (the hex city has water hexes); whether the hex board replaces the current map is Colin's call
+
+### Items, batch 2 (added 02:50 UTC by the loop; same rules, same steer; the species-war direction from docs/roster.md v3)
+- [ ] RTS: the arena's slash trails + impact flashes + hitstop on squad fights near the camera (reuse duel.js code via a shared module; the sim is untouched)
+- [ ] Arena: KO moment -- slow-mo on the final blow, camera push-in on the loser, a beat before the winner's taunt; footstep sounds from weirdport's footsteps folder
+- [ ] Arena: YOU vs one -- a left virtual stick to move, two big buttons (ATTACK / BLOCK), dodge on a stick flick; the AI fighter opposite; same rules
+- [ ] Hex: street walkability grid + A* on the hex city, a dozen wandering civilians on its streets (the first step toward the hex board carrying the living city)
+- [ ] Core: move the living city (stepCity/fires/civ/crew/cop/truck + alienVerb) from sim.js into src/core/city.js behind a tiny interface {rng, nearestFree, events}; prove no behaviour change with tools/balance.cjs on fixed seeds before and after (identical winners + times)
+- [ ] Hex: two RTS squads spawn on the hex map and fight along its streets (the merge, first half: squads + pathing only, no economy)
+- [ ] Arena: Spores verb prototype -- a GOO fighter: no weapon, spits a slowing puddle, splits into two smaller on death (placeholder body: the warrior tinted green, scaled .7)
+
 
 ## Earlier (overnight loop, Oct 21 2026)
 

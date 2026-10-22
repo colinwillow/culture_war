@@ -1,10 +1,11 @@
 // Static city: streets, sidewalks, buildings, parks, freeway trench + overpasses, ambient traffic.
 // Built once from map/layout.js. Mostly InstancedMesh so it stays cheap on phones.
-import { THREE, scene, mat, box, setOvercast } from './scene.js?v=189';
-import { CAM } from '../camera/camera.js?v=189';
-import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=189';
-import { hash } from '../util/math.js?v=189';
-import { emit } from '../fx/particles.js?v=189';
+import { THREE, scene, mat, box, setOvercast, sun, SUN_OFF } from './scene.js?v=191';
+import { CAM } from '../camera/camera.js?v=191';
+import { MAP, BLOCKS, CITY, TREES, PARKED, TRENCH, OVERPASSES, AVENUES, CROSS_STREETS, HOME_Z, inRect, walkH } from '../map/layout.js?v=191';
+import { hash } from '../util/math.js?v=191';
+import { TICK } from '../config/factions.js?v=191';
+import { emit } from '../fx/particles.js?v=191';
 
 const COL = {
   asphalt: 0x3d4148, sidewalk: 0xa8a49a, grass: 0x6f9e50, lawn: 0x7cab58, lot: 0x4b4f56, stripe: 0xe8e2c8,
@@ -360,6 +361,66 @@ export function setDusk(k) {
 }
 // Rain: 500 thin streaks in a box that follows the camera target, each landing with a tiny splash. One draw call.
 let rain = null;
+// ---------------------------------------------------------------- atmosphere (ported from the arena, B181/B183)
+// LEAVES: one InstancedMesh of tiny quads over the whole map, drifting on a gusting wind, settling, and shoved aside by
+// every squad and car that moves through them. GOD RAYS: six soft additive billboards hung along the sun vector over
+// the camera focus. Both skipped in LOW graphics. (No water on this map; the hex city has water hexes.)
+const LEAF_N = 900;
+let leafMesh = null, leaves = [], rays = null, atmoT = 0;
+const _lm = new THREE.Matrix4(), _lq = new THREE.Quaternion(), _ls = new THREE.Vector3(), _wind = new THREE.Vector3();
+const windS = { dir: 0.9 };
+function buildAtmo() {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([-0.07, 0, -0.04, 0.07, 0, -0.04, 0.05, 0, 0.06, -0.05, 0, 0.06], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals();
+  leafMesh = new THREE.InstancedMesh(g, new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 1 }), LEAF_N);
+  leafMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(LEAF_N * 3), 3); leafMesh.frustumCulled = false; scene.add(leafMesh);
+  const palette = [0xc96a2b, 0xd9a441, 0x8b5a2b, 0xb8432a, 0x6b6b58, 0x9c8b6a];
+  for (let i = 0; i < LEAF_N; i++) {
+    const x = (Math.random() - 0.5) * MAP.w, z = (Math.random() - 0.5) * MAP.h;
+    leaves.push({ p: new THREE.Vector3(x, walkH(x, z) + 0.01, z), v: new THREE.Vector3(), rot: new THREE.Euler(0, Math.random() * 6.28, 0), spin: new THREE.Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6), s: 0.8 + Math.random() * 0.8, k: Math.random() });
+    leafMesh.setColorAt(i, new THREE.Color(palette[i % palette.length]).offsetHSL(0, 0, (Math.random() - 0.5) * 0.15));
+  }
+  leafMesh.instanceColor.needsUpdate = true;
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d');
+  const gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(255,230,190,0)'); gr.addColorStop(0.3, 'rgba(255,230,190,.9)'); gr.addColorStop(1, 'rgba(255,230,190,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 256);
+  const side = x.createLinearGradient(0, 0, 64, 0); side.addColorStop(0, 'rgba(0,0,0,1)'); side.addColorStop(0.5, 'rgba(0,0,0,0)'); side.addColorStop(1, 'rgba(0,0,0,1)'); x.globalCompositeOperation = 'destination-out'; x.fillStyle = side; x.fillRect(0, 0, 64, 256);
+  const tex = new THREE.CanvasTexture(c), dir = SUN_OFF.clone().normalize();
+  rays = new THREE.Group(); scene.add(rays);
+  for (let i = 0; i < 6; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(2 + Math.random() * 2.5, 60), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+    const a = (i / 6) * Math.PI * 2; m.userData = { off: new THREE.Vector3(Math.cos(a) * 14, 22 + Math.random() * 6, Math.sin(a) * 14), base: 0.05 + Math.random() * 0.04, ph: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15 };
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); m.rotateY(Math.random() * Math.PI); m.renderOrder = 3; rays.add(m);
+  }
+}
+function updateAtmo(dt, S) {
+  if (!leafMesh) buildAtmo();
+  leafMesh.visible = rays.visible = !low; if (low) return;
+  atmoT += dt; const time = atmoT;
+  // rays ride the camera focus (the sun already does), along the sun vector
+  const fx = sun.target.position.x, fz = sun.target.position.z, dir = SUN_OFF.clone().normalize();
+  for (const m of rays.children) { m.position.set(fx, 0, fz).add(m.userData.off).addScaledVector(dir, 10); m.material.opacity = m.userData.base * (0.6 + 0.4 * Math.sin(time * m.userData.sp + m.userData.ph)); }
+  windS.dir += Math.sin(time * 0.11) * 0.08 * dt;
+  const gust = Math.max(0, Math.sin(time * 0.6) + Math.sin(time * 1.7) * 0.5), big = Math.sin(time * 0.23) > 0.97 ? 1 : 0;
+  const w = 0.35 + gust * 0.9 + big * 3; _wind.set(Math.cos(windS.dir), 0, Math.sin(windS.dir)).multiplyScalar(w);
+  // shovers: every squad (its radius, its speed) and the moving cars
+  const sh = [];
+  if (S) for (const q of S.squads) { const vx = (q.x - q.px) / TICK, vz = (q.z - q.pz) / TICK, sp = Math.hypot(vx, vz); if (sp > 0.3 || q.def.vehicle) sh.push({ x: q.x, z: q.z, r: q.r + 0.6, vx, vz, push: 1.2 + sp * 0.5 }); }
+  // (freeway cars run in the sunken trench, below street level: they never meet a leaf)
+  const half = { x: MAP.w / 2 + 6, z: MAP.h / 2 + 6 };
+  for (let i = 0; i < LEAF_N; i++) {
+    const L = leaves[i], gy = walkH(L.p.x, L.p.z) + 0.01, onGround = L.p.y <= gy + 0.003;
+    if (!onGround) L.v.addScaledVector(_wind, dt * 1.6); else if (w > 1.1 + L.k * 1.6) { L.v.addScaledVector(_wind, dt * 2.5); L.v.y += 0.6 + Math.random() * 1.2; }
+    for (const q of sh) { const dx = L.p.x - q.x, dz = L.p.z - q.z, d2 = dx * dx + dz * dz; if (d2 < q.r * q.r && d2 > 1e-4) { const d = Math.sqrt(d2), k = (1 - d / q.r) * q.push; L.v.x += (dx / d) * k * dt * 8 + q.vx * k * dt * 2; L.v.z += (dz / d) * k * dt * 8 + q.vz * k * dt * 2; L.v.y += k * dt * 3; } }
+    L.v.y -= (onGround ? 0 : 2.6) * dt; L.v.multiplyScalar(Math.exp(-(onGround ? 4.5 : 1.3) * dt));
+    L.p.addScaledVector(L.v, dt);
+    if (L.p.y < gy) { L.p.y = gy; L.v.y = 0; }
+    if (Math.abs(L.p.x) > half.x || Math.abs(L.p.z) > half.z) { L.p.set(-Math.sign(L.p.x) * (half.x - 2) * Math.random(), 0, -Math.sign(L.p.z) * (half.z - 2) * Math.random()); L.p.y = walkH(L.p.x, L.p.z) + 0.01; L.v.set(0, 0, 0); }
+    const sp = L.v.length();
+    if (!onGround || sp > 0.3) { L.rot.x += L.spin.x * dt * (0.3 + sp); L.rot.y += L.spin.y * dt * (0.3 + sp); L.rot.z += L.spin.z * dt * (0.3 + sp); } else { L.rot.x *= 1 - 3 * dt; L.rot.z *= 1 - 3 * dt; }
+    _lq.setFromEuler(L.rot); _ls.setScalar(L.s); _lm.compose(L.p, _lq, _ls); leafMesh.setMatrixAt(i, _lm);
+  }
+  leafMesh.instanceMatrix.needsUpdate = true;
+}
 let low = false;
 /** LOW graphics: no rain, no pedestrians. */
 export function setLowWorld(v) { low = v; if (peds) { peds.body.visible = peds.head.visible = !v; } if (v) setRain(false); }
@@ -443,6 +504,7 @@ function updatePeds(dt, S) {
 }
 export function updateWorld(dt, S) {
   syncCity(S);
+  updateAtmo(dt, S);
   updateRain(dt);
   updatePeds(dt, S);
   updateLife(dt, S);
