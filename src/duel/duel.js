@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { svg } from '../ui/icons.js?v=226';
-import { makePops, slashTex } from '../fx/pops.js?v=226';
+import { svg } from '../ui/icons.js?v=227';
+import { makePops, slashTex } from '../fx/pops.js?v=227';
 
 // ---------------------------------------------------------------- data (all the numbers worth tuning live here)
 // Contact fractions (`at`) are MEASURED, not guessed: the striking hand or foot's fastest frame in the clip
@@ -74,6 +74,7 @@ const ROSTER = [
   { name: 'COOK', rig: 'brute_cook', style: MELEE, h: 1.6, hp: 90, speed: 0.9, weapon: null },
 ];
 const RULE = {
+  size: { dmg: 1.5, dmgMax: 2.2, knock: 2.5, knockMax: 4, launch: 1.8 }, // attacker/defender height ratio ^ these (sizeK)
   pace: 1.35,        // EVERYTHING plays this much faster than authored (Colin: "a little quicker")
   think: 0.14,       // seconds between decisions
   // (no dice for a MISS any more: a swing misses when the weapon physically does not reach the body -- see touches)
@@ -513,10 +514,10 @@ function mountWeapon(f, key) {
   let own = null; if (R.R.own === key) model.traverse((o) => { if (!own && o.isBone && o.name === W.root) own = o; });
   let wm = null;
   if (own) { wm = weaponMesh(W, mats); own.add(wm); } // his own mount bone: identity
-  else if (W.gen && hand) { // pointing the way he faces at bind, true metres: undo the hand's world rotation and scale
-    model.updateMatrixWorld(true);
-    const hq = new THREE.Quaternion(), mq = new THREE.Quaternion(), hs = new THREE.Vector3(); hand.getWorldQuaternion(hq); f.root.getWorldQuaternion(mq); hand.getWorldScale(hs);
-    const mount = new THREE.Group(); mount.quaternion.copy(hq.invert().multiply(mq)); mount.scale.setScalar(1 / hs.x);
+  else if (W.gen && hand) { // aimed in the POSE he uses it in, true metres (B227: aimed at the T-pose, the shooting
+    // pose turned the blunderbuss to the sky and the fighting idle laid the club out flat like a gun -- Colin)
+    const gun = !!(WEAPONS[key].gun && f.actions['rifle_shoot_stationary_01']);
+    const mount = new THREE.Group(); mount.quaternion.copy(gripQ(f, gun)); mount.scale.setScalar(1 / f.handScale);
     wm = weaponMesh(W, mats); mount.add(wm); hand.add(mount);
   }
   else if (hand) { // borrowed: the donor's rest grip, carried over in model space and scaled by height
@@ -532,6 +533,33 @@ function mountWeapon(f, key) {
   f.wgroup = wm; f.tip = wm.userData.tip; f.weapon = key;
   const gun = WEAPONS[key].gun && f.actions['rifle_shoot_stationary_01'];
   f.def = { ...f.def, weapon: key, style: gun ? GUN : MELEE };
+}
+// The hand-local turn that puts a gen weapon's +Z where it belongs in the clip he holds it in: a gun's barrel along
+// his facing (sights up) in the shooting pose; a club up and a little forward out of the fist in the fighting idle
+// (edge, -Y, forward). Sampled once per rig on a throwaway mixer -- the real mixer rewrites every bone next frame.
+function gripQ(f, gun) {
+  const R = f.R, k = gun ? 'gun' : 'melee'; R.grip = R.grip || {};
+  const kid = (n) => f.hand.children.find((o) => o.name === 'mixamorig_RightHand' + n);
+  if (!R.grip[k] && !gun && kid('Index1') && kid('Pinky1') && kid('Middle1')) { // a FIST: the haft runs through it, pinky
+    // side to index side and out past the thumb; the fingers wrap the front, so the edge (-Y) faces where they point
+    const z = kid('Index1').position.clone().sub(kid('Pinky1').position).normalize(), fd = kid('Middle1').position.clone().normalize();
+    const y = fd.negate().addScaledVector(z, -fd.dot(z)).normalize();
+    R.grip[k] = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(y, z), y, z));
+  }
+  if (!R.grip[k]) {
+    const { model, hand } = f, clip = R.clips[gun ? GUN.shoot.c : MELEE.idle];
+    const mq = new THREE.Quaternion(); f.root.getWorldQuaternion(mq);
+    const fw = new THREE.Vector3(0, 0, 1).applyQuaternion(mq), up = new THREE.Vector3(0, 1, 0);
+    if (clip) { const mx = new THREE.AnimationMixer(model); const a = mx.clipAction(clip); a.play(); mx.setTime(clip.duration * (gun ? GUN.shoot.at : 0.5)); a.stop(); mx.uncacheRoot(model); }
+    model.updateMatrixWorld(true);
+    const hq = new THREE.Quaternion(); hand.getWorldQuaternion(hq);
+    const z = gun ? fw.clone() : up.clone().addScaledVector(fw, 0.55).normalize();
+    const y = (gun ? up.clone() : fw.clone().negate()).addScaledVector(z, -(gun ? up : fw.clone().negate()).dot(z)).normalize();
+    const W = new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(y, z), y, z);
+    R.grip[k] = hq.invert().multiply(new THREE.Quaternion().setFromRotationMatrix(W));
+  }
+  if (!f.handScale) { f.model.updateMatrixWorld(true); f.handScale = f.hand.getWorldScale(new THREE.Vector3()).x; }
+  return R.grip[k];
 }
 function dropWeapon(f, dir) {
   const wm = f.wgroup; if (!wm) return;
@@ -633,8 +661,10 @@ function brain(f, dt) {
     setState(f, 'block', 0.35 + rng() * 0.35); play(f, S.block); return;
   }
   if (f.hurtT > 0 && rng() < RULE.backstep) { f.hurtT = 0; setState(f, 'backstep', 0.35 + rng() * 0.25); stats.backstep++; return; } // just got hit: get out of range
-  if (S.shoot && d > S.keep[0] && d < S.keep[1]) { // gunner: shoot, or strafe along the keep band between shots
-    if (rng() < 0.35) { f.circleDir = rng() < 0.5 ? 1 : -1; setState(f, 'circle', 0.5 + rng() * 0.5); stats.circle++; return; }
+  if (S.shoot && d < S.keep[1]) { // gunner: shoot, or strafe along the keep band between shots -- NEVER a club swing
+    // with the gun (B227, Colin: "the shooter has a melee weapon"): too close, he backs off or fires point-blank
+    if (d < S.keep[0] && rng() < 0.55) { setState(f, 'backstep', 0.45 + rng() * 0.3); stats.backstep++; return; }
+    if (d >= S.keep[0] && rng() < 0.35) { f.circleDir = rng() < 0.5 ? 1 : -1; setState(f, 'circle', 0.5 + rng() * 0.5); stats.circle++; return; }
     return startShot(f);
   }
   const want = S.shoot && d > S.keep[1] ? S.keep[1] - 1 : S.reach - Math.min(0.6, (f.whiffs || 0) * 0.15); // whiffing? step in
@@ -706,10 +736,14 @@ function blocked(a, b, m, dir, keep) {
   play(b, b.def.style.blockHit, true, 1.2 * RULE.pace, 0.08); setState(b, 'block', dur(b, b.def.style.blockHit, 1.2 * RULE.pace) * 0.6);
   b.parryT = RULE.parry; // the counter window
 }
+const sizeK = (a, b) => { const r = a.h / b.h, Z = RULE.size; return { dmg: Math.min(Z.dmgMax, Math.max(1 / Z.dmgMax, r ** Z.dmg)), knock: Math.min(Z.knockMax, Math.max(0.35, r ** Z.knock)) }; };
 function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   a.landed = true; b.hurtT = 1.2;
   if (a.move && a.move.limb === 'foot') pebbles(b.root.position.clone(), dir, 8); // a kick throws up the sand
   if (!(a.move && a.move.ranged)) stats[light ? 'glance' : floor ? 'floor' : 'hit']++;
+  // SIZE (B227, Colin): a big body hits a small one harder and further; a small one barely moves a big one. Melee
+  // only -- a bullet does not care who pulled the trigger.
+  const sz = sizeK(a, b); if (!(a.move && a.move.ranged)) dmg *= sz.dmg; else sz.knock = 1;
   b.hp -= dmg; b.flash = 1; hitstop = RULE.hitstop * (light ? 0.5 : 1); shake = Math.max(shake, light ? 0.06 : floor ? 0.25 : 0.14);
   const p = hp ? hp.clone() : chest(b).addScaledVector(dir, -0.25); // sparks where it actually struck
   burst(p, dir.clone().negate().add(new THREE.Vector3(0, 0.4, 0)), teamColor(a.team).lerp(new THREE.Color(1, 0.95, 0.8), floor ? 0.2 : 0.45), light ? 10 : 24, light ? 2.5 : 4.5);
@@ -717,10 +751,11 @@ function hurt(a, b, dmg, dir, knock, floor, light = false, hp = null) {
   pop(p, 0xffffff, light ? 0.55 : floor ? 1.3 : 0.95, light ? 0.12 : 0.18);
   if (!a.move || !a.move.ranged) pop(p, tc, light ? 1.0 : 1.7, 0.16, slashTex, slashAngle(a, dir), 3);
   sound(floor ? 'heavy' : 'hit', light ? 0.45 : 0.8); if (rng() < 0.35) setTimeout(() => sound('grunt', 0.5), 60);
-  b.vel.addScaledVector(dir, knock * 2.2);
+  b.vel.addScaledVector(dir, knock * 2.2 * sz.knock); b.lastK = sz.knock;
+  if (sz.knock >= RULE.size.launch && !light) { floor = true; b.fly = Math.min(7, 1.6 * sz.knock); } // a giant's blow LAUNCHES a small one
   if (b.hp <= 0) return ko(b, dir);
   const S = b.def.style;
-  if (floor) { setState(b, 'down', dur(b, S.fall, 1.2 * RULE.pace) * 0.85); play(b, S.fall, true, 1.2 * RULE.pace, 0.08); b.vel.addScaledVector(dir, 2.5); return; }
+  if (floor) { setState(b, 'down', dur(b, S.fall, 1.2 * RULE.pace) * 0.85); play(b, S.fall, true, 1.2 * RULE.pace, 0.08); b.vel.addScaledVector(dir, 2.5 * sz.knock); return; }
   const where = hp ? whereHit(b, hp) : null, want = where && S.react && S.react[where];
   const h = want && b.actions[want] ? want : light ? S.hits[1] : S.hits[(rng() * S.hits.length) | 0];
   setState(b, 'hit', dur(b, h, 1.4 * RULE.pace) * 0.65); play(b, h, true, 1.4 * RULE.pace, 0.06);
@@ -763,7 +798,7 @@ const KO = { slow: 0.22, hold: 1.1, ease: 0.6, push: 0.55, beat: 1.9 };
 let koCam = null; // { t, who }
 function ko(b, dir) {
   if (fighters.filter((f) => f.team === b.team && f !== b).every((f) => f.ko)) koCam = { t: 0, who: b };
-  b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3);
+  b.ko = true; b.hp = 0; setState(b, 'ko', 99); play(b, b.def.style.fall, true, 1, 0.08); b.vel.addScaledVector(dir, 3 * (b.lastK || 1));
   dropWeapon(b, dir);
   sound('heavy', 0.9); shake = 0.3; hud();
 }
@@ -822,7 +857,8 @@ function stepFighter(f, dt) {
   if (f.state === 'down' && f.t <= 0) { setState(f, 'getup', dur(f, S.getup, 1.3 * RULE.pace) * 0.9); play(f, S.getup, true, 1.3 * RULE.pace, 0.1); }
   if (f.state === 'getup' && f.t <= 0) { setState(f, 'idle', 0); play(f, S.idle, false, 1, 0.25); }
   // knockback slide, ring edge, and no walking through each other
-  f.root.position.addScaledVector(f.vel, dt); f.vel.multiplyScalar(Math.exp(-6 * dt));
+  f.root.position.addScaledVector(f.vel, dt); f.vel.multiplyScalar(Math.exp(-(f.fly ? 1.5 : 6) * dt)); // airborne: no sand to drag on
+  if (f.fly) { f.root.position.y += f.fly * dt; f.fly -= 16 * dt; if (f.root.position.y <= 0) { f.root.position.y = 0; f.fly = 0; puff(f.root.position.clone(), 10, { size: 0.45, spread: 2, up: 0.5, life: 1 }); sound('heavy', 0.6); shake = Math.max(shake, 0.15); } }
   const r = Math.hypot(f.root.position.x, f.root.position.z); if (r > RULE.ring - 0.6) f.root.position.multiplyScalar((RULE.ring - 0.6) / r);
   for (const x of fighters) { // no walking through anybody (bodies on the floor included)
     if (x === f) continue; const d = flat(x, f), dl = d.length(), min = 0.95;
